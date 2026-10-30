@@ -24,3 +24,7 @@ GitHub Pages: **Settings → Pages → Build and deployment → Deploy from a br
 python3 -m http.server 8000
 # open http://localhost:8000
 ```
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).
