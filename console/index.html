@@ -1,0 +1,1325 @@
+<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>GPUFlow Console (concept)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: workload list (left) · vertical GPU→storage path (center) · tier panel (right); KPI strip above; timeline, diagnosis, Agent below */
+:root{
+  --bg:#F3F5F8; --panel:#FFFFFF; --line:#DCE1E8; --ink:#16202E; --muted:#5B6676;
+  --accent:#2350B8; --accent-soft:#E6EDFB;
+  --good:#1F8A5B; --warn:#B86E00; --crit:#C23B2A; --crit-soft:#FCEBE8; --warn-soft:#FDF2E1; --good-soft:#E5F4EC;
+  --gpu:#6B4FBB; --rail:#C9D2DE; --wl1:#7A4FD0; --wl2:#13858A; --wl3:#B7791F; --idle:#E7EBF0; --badge:#4B2FA8; --badge-hot:#B3261E; --badge-fg:#FFFFFF; --node-bg:#EEF2F8;
+  --f-ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-data:"JetBrains Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F141B; --panel:#161D27; --line:#2A3443; --ink:#E6ECF3; --muted:#93A0B2;
+  --accent:#7DA2F2; --accent-soft:#1C2A45; --good:#4CC28A; --warn:#E3A33B; --crit:#F0705E;
+  --crit-soft:#3A1F1C; --warn-soft:#352A16; --good-soft:#16302A; --gpu:#A992F0; --rail:#344257; --wl1:#B39BF5; --wl2:#4FC4C6; --wl3:#E8B04E; --idle:#222B38; --badge:#6A4FE0; --badge-hot:#D63B2F; --badge-fg:#FFFFFF; --node-bg:#1E2734; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F141B; --panel:#161D27; --line:#2A3443; --ink:#E6ECF3; --muted:#93A0B2;
+  --accent:#7DA2F2; --accent-soft:#1C2A45; --good:#4CC28A; --warn:#E3A33B; --crit:#F0705E;
+  --crit-soft:#3A1F1C; --warn-soft:#352A16; --good-soft:#16302A; --gpu:#A992F0; --rail:#344257; --wl1:#B39BF5; --wl2:#4FC4C6; --wl3:#E8B04E; --idle:#222B38; --badge:#6A4FE0; --badge-hot:#D63B2F; --badge-fg:#FFFFFF; --node-bg:#1E2734; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;line-height:1.45}
+.wrap{max-width:1360px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-content:space-between}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font-size:20px;letter-spacing:-.01em}
+.brand span{color:var(--muted);font-size:13px}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px;align-self:center}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--good);animation:pulse 2s ease-out infinite}
+.live b{font-size:11px;letter-spacing:.08em;color:var(--good)}
+.live.off i{animation:none;background:var(--muted)}.live.off b{color:var(--muted)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 60%,transparent)}100%{box-shadow:0 0 0 8px transparent}}
+@media (prefers-reduced-motion:reduce){.live i{animation:none}}
+.pause{font:inherit;font-size:12px;padding:2px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;align-self:center}
+.pause:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.brand{flex-wrap:wrap}
+.kpi .v{transition:color .3s}
+.views{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.views button{font:inherit;font-size:13.5px;font-weight:600;padding:8px 14px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--muted);cursor:pointer;display:flex;gap:8px;align-items:baseline}
+.views button small{font-weight:400;font-size:11.5px}
+.views button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.views button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.view{display:flex;flex-direction:column;gap:14px}
+.view[hidden]{display:none}
+.ovk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.ovk .kpi .v{font-size:22px}
+.ovgrid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:14px;align-items:start}
+.pods{padding:10px 14px 14px;display:flex;flex-direction:column;gap:12px}
+.pod{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.pod.hotp{border-color:var(--crit)}
+.pod .ph2{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;justify-content:space-between}
+.pod .ph2 b{font-size:13px}
+.pod .ph2 .st{font-size:12px;color:var(--muted)}
+.wchips{display:flex;flex-wrap:wrap;gap:6px}
+.wchip{font:inherit;font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.wchip i{width:8px;height:8px;border-radius:2px;display:block}
+.wchip:hover{border-color:var(--accent)}
+.wchip:focus-visible,.gnode:focus-visible,.snode:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.gnodes{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px}
+.gnode{all:unset;box-sizing:border-box;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:5px 6px;display:flex;flex-direction:column;gap:4px}
+.gnode:hover{border-color:var(--accent)}
+.gnode.idle{cursor:default;opacity:.75}
+.gnode.hotn{border-color:var(--crit)}
+.gnode .r1{display:flex;justify-content:space-between;font-family:var(--f-data);font-size:10.5px;color:var(--muted)}
+.gcells{display:grid;grid-template-columns:repeat(8,1fr);gap:2px}
+.gcells i{height:12px;border-radius:2px;display:block;border-bottom:3px solid transparent}
+.gcells i.idle{background:var(--idle)}
+.fabric{margin:0 14px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;display:flex;flex-direction:column;gap:6px}
+.fabric .t{font-size:12.5px;font-weight:600}
+.links{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px}
+.link{font-size:11.5px;display:grid;grid-template-columns:1fr auto;gap:2px 6px}
+.link .bar{grid-column:1/3;height:5px}
+.link.hot{color:var(--crit)} .link.hot .bar b{background:var(--crit)}
+.stor{padding:10px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.snodes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.snode{border:1px solid var(--line);border-radius:6px;padding:6px 7px;display:flex;flex-direction:column;gap:4px;background:var(--accent-soft)}
+.snode.hot{border-color:var(--crit);background:var(--crit-soft)}
+.snode .r1{display:flex;justify-content:space-between;font-family:var(--f-data);font-size:10.5px}
+.snode .r1 span:last-child{color:var(--muted)}
+.tcells{display:grid;grid-template-columns:repeat(8,1fr);gap:2px}
+.tcells i{height:10px;border-radius:2px;display:block}
+.snode .cap{height:4px}
+.conts{display:flex;flex-direction:column;gap:6px}
+.cont{display:grid;grid-template-columns:auto 1fr auto;gap:2px 8px;font-size:12px;align-items:center}
+.cont i{width:8px;height:8px;border-radius:2px;display:block}
+.cont .bar{grid-column:2/4;height:5px}
+.evline{font-size:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ovlg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:var(--muted);padding:0 14px}
+.ovlg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+@media (max-width:1100px){.ovgrid{grid-template-columns:1fr}.ovk{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:720px){.ovk{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ksban{font-size:12.5px;border:1px dashed var(--warn);background:var(--warn-soft);border-radius:8px;padding:8px 12px}
+.ksban b{color:var(--warn);margin-right:6px}
+.ksgrid{display:grid;grid-template-columns:240px minmax(0,1fr) 300px;gap:14px;align-items:start}
+.kside{display:flex;flex-direction:column;gap:14px;min-width:0}
+.kscap{font-size:11.5px;color:var(--muted);font-family:var(--f-data)}
+nav .kscap{padding:0 14px 12px;display:block}
+.kspipe{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:10px 14px}
+.kscol{border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.kscol:nth-child(3){border-color:var(--accent);background:var(--accent-soft)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:0;font-size:12.5px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;overflow-wrap:anywhere}
+.fl{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+.fl b{color:var(--ink);font-weight:600}
+.kscol input[type=range]{width:100%;accent-color:var(--accent)}
+select{font:inherit;font-size:12.5px;padding:4px 6px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.kseff{font-size:12px;color:var(--good);margin-top:auto}
+.ksconf{padding:0 14px 14px;display:flex;flex-direction:column;gap:8px}
+.tabs2{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;align-self:flex-start}
+.tabs2 button{font:inherit;font-size:12px;padding:5px 12px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.tabs2 button+button{border-left:1px solid var(--line)}
+.tabs2 button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.code{margin:0;font-family:var(--f-data);font-size:12px;line-height:1.55;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:pre}
+.ksact{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.btn{font:inherit;font-size:13px;padding:7px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--panel);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent);font-size:12px;padding:5px 10px;align-self:flex-start}
+.btn:focus-visible,.tabs2 button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.kspad{padding:10px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.sw{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:600}
+.sw input{accent-color:var(--accent);width:16px;height:16px}
+.row2{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center}
+.hrow{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;font-size:12.5px}
+.hrow .kscap{grid-column:1/3;font-family:var(--f-ui)}
+.rk{display:grid;grid-template-columns:52px 1fr 36px;gap:8px;align-items:center;font-size:11.5px}
+.rk .bar{height:6px} .rk.hi{color:var(--crit)} .rk.hi .bar b{background:var(--crit)}
+.klog{list-style:none;margin:0;padding:10px 14px 14px;display:flex;flex-direction:column;gap:4px;font-size:12.5px}
+.klog li{display:flex;gap:10px} .klog li .num{color:var(--muted);font-size:11.5px}
+@media (max-width:1100px){.ksgrid{grid-template-columns:1fr}.kspipe{grid-template-columns:1fr}}
+.ngrid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;align-items:start}
+.ngrid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.ntopo{padding:6px 14px 0;overflow-x:auto}
+.topo2{width:100%;min-width:560px;height:auto;display:block}
+.dpuhit{cursor:pointer}.dpuhit:focus-visible rect{stroke:var(--accent);stroke-width:2}
+.tw{overflow-x:auto;padding:4px 14px 14px}
+.dtab{width:100%;border-collapse:collapse;font-size:12.5px}
+.dtab th{text-align:left;font-weight:600;font-size:11.5px;color:var(--muted);border-bottom:1px solid var(--line);padding:6px 8px}
+.dtab td{border-bottom:1px solid var(--line);padding:6px 8px}
+.dtab tr[data-dpu]{cursor:pointer}
+.dtab tr.sel td{background:var(--accent-soft)}
+.dtab tr.hot td{color:var(--crit)}
+.dstat dd.bad{color:var(--crit);font-weight:600}
+.diff{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.diff ul{margin:4px 0 0;padding-left:16px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+@media (max-width:1100px){.ngrid,.ngrid2{grid-template-columns:1fr}}
+.wrap{max-width:1560px}
+.scopebar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.scg{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.scl{font-size:11px;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.scg .arr{color:var(--muted);font-size:11px}
+.sc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.sc select:disabled{opacity:.5}
+.shell{display:grid;grid-template-columns:212px minmax(0,1fr);gap:16px;align-items:start}
+.side{position:sticky;top:env(safe-area-inset-top,0px);display:flex;flex-direction:column;gap:2px;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.sg{font-size:11px;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:10px 8px 4px}
+.si{font:inherit;font-size:12.5px;text-align:left;display:grid;grid-template-columns:20px 1fr auto;gap:4px;align-items:center;padding:6px 8px;border:0;border-radius:6px;background:transparent;color:var(--ink);cursor:pointer}
+.si:hover{background:var(--bg)} .si.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.si:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.si .sn{font-weight:600} .si .sb{font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.mainv{display:flex;flex-direction:column;gap:14px;min-width:0}
+.scrh{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px}
+.scrh h1{font-size:18px;margin:0;letter-spacing:-.01em}
+.yb{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:600;white-space:nowrap}
+.yb.ro{background:var(--warn-soft);color:var(--warn)}
+.srcb{font-size:11.5px;color:var(--muted);display:inline-flex;gap:6px;align-items:center;margin-left:auto}
+.srcb i{display:inline-block;width:8px;height:8px;border-radius:50%}
+.d-live{background:var(--good)} .d-rep{background:var(--wl1)} .d-sim{background:var(--muted)}
+.src{font-size:11px;padding:1px 6px;border-radius:4px;border:1px solid var(--line)} .src.s-sim{color:var(--muted)} .src.s-live{color:var(--good);border-color:var(--good)} .src.s-none{color:var(--warn)}
+body.ro .mainv .btn,body.ro .mainv .tg,body.ro .mainv input,body.ro .mainv .act,body.ro .mainv .pol,body.ro .mainv select:not(#sc-per){pointer-events:none;opacity:.5}
+@keyframes flash{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
+.flash{animation:flash 1.4s ease-out}
+.podtiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.ptile{font:inherit;text-align:left;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);cursor:pointer}
+.ptile:hover{border-color:var(--accent)} .ptile.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)} .ptile.hotp{border-color:var(--crit)}
+.ptile:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.pt1{grid-column:1/3;display:flex;gap:8px;align-items:baseline} .pt1 b{font-size:14px} .pt1 span{font-size:12px;color:var(--muted)}
+.pt2{display:flex;justify-content:space-between;gap:6px;font-size:12px} .pt2>span{color:var(--muted)}
+.hmwrap{padding:8px 14px 0;overflow-x:auto} #hm{width:100%;min-width:420px;height:auto;display:block}
+.hmtip{padding:4px 14px;font-size:11.5px;color:var(--muted);min-height:18px}
+.topn{list-style:none;margin:0;padding:8px 10px 12px;display:flex;flex-direction:column;gap:2px}
+.topn button,.topn .tt{font:inherit;width:100%;display:grid;grid-template-columns:76px 1fr auto;gap:8px;align-items:center;padding:5px 6px;border:0;border-radius:6px;background:transparent;color:var(--ink);text-align:left;font-size:12.5px}
+.topn button{cursor:pointer} .topn button:hover{background:var(--bg)}
+.stor3{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.tabs2.big button{font-size:13px;padding:7px 14px}
+.mdr{display:grid;grid-template-columns:auto 1fr auto auto;gap:2px 10px;align-items:center;font-size:12px}
+.mdr .bar{grid-column:1/5;height:5px}
+.ostg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px}
+.ost{display:grid;grid-template-columns:62px 1fr 34px;gap:6px;align-items:center;font-size:11px} .ost .bar{height:5px} .ost.hot{color:var(--crit)} .ost.hot .bar b{background:var(--crit)}
+.acts2{display:flex;gap:6px;flex-wrap:wrap}
+.orch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.oc{padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;font-size:12.5px}
+.oc b{font-size:14px} .oc>*:nth-child(n+3){grid-column:1/3}
+.isor{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:12.5px}
+.alist{list-style:none;margin:0;padding:8px 12px 12px;display:flex;flex-direction:column;gap:6px}
+.alist li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:12.5px}
+.alist li.crit{border-left:3px solid var(--crit)} .alist li.warn{border-left:3px solid var(--warn)} .alist li.ack{opacity:.55}
+.am{display:flex;flex-direction:column;gap:2px} .aa{display:flex;gap:6px;align-items:center}
+.pill.crit{background:var(--crit-soft);color:var(--crit)}
+.mtx td,.mtx th{text-align:center} .mtx td:first-child,.mtx th:first-child{text-align:left} .mtx td.cur{background:var(--accent-soft);font-weight:700}
+.tg{font:inherit;font-size:11.5px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tg.on{border-color:var(--good);color:var(--good);background:var(--good-soft)}
+.tg:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+@media (max-width:1180px){.shell{grid-template-columns:1fr}.side{position:static;flex-direction:row;flex-wrap:wrap}.sg{width:100%;padding:4px}.podtiles{grid-template-columns:repeat(2,minmax(0,1fr))}.stor3{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.orch{grid-template-columns:1fr}}
+.fc{border-top:1px solid var(--line);margin:0 14px;padding:12px 0 14px;display:flex;flex-direction:column;gap:8px}
+.fch{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.fch h2{font-size:13px;margin:0}
+.fcsvg svg{width:100%;height:auto;display:block}
+.fcl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.fcl li{display:grid;grid-template-columns:48px 1fr auto auto;gap:10px;align-items:center;font-size:12.5px;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
+.fcl li.crit{border-left:3px solid var(--crit)} .fcl li.warn{border-left:3px solid var(--warn)}
+.pred{font-size:11px;margin-top:2px}
+.b2{display:grid;grid-template-columns:52px 1fr 40px;gap:6px;align-items:center;font-size:11px;color:var(--muted)}
+.b2+.b2{margin-top:3px}
+.b2 .bar{height:7px} .b2 .num{text-align:right;color:var(--ink)}
+.b2.pb .bar b{background:var(--wl1)} .b2.pb.warn .bar b{background:var(--warn)} .b2.pb.crit .bar b{background:var(--crit)}
+.b2.pb.warn .num{color:var(--warn)} .b2.pb.crit .num{color:var(--crit);font-weight:600}
+.pwarn{font-size:11px;color:var(--crit);font-weight:600;margin-top:2px}
+.ttb{position:relative;overflow:visible} .ttb i{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.7}
+.b2.tt.warn:not(.pb) .bar b{background:var(--warn)} .b2.tt.crit:not(.pb) .bar b{background:var(--crit)} .b2.tt.crit:not(.pb) .num{color:var(--crit);font-weight:600}
+.psrc{font-size:10px;border:1px solid currentColor;border-radius:3px;padding:0 3px;margin-right:3px;opacity:.8}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:6px;padding:4px 8px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0}
+.ph{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:12px 14px 0}
+.ph h2{font-size:13px;font-weight:600;margin:0;letter-spacing:.02em}
+.ph small{color:var(--muted);font-size:12px}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.num{font-family:var(--f-data);font-variant-numeric:tabular-nums}
+
+/* KPI strip */
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.kpi{padding:12px 14px;display:flex;flex-direction:column;gap:4px;position:relative}
+.kpi .v{font-size:24px;font-weight:600}
+.kpi .v.blink{color:var(--accent)}
+.kpi .v u{font-size:13px;text-decoration:none;color:var(--muted);margin-left:3px;font-weight:400}
+.kpi .d{font-size:12px;color:var(--muted)}
+.spk{height:36px;margin-top:4px;cursor:crosshair;position:relative}
+.spk svg{width:100%;height:100%;display:block;overflow:visible}
+.spr{position:absolute;top:10px;right:12px;font-size:11px;color:var(--muted);background:var(--panel)}
+.rangebar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:-4px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{font:inherit;font-size:12.5px;padding:5px 12px;border:0;background:transparent;color:var(--muted);cursor:pointer;display:flex;gap:6px;align-items:baseline}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button small{font-size:11px;opacity:.8}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.rhint{font-size:11.5px;color:var(--muted)}
+.kpi.north{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.delta.good{color:var(--good)} .delta.bad{color:var(--crit)}
+
+/* main grid */
+.main{display:grid;grid-template-columns:260px minmax(0,1fr) 300px;gap:14px;align-items:start}
+.wl{list-style:none;margin:0;padding:10px;max-height:min(1100px,80vh);overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.wl button{all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:10px;border-radius:8px;border:1px solid transparent;cursor:pointer}
+.wl button:hover{background:var(--bg)}
+.wl button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.wl button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.wl .n{font-weight:600;font-size:13px;overflow-wrap:anywhere}
+.wl .t{grid-column:1/2;font-size:12px;color:var(--muted)}
+.pill{font-size:11px;padding:2px 8px;border-radius:999px;align-self:start;white-space:nowrap}
+.pill.crit{background:var(--crit-soft);color:var(--crit)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.good{background:var(--good-soft);color:var(--good)}
+.wl .m{grid-column:1/3;font-size:12px;color:var(--muted)}
+.wl .grp{display:grid;grid-template-columns:1fr auto;gap:0 8px;padding:8px 4px 2px;border-top:1px solid var(--line);margin-top:4px}
+.wl .grp:first-child{border-top:0;margin-top:0;padding-top:2px}
+.wl .gn{font-size:12px;font-weight:700;letter-spacing:.04em}
+.wl .gc{font-size:11px;color:var(--muted);align-self:center}
+.wl .gs{grid-column:1/3;font-size:11.5px;color:var(--muted)}
+
+/* path */
+.path{padding:10px 14px 14px;display:grid;grid-template-columns:26px minmax(0,1fr);gap:0 10px}
+.rail{position:relative;grid-row:1/-1}
+.rail canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hops{display:flex;flex-direction:column;gap:6px}
+.hop{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 92px;gap:4px 12px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:8px;position:relative}
+.hop .nm{font-weight:600;font-size:13px}
+.hop .sb{font-size:12px;color:var(--muted)}
+.hop .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chip{font-family:var(--f-data);font-size:10.5px;padding:1px 6px;border-radius:4px;border:1px solid var(--line);color:var(--muted)}
+.chip.on{border-color:var(--good);color:var(--good)}
+.chip.off{text-decoration:line-through}
+.bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.bar b{display:block;height:100%;background:var(--accent);border-radius:3px;transition:width .8s ease}
+.hop .bw{font-size:12px;color:var(--muted);margin-top:3px}
+.hop .lat{text-align:right;font-size:13px}
+.hop .lat small{display:block;font-size:11px;color:var(--muted);font-family:var(--f-ui)}
+.hop.storage{border-color:var(--accent);background:var(--accent-soft)}
+.hop.hot{border-color:var(--crit);box-shadow:inset 3px 0 0 var(--crit)}
+.hop.hot .lat{color:var(--crit)}
+.hop.hot.storage{background:var(--crit-soft)}
+.hop .tag{position:absolute;top:-9px;right:10px;font-size:11px;background:var(--crit);color:var(--panel);padding:1px 7px;border-radius:999px}
+
+/* multi-node placement */
+.topo{padding:10px 14px 0;display:flex;flex-direction:column;gap:6px}
+.topo .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px}
+.topo .hd b{font-size:12.5px}
+.scope{all:unset;cursor:pointer;font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.scope[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.scope:focus-visible,.nrow:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.nodes{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:6px}
+.nrow{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px;padding:5px 7px;border:1px solid var(--line);border-radius:6px}
+.nrow[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.nrow.hotn{border-color:var(--crit)}
+.nrow .nl{font-family:var(--f-data);font-size:11px;color:var(--muted)}
+.nrow .nv{font-family:var(--f-data);font-size:11px}
+.cells{display:flex;gap:2px;flex-wrap:nowrap}
+.cells i{width:9px;height:12px;border-radius:2px;display:block}
+.c-good{background:var(--good);opacity:.55}.c-warn{background:var(--warn);opacity:.8}.c-crit{background:var(--crit)}
+.topo .lg{font-size:11.5px;color:var(--muted)}
+.hop .spread{display:block;font-size:11px;color:var(--muted);font-family:var(--f-data)}
+
+/* tiers */
+.tiers{padding:10px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.tier{display:grid;grid-template-columns:54px minmax(0,1fr) 52px;gap:4px 10px;align-items:center}
+.tier .k{font-family:var(--f-data);font-size:12px;font-weight:600}
+.tier .lbl{grid-column:2/4;font-size:12px;color:var(--muted);margin-top:-2px}
+.tier .bar{height:10px}
+.tier .r,.tier .lbl{transition:color .3s}
+.tier.l0 .bar b{background:var(--gpu)}
+.tier.l3 .k{color:var(--accent)}
+.tier.l3 .bar b{background:var(--accent)}
+.tier .bar b.h{background:var(--good)}
+.tier .r{text-align:right;font-size:12px}
+.stack{display:flex;height:14px;border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.stack span{display:block;height:100%;transition:flex-basis .8s ease}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11.5px;color:var(--muted)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.pols{display:flex;flex-direction:column;gap:6px}
+.pol{all:unset;box-sizing:border-box;display:grid;grid-template-columns:auto 1fr;gap:2px 8px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.pol.base{cursor:default;background:var(--bg)}
+.pol:not(.base):hover{border-color:var(--accent)}
+.pol:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.pol.on{border-color:var(--accent);background:var(--accent-soft)}
+.pol .st{font-size:10.5px;padding:1px 6px;border-radius:999px;align-self:start;margin-top:1px;white-space:nowrap;border:1px solid var(--line);color:var(--muted)}
+.pol.on .st{border-color:var(--good);color:var(--good)}
+.pol.base .st{color:var(--muted)}
+.pol .pn{font-size:12.5px;font-weight:600}
+.pol .pr{grid-column:2;font-family:var(--f-data);font-size:11px;color:var(--muted)}
+.pol .pe{grid-column:2;font-size:11.5px}
+.pol .pe.exp{color:var(--muted)}
+.pol .pe.got{color:var(--good)}
+.poleff{margin-top:8px;font-size:12px;display:grid;grid-template-columns:auto 1fr;gap:3px 10px}
+.poleff span:nth-child(odd){color:var(--muted)}
+.tiers hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+
+/* bottom */
+.lower{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:start}
+.chart{padding:4px 14px 12px}
+.chart svg{width:100%;height:auto;display:block}
+.diag{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.verdict{border-left:3px solid var(--crit);padding:2px 0 2px 10px}
+.verdict.ok{border-color:var(--good)}
+.verdict b{display:block;font-size:14px}
+.verdict p{margin:4px 0 0;font-size:12.5px;color:var(--muted)}
+.ev{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:12.5px}
+.ev li::before{content:"Evidence";font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-right:6px}
+.acts{display:flex;flex-direction:column;gap:6px}
+.act{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.act input{margin-top:3px;accent-color:var(--accent)}
+.act b{font-size:13px;display:block}
+.act small{font-size:12px;color:var(--muted)}
+.act:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.agent{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.ask{display:flex;gap:8px;flex-wrap:wrap}
+.ask input{flex:1 1 220px;min-width:0;font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.ask button,.sugg button{font:inherit;font-size:13px;padding:8px 12px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--panel);cursor:pointer}
+.sugg{display:flex;flex-wrap:wrap;gap:6px}
+.sugg button{background:transparent;color:var(--accent);font-size:12px;padding:4px 10px}
+.ans{font-size:13px;background:var(--bg);border-radius:8px;padding:10px 12px;white-space:pre-line;min-height:64px}
+.ans .src{display:block;margin-top:6px;font-size:11.5px;color:var(--muted)}
+footer{font-size:12px;color:var(--muted)}
+
+@media (max-width:1100px){.main{grid-template-columns:220px minmax(0,1fr)}.tierpanel{grid-column:1/-1}.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.lower{grid-template-columns:1fr}}
+@media (max-width:720px){.main{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.hop{grid-template-columns:minmax(0,1fr) 80px}.hop .mid{grid-column:1/-1;order:3}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>GPUFlow</b><span>AI data-path console · concept mockup</span><span class="live" id="live"><i></i><b>LIVE</b><span class="num" id="clock"></span></span><button type="button" class="pause" id="pause" aria-pressed="false">Pause</button></div>
+    <span class="note">Concept mockup · all values are scenario examples · <a href="../">GPUFlow home</a></span>
+  </header>
+
+  <div class="scopebar" id="scopebar"></div>
+  <div class="shell"><aside class="side" id="side" aria-label="Screen menu"></aside><div class="mainv">
+  <div class="scrh" id="scrh"></div>
+
+  <div id="ov" class="view"></div>
+  <div id="fab" class="view" hidden><div class="tabs2 big" id="fab-tabs" role="group" aria-label="Storage Fabric view"></div><div id="fab-st" class="view"></div><div id="net" class="view" hidden></div></div>
+  <div id="pol" class="view" hidden><div id="polreg" class="view"></div><div id="ks" class="view"></div></div>
+  <div id="node" class="view" hidden></div>
+  <div id="ten" class="view" hidden></div>
+  <div id="alr" class="view" hidden></div>
+  <div id="aud" class="view" hidden></div>
+  <div id="sc" class="view" hidden></div>
+
+  <div id="dt" class="view" hidden>
+  <div class="rangebar"><span class="eyebrow">Trend range</span><div class="seg" role="group" aria-label="Trend range">
+      <button type="button" data-r="live" aria-pressed="true">Live <small>2 s · 2 min</small></button>
+      <button type="button" data-r="m1" aria-pressed="false">1 min <small>1-min avg · 1 h</small></button>
+      <button type="button" data-r="m10" aria-pressed="false">10 min <small>10-min avg · 12 h</small></button></div>
+    <span class="rhint">Hover over a chart to see the value at that time</span></div>
+  <section class="kpis" aria-label="Key metrics">
+    <div class="panel kpi north"><span class="eyebrow">GPU data-wait ratio · workload</span><span class="v num" id="k-wait"></span><span class="d" id="k-wait-d"></span><span class="spr num" data-m="wait"></span><div class="spk" data-m="wait" aria-hidden="true"></div></div>
+    <div class="panel kpi"><span class="eyebrow" id="k2-l"></span><span class="v num" id="k-p2"></span><span class="d" id="k-p2-d"></span><span class="spr num" data-m="p2"></span><div class="spk" data-m="p2" aria-hidden="true"></div></div>
+    <div class="panel kpi"><span class="eyebrow">Delivered bandwidth · workload</span><span class="v num" id="k-bw"></span><span class="d">L3 → GPU total · IOPS <b class="num" id="k-iops"></b></span><span class="spr num" data-m="bw"></span><div class="spk" data-m="bw" aria-hidden="true"></div></div>
+    <div class="panel kpi"><span class="eyebrow">Zero-copy path ratio</span><span class="v num" id="k-zc"></span><span class="d">GDS + GDR bytes ÷ total</span><span class="spr num" data-m="zc"></span><div class="spk" data-m="zc" aria-hidden="true"></div></div>
+    <div class="panel kpi"><span class="eyebrow">Cache/tier hit ratio</span><span class="v num" id="k-hit"></span><span class="d" id="k-hit-d">Lookups at L1 and below</span><span class="spr num" data-m="hit"></span><div class="spk" data-m="hit" aria-hidden="true"></div></div>
+    <div class="panel kpi"><span class="eyebrow">Host CPU · node average</span><span class="v num" id="k-cpu"></span><span class="d">KPI 7 · target ≤ 5%</span><span class="spr num" data-m="cpu"></span><div class="spk" data-m="cpu" aria-hidden="true"></div></div>
+  </section>
+
+  <div class="main">
+    <nav class="panel" aria-label="Workloads">
+      <div class="ph"><h2>Workloads</h2><small>By type · highest wait first</small></div>
+      <ul class="wl" id="wl"></ul>
+    </nav>
+
+    <section class="panel" aria-label="Data path">
+      <div class="ph"><h2 id="path-title">Data path</h2><small id="path-scope">GPU → storage, selected workload</small></div>
+      <div class="topo" id="topo"></div>
+      <div class="path">
+        <div class="rail" aria-hidden="true"><canvas id="railc"></canvas></div>
+        <div class="hops" id="hops"></div>
+      </div>
+      <div class="fc" aria-label="Forecast flow"><div class="fch"><div><h2>Forecast flow · by layer</h2><small class="kscap" style="font-family:var(--f-ui)">Storage layer = KETI (eBPF + Informer) · other layers = Gluesys ·<span id="fc-acc"></span></small></div>
+        <label class="sc"><span>Horizon</span><select id="fc-h"><option value="30">+30 s</option><option value="60" selected>+60 s</option><option value="120">+120 s</option></select></label><span class="yb">KETI · Gluesys · Y1 model · Y2 integration</span></div>
+        <div id="fcsvg" class="fcsvg"></div><div class="eyebrow" style="padding:0 2px">Forecast bottlenecks · proactive actions</div><ul class="fcl" id="fclist"></ul></div>
+    </section>
+
+    <aside class="panel tierpanel" aria-label="Tiers">
+      <div class="ph"><h2>Tiers &amp; cache</h2><small id="tier-sub"></small></div>
+      <div class="tiers">
+        <div><div class="eyebrow" style="margin-bottom:6px">Tier that served each request</div><div class="stack" id="hitstack"></div>
+          <div class="legend" style="margin-top:6px" id="hitlegend"></div></div>
+        <hr>
+        <div id="tierrows" style="display:flex;flex-direction:column;gap:10px"></div>
+        <hr>
+        <div><div class="eyebrow" style="margin-bottom:6px">Tiering policies · click to apply / remove</div><div id="policies" class="pols"></div>
+          <div id="poleff" class="poleff"></div></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="lower">
+    <section class="panel" aria-label="Timeline">
+      <div class="ph"><h2>GPU wait and <span id="ch-l2"></span>, last 2 min</h2><small>Dashed line = policy change</small></div>
+      <div class="chart" id="chart"></div>
+    </section>
+    <section class="panel" aria-label="Bottleneck diagnosis">
+      <div class="ph"><h2>Bottleneck diagnosis</h2><small id="diag-sub"></small></div>
+      <div class="diag">
+        <div class="verdict" id="verdict"></div>
+        <ul class="ev" id="evidence"></ul>
+        <div class="eyebrow">Recommended actions · toggle to preview impact</div>
+        <div class="acts" id="acts"></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel" aria-label="Agent query">
+    <div class="ph"><h2>Agent query</h2><small>Answers by querying metrics and events, with evidence</small></div>
+    <div class="agent">
+      <form class="ask" id="askf"><label for="q" class="eyebrow" style="flex-basis:100%">Question</label><input id="q" placeholder="e.g. Why did TTFT rise for vllm-qwen3-14b?"><button type="submit">Ask</button></form>
+      <div class="sugg" id="sugg"></div>
+      <div class="ans" id="ans" aria-live="polite">Pick a suggested question or type your own.</div>
+    </div>
+  </section>
+
+  </div>
+
+  <footer>GPUFlow project · concept mockup. All values are scenario examples, not measurements. Layers and metric names follow the GPUFlow dashboard telemetry standard (draft). <a href="../">Back to the GPUFlow homepage</a></footer>
+  </div></div>
+</div>
+
+<script>
+/* Some viewers do not resolve var(--x) inside SVG attributes, so resolve colors just before drawing (font variables excluded) */
+const CSSV=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const rv=t=>t.replace(/var\((--[\w-]+)\)/g,(m,n)=>n.startsWith('--f-')?m:(CSSV(n)||m));
+const LAYERS=[
+ {k:'app',nm:'Application',sb:'vLLM · LMCache'},
+ {k:'gpu',nm:'GPU memory · L0 HBM',sb:'H100 · PCIe Gen5'},
+ {k:'cache',nm:'Host cache · L1 DRAM · L2 CXL',sb:'KV cache tiers'},
+ {k:'transport',nm:'Transport path',sb:'GDS · GDR · RDMA'},
+ {k:'fabric',nm:'Network · DPU',sb:'RoCEv2 400GbE · NVMe-oF'},
+ {k:'storage',nm:'Parallel storage · L3',sb:'DAOS / ExaStor · target · NVMe'},
+ {k:'cold',nm:'Cold tier · L4',sb:'External S3'}
+];
+const TIERS=['l0','l1','l2','l3','l4'];
+const TNAME={l0:'L0 HBM',l1:'L1 DRAM',l2:'L2 CXL',l3:'L3 DAOS',l4:'L4 S3'};
+const TCOL={l0:'var(--gpu)',l1:'#7E8BA0',l2:'var(--warn)',l3:'var(--accent)',l4:'var(--muted)',miss:'var(--crit)'};
+
+/* Each workload: base state + per-action deltas (effect). Values are scenario examples. */
+const W={
+ infer:{id:'vllm-qwen3-14b',type:'Inference · multi-turn, 40 sessions',k2:'TTFT p95',k2u:'s',
+  base:{wait:23,p2:4.8,bw:6.1,zc:41,hit:58,cpu:4.1,
+   hops:{app:[null,'TTFT p95 4.8 s'],gpu:[62,'staging 8 GiB'],cache:[48,'L1 92% used'],transport:[55,'via host 59%'],fabric:[38,'ECN low'],storage:[71,'p99 18 ms · 410k IOPS'],cold:[3,'—']},
+   hot:'storage',hotTag:'target skew',
+   feat:{gpu:['GDR'],transport:['GDS','GDR','RDMA'],fabric:['RDMA','DPU'],storage:['RR placement','Prefetch']},
+   hits:{l0:31,l1:21,l2:0,l3:6,l4:0,miss:42},
+   tiers:{l0:[88,'KV blocks 88% of 80 GiB HBM'],l1:[92,'92% of 80 GiB · evict 1.2k/min'],l2:[0,'Inactive'],l3:[34,'512 GiB · writes only, read 6%'],l4:[2,'Archive']}},
+  acts:[
+   {id:'cxl',b:'Enable L2 CXL tier',s:'Keep KV evicted from L1 in CXL memory (SNU)',d:{wait:-6,p2:-1.1,hit:+14,hits:{l2:+14,miss:-14},tiers:{l2:[61,'61% of 120 GiB'],l1:[78,'78% of 80 GiB']},hops:{cache:[60,'L1 78% · L2 61%']}}},
+   {id:'rr',b:'Round-robin target placement',s:'Spread consecutive chunks across targets (Sogang)',d:{wait:-5,p2:-0.9,bw:+3.4,feat:{storage:'RR placement'},hops:{storage:[52,'p99 9 ms · 640k IOPS']},unhot:true}},
+   {id:'pf',b:'Server-side prefetch + staging window',s:'Preload into server DRAM from lookup hints; staging 8→2 GiB (Sogang)',d:{wait:-5,p2:-0.7,zc:+27,hit:+6,hits:{l3:+6,miss:-6},feat:{storage:'Prefetch'},tiers:{l3:[34,'512 GiB · read 12%']},hops:{gpu:[48,'staging 2 GiB'],transport:[72,'via host 32%']}}}
+  ],
+  verdict:['Slow KV restores keep GPUs waiting 23% of the time','L1 DRAM is full, so the KV miss rate is 42%, and the chunks to re-read are concentrated on 3 DAOS targets.'],
+  ok:['GPU wait is back below the threshold','See the effect of the applied policies on the timeline.'],
+  ev:['L1 at 92%, 1.2k evictions/min','L3 sees writes only; reads are 6%','Spreading chunks over more targets lowers warm TTFT','Round-robin chunk placement lowers mean TTFT']},
+ train:{id:'train-llama70b',type:'Training · 70B checkpoint',k2:'Checkpoint save',k2u:'s',
+  base:{wait:14,p2:9.6,bw:12.0,zc:68,hit:81,cpu:6.4,
+   hops:{app:[null,'step 1.9 s'],gpu:[40,'HBM 71 GiB'],cache:[30,'No burst buffer'],transport:[66,'GDS 88%'],fabric:[83,'PFC pause rising'],storage:[88,'1 slow rank']},
+   hot:'fabric',hotTag:'Congestion',
+   feat:{gpu:['GDR'],transport:['GDS','RDMA'],fabric:['RDMA','DPU'],storage:['Even striping']},
+   hits:{l0:0,l1:0,l2:0,l3:81,l4:0,miss:19},
+   tiers:{l0:[89,'71 of 80 GiB HBM'],l1:[40,'Page cache'],l2:[0,'Inactive'],l3:[62,'Checkpoint 114 GiB each'],l4:[11,'Older checkpoints migrated']}},
+  acts:[
+   {id:'stripe',b:'Even out striping',s:'Remove target skew on the slowest rank (Gluesys)',d:{wait:-4,p2:-2.8,bw:+4,feat:{storage:'Even striping'},hops:{storage:[70,'rank spread 6%']}}},
+   {id:'cc',b:'Tune RoCE congestion control',s:'ECN/PFC settings for many-to-one write bursts (MangoBoost)',d:{wait:-5,p2:-1.6,cpu:-1.9,feat:{fabric:'DPU'},hops:{fabric:[64,'PFC pause normal']},unhot:true}},
+   {id:'ef',b:'Parallel elephant-flow transfer',s:'Split large objects into parts and send over parallel RDMA (Gluesys)',d:{wait:-2,p2:-1.0,bw:+3,hops:{transport:[80,'8 parts in parallel']}}}
+  ],
+  verdict:['GPUs stall during checkpoint saves','Switch PFC pauses rise during write bursts, and the single slowest rank sets the save time.'],
+  ok:['Checkpoint save time is within the target range','See the effect of the applied policies on the timeline.'],
+  ev:['70B on 8 nodes: 114 GiB per node per checkpoint, about 5.7 s at 20 GiB/s write','The slowest rank sets the result, as in MLPerf Storage rules','PFC pause rate rising per minute · DPU fabric metrics (planned)']},
+ ingest:{id:'ingest-dataset-a',type:'Training · data ingest',k2:'I/O stall per step',k2u:'ms',
+  base:{wait:6,p2:38,bw:4.2,zc:52,hit:88,cpu:3.2,
+   hops:{app:[null,'epoch 3/10'],gpu:[22,'Normal'],cache:[44,'page-cache hit 88%'],transport:[30,'Normal'],fabric:[20,'Normal'],storage:[35,'p99 4 ms · 280k IOPS'],cold:[0,'—']},
+   hot:null,
+   feat:{gpu:['GDR'],transport:['GDS','RDMA'],fabric:['RDMA','DPU'],storage:['Prefetch']},
+   hits:{l0:0,l1:88,l2:0,l3:12,l4:0,miss:0},
+   tiers:{l0:[40,'32 of 80 GiB HBM'],l1:[64,'Page cache'],l2:[0,'Inactive'],l3:[18,'Dataset 2.1 TiB'],l4:[0,'—']}},
+  acts:[{id:'keti',b:'Intelligent prefetching',s:'Preload shuffle windows from a 60 s look-ahead forecast (KETI, Y2)',d:{wait:-3,p2:-20,feat:{storage:'Prefetch'}}}],
+  verdict:['Within normal range','Only short I/O-stall spikes during epoch shuffles.'],
+  ok:['Within normal range','Stalls dropped further after prefetching was enabled.'],
+  ev:['Cache pollution during shuffle · eBPF trace (planned)']}
+};
+const ORDER=['infer','train','ingest'];
+/* Tiering policies: base = always-on default; act = policy tied to a recommended action (action id) */
+const POL={
+ infer:[{base:true,n:'Default KV store path',r:'L0 → L1 → L3 write-through, LRU eviction'},
+  {act:'cxl',n:'Demote L1 evictions to L2',r:'L1 evict → L2 CXL (LRU); promote to L1 on L2 hit'},
+  {act:'rr',n:'L3 chunk placement',r:'chunk_no % n_targets → shard (round-robin)'},
+  {act:'pf',n:'L3 preload',r:'lookup hint → L3 NVMe → server DRAM, staging window 2 GiB'}],
+ train:[{base:true,n:'Checkpoint save',r:'L0 → L3 synchronous write (fsync); previous round → L4 async migration'},
+  {act:'stripe',n:'L3 striping',r:'per-rank checkpoint → spread evenly over 16 targets'},
+  {act:'ef',n:'Large-object transfer',r:'8-part parallel RDMA PUT → L3'}],
+ ingest:[{base:true,n:'Dataset placement',r:'Resident on L3; shards read go to L1 page cache'},
+  {act:'keti',n:'Predictive prefetch',r:'60 s look-ahead → L3 → L1 preload'}]
+};
+function effText(w,a){const d=a.d,p=[];
+  if(d.wait)p.push(`wait ${d.wait}%p`);if(d.p2)p.push(`${w.k2} ${d.p2>0?'+':''}${fmt(d.p2,w.k2u)} ${w.k2u}`);
+  if(d.hit)p.push(`hit +${d.hit}%p`);if(d.zc)p.push(`zero-copy +${d.zc}%p`);if(d.bw)p.push(`bandwidth +${d.bw} GB/s`);
+  if(d.hops&&d.hops.storage)p.push(`L3 ${d.hops.storage[1]}`);return p.join(' · ')}
+/* Multi-GPU / multi-node placement: hot = bottleneck node, hf = its wait multiplier, fix = action that resolves it */
+const TOPO={
+ infer:{nodes:2,gpus:4,desc:'2 nodes × 4 H100 · TP4 × 2 replicas',hot:1,hf:1.45,fix:'rr',why:'KV chunks for this node\'s sessions are concentrated on 3 targets'},
+ train:{nodes:8,gpus:8,desc:'8 nodes × 8 H100 · TP8 × DP8',hot:5,hf:2.2,fix:'stripe',why:'Slowest rank; checkpoint writes concentrated on one target'},
+ ingest:{nodes:4,gpus:8,desc:'4 nodes × 8 H100 · DDP',hot:null}
+};
+const state={w:'infer',on:{},node:{infer:null,train:null,ingest:null}};
+const WSPEC_POS={};
+/* ── 40 workloads: 3 featured (infer·train·ingest) plus 37 scenario workloads modeled on them. [id, template, POD, nodes, GPUs per node, wait %, tenant, namespace, type] ── */
+const FEAT=['infer','train','ingest'];
+const WSPEC=[
+ ['vllm-llama70b-rag','infer',0,4,8,12,'team-infer','proj-rag','Inference · RAG'],['vllm-qwen3-32b-chat','infer',0,2,8,8,'team-infer','proj-llm-serving','Inference · chatbot'],
+ ['sglang-deepseek-v3','infer',0,4,8,17,'team-infer','proj-llm-serving','Inference · MoE'],['vllm-gemma3-27b','infer',0,1,8,6,'team-infer','proj-llm-serving','Inference · multimodal'],
+ ['triton-embed-bge','infer',0,1,4,3,'team-search','proj-search','Inference · embedding'],['vllm-qwen3-8b-code','infer',0,2,4,9,'team-dev','proj-codeassist','Inference · code'],
+ ['tgi-llama8b-batch','infer',0,2,8,5,'team-infer','proj-batch','Inference · batch'],['vllm-mistral-24b','infer',0,1,8,7,'team-infer','proj-llm-serving','Inference · chatbot'],
+ ['rerank-bge-v2','infer',0,1,4,4,'team-search','proj-search','Inference · reranker'],
+ ['train-qwen3-32b-sft','train',1,4,8,11,'team-train','proj-llm-train','Training · SFT'],['train-llama8b-dpo','train',1,2,8,7,'team-train','proj-llm-train','Training · DPO'],
+ ['train-moe-16x7b','train',1,6,8,16,'team-train','proj-moe','Training · MoE pretraining'],['train-vit-h14','train',1,2,8,9,'team-vision','proj-vision','Training · vision'],
+ ['train-whisper-l3','train',1,2,8,6,'team-speech','proj-speech','Training · speech'],['ckpt-restore-test','train',1,1,8,13,'team-train','proj-llm-train','Training · checkpoint restore'],
+ ['ingest-commoncrawl','ingest',2,4,8,8,'team-data','proj-data','Data · ingest'],['preproc-tokenize-ko','ingest',2,2,8,5,'team-data','proj-data','Data · tokenize'],
+ ['finetune-qwen3-8b-lora','train',2,2,8,9,'team-train','proj-finetune','Training · LoRA'],['eval-mmlu-sweep','ingest',2,1,8,4,'team-eval','proj-eval','Eval · benchmark'],
+ ['ingest-images-laion','ingest',2,3,8,12,'team-vision','proj-vision','Data · images'],['dedup-minhash','ingest',2,2,8,6,'team-data','proj-data','Data · dedup'],
+ ['finetune-gemma-ko','train',2,2,8,7,'team-train','proj-finetune','Training · Korean fine-tune'],['eval-long-context','ingest',2,1,8,5,'team-eval','proj-eval','Eval · long context'],
+ ['synthgen-qa','infer',2,2,8,8,'team-data','proj-synth','Inference · synthetic data'],['shard-repack-wds','ingest',2,1,8,10,'team-data','proj-data','Data · shard repack'],
+ ['dev-notebook-01','ingest',3,1,4,3,'team-dev','proj-dev','Dev · notebook'],['dev-notebook-02','ingest',3,1,4,4,'team-dev','proj-dev','Dev · notebook'],
+ ['dev-notebook-03','ingest',3,1,2,2,'team-dev','proj-dev','Dev · notebook'],['batch-infer-summ','infer',3,2,8,6,'team-infer','proj-batch','Inference · batch summarize'],
+ ['batch-infer-translate','infer',3,1,8,5,'team-infer','proj-batch','Inference · batch translate'],['eval-safety-redteam','ingest',3,1,8,4,'team-eval','proj-eval','Eval · safety'],
+ ['ci-gds-regress','ingest',3,1,8,11,'team-platform','proj-ci','Dev · GDS regression'],['ci-daos-perf','ingest',3,1,4,9,'team-platform','proj-ci','Dev · DAOS perf test'],
+ ['mlperf-ckpt-dryrun','train',3,2,8,14,'team-platform','proj-bench','Benchmark · MLPerf checkpoint'],['io500-prep','ingest',3,2,8,7,'team-platform','proj-bench','Benchmark · IO500'],
+ ['dev-kvcache-proto','infer',3,1,8,12,'team-dev','proj-dev','Dev · KV cache prototype'],['dev-rl-sandbox','train',3,1,4,6,'team-dev','proj-dev','Dev · RL']];
+WSPEC.forEach(([id,tpl,pod,nodes,g,wait,ten,ns,type])=>{const T=W[tpl],b=T.base,f=wait/b.wait,k=id;
+  const base=JSON.parse(JSON.stringify(b));base.wait=wait;base.p2=+(b.p2*Math.sqrt(f)).toFixed(tpl==='ingest'?0:1);base.bw=+(b.bw*nodes/TOPO[tpl].nodes*Math.max(.6,Math.min(1.4,1/Math.sqrt(f)))).toFixed(1);
+  base.hit=Math.max(20,Math.min(97,Math.round(b.hit+(b.wait-wait)*1.2)));base.cpu=+(b.cpu*(0.8+wait/40)).toFixed(1);if(wait<15){base.hot=null}
+  const fix=s=>s.replace(/\d+%/,wait+'%');
+  W[k]={...T,id,type,tpl,base,verdict:wait>=15?[fix(T.verdict[0]),T.verdict[1]]:wait>=10?['In the warning zone',`GPU data wait is ${wait}%, above the 10% warning threshold. Review the same policies as the featured workload (${T.id}).`]:T.ok,ev:[`Same type as featured workload ${T.id} · scenario example values`]};
+  TOPO[k]={nodes,gpus:g,desc:`${nodes} nodes × ${g} H100`,hot:wait>=15&&nodes>1?nodes-1:null,hf:1.5,fix:TOPO[tpl].fix,why:TOPO[tpl].why||''};
+  POL[k]=POL[tpl];state.node[k]=null;ORDER.push(k);WSPEC_POS[k]={pod,nodes,g,ten,ns}});
+
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lvl=v=>v>=15?'crit':v>=10?'warn':'good';
+function nodeFactors(k){const t=TOPO[k],N=t.nodes,on=state.on[k]||{};const hotOn=t.hot!=null&&!on[t.fix];
+  const f=Array.from({length:N},(_,n)=>1+(((n*37)%7)-3)*0.02);
+  if(hotOn){const rest=(N-t.hf)/(N-1);f.forEach((_,n)=>f[n]=n===t.hot?t.hf:rest*f[n])}
+  return {f,hotOn};}
+const gpuWait=(wait,fn,n,g)=>wait*fn*(1+((((n*8+g)*53)%11)-5)*0.03);
+
+function compute(key){
+  const w=W[key],b=w.base,on=state.on[key]||{};
+  const r={wait:b.wait,p2:b.p2,bw:b.bw,zc:b.zc,hit:b.hit,cpu:b.cpu,hops:JSON.parse(JSON.stringify(b.hops)),hot:b.hot,hits:{...b.hits},tiers:JSON.parse(JSON.stringify(b.tiers)),feat:{}};
+  for(const L in b.feat)r.feat[L]=b.feat[L].map(f=>({f,on:true}));
+  // policy feature chips: off when the policy is off
+  w.acts.forEach(a=>{if(a.d.feat)for(const L in a.d.feat){const c=r.feat[L].find(x=>x.f===a.d.feat[L]);if(c)c.on=!!on[a.id]}});
+  w.acts.forEach(a=>{if(!on[a.id])return;const d=a.d;
+    ['wait','p2','bw','zc','hit','cpu'].forEach(k=>{if(d[k])r[k]+=d[k]});
+    if(d.hits)for(const t in d.hits)r.hits[t]+=d.hits[t];
+    if(d.tiers)Object.assign(r.tiers,d.tiers);
+    if(d.hops)Object.assign(r.hops,d.hops);
+    if(d.unhot)r.hot=null;});
+  r.wait=clamp(r.wait,2,60);r.hit=clamp(r.hit,0,99);r.zc=clamp(r.zc,0,99);
+  return r;
+}
+/* Live feel: refresh mean-reverting noise every 2 s and apply it to displayed values only (judgements use noise-free values) */
+const NZ={};const rnd=()=>Math.random()*2-1;
+function nzStep(){ORDER.forEach(k=>{const z=NZ[k]||(NZ[k]={w:0,p:0,bw:0,h:0,u:{}});
+  z.w=z.w*.6+rnd()*.07;z.p=z.p*.6+rnd()*.06;z.bw=z.bw*.6+rnd()*.08;z.h=z.h*.5+rnd()*1.6;
+  LAYERS.forEach(L=>z.u[L.k]=(z.u[L.k]||0)*.5+rnd()*4);z.t=z.t||{};TIERS.forEach(t=>z.t[t]=(z.t[t]||0)*.55+rnd()*3);z.ev=(z.ev||0)*.5+rnd()*.15;});}
+function noisy(r,k){const z=NZ[k];if(!z)return r;const o=JSON.parse(JSON.stringify(r));
+  o.wait=clamp(Math.round(r.wait*(1+z.w)),1,80);o.p2=Math.max(0.1,r.p2*(1+z.p));o.bw=Math.max(.1,r.bw*(1+z.bw));
+  o.hit=clamp(Math.round(r.hit+z.h*.6),0,99);o.cpu=Math.max(.5,r.cpu*(1+z.p*.6));o.zc=clamp(Math.round(r.zc+z.h*.4),0,99);
+  for(const L in o.hops){const v=o.hops[L];if(v[0]!=null)v[0]=clamp(Math.round(v[0]+z.u[L]),2,99)}
+  const big=TIERS.filter(t=>o.hits[t]>0).sort((a,b)=>o.hits[b]-o.hits[a])[0],d=Math.round(z.h);
+  if(big&&o.hits.miss>2){o.hits[big]=Math.max(0,o.hits[big]+d);o.hits.miss=Math.max(0,o.hits.miss-d)}
+  for(const t in o.tiers){const [u,l]=o.tiers[t];if(!u)continue;const nu=clamp(Math.round(u+z.t[t]),1,99);
+    o.tiers[t]=[nu,l.replace(new RegExp('(^|\\D)'+u+'%'),'$1'+nu+'%').replace(/(\d+\.\d)k\/min/,(m,v)=>(v*(1+z.ev)).toFixed(1)+'k/min').replace(/read (\d+)%/,(m,v)=>'read '+Math.max(1,Math.round(+v+z.t[t]*.3))+'%')]}
+  return o;}
+nzStep();
+const fmt=(v,u)=>u==='s'?v.toFixed(1):Math.round(v);
+
+const GROUPS=[{id:'inf',nm:'Inference',sub:'TTFT · KV restore',get keys(){return ORDER.filter(k=>(W[k].tpl||k)==='infer')}},{id:'trn',nm:'Training · data · dev',sub:'step time · checkpoint · ingest',get keys(){return ORDER.filter(k=>(W[k].tpl||k)!=='infer')}}];
+function renderList(){
+  $('#wl').innerHTML='';
+  GROUPS.forEach(G=>{
+    const vk=G.keys.filter(k=>visibleW().includes(k));if(!vk.length)return;const rows=vk.map(k=>[k,noisy(compute(k),k),compute(k)]).sort((a,b)=>b[2].wait-a[2].wait);
+    const worst=Math.max(...rows.map(x=>x[1].wait));
+    const gh=document.createElement('li');gh.className='grp';
+    gh.innerHTML=`<span class="gn">${G.nm}</span><span class="gc num">${rows.length} · max wait ${worst}%</span><span class="gs">${G.sub}</span>`;
+    $('#wl').appendChild(gh);
+    rows.forEach(([k,r,r0])=>{
+      const w=W[k],lvl=r0.wait>=15?'crit':r0.wait>=10?'warn':'good',txt={crit:'Bottleneck',warn:'Warning',good:'Normal'}[lvl];
+      const li=document.createElement('li');
+      li.innerHTML=`<button type="button" aria-pressed="${k===state.w}"><span class="n">${w.id}</span><span class="pill ${lvl}">${txt}</span><span class="t">${w.type}</span><span class="m num">wait ${r.wait}% ·${w.k2} ${fmt(r.p2,w.k2u)} ${w.k2u}</span></button>`;
+      li.firstChild.onclick=()=>{state.w=k;render()};
+      $('#wl').appendChild(li);
+    });
+  });
+}
+
+function render(live){
+  const k=state.w,w=W[k],b=w.base,r0=compute(k),r=noisy(r0,k),on=state.on[k]||{},anyOn=Object.values(on).some(Boolean);
+  renderList();
+  // KPI
+  const dW=r.wait-b.wait;
+  $('#k-wait').innerHTML=`${r.wait}<u>%</u>`;
+  $('#k-wait-d').innerHTML=anyOn?`<span class="delta good num">${dW} %p</span> vs ${b.wait}% before policies`:'Target ≤ 5% · share of allocated GPU time spent waiting';
+  $('#k2-l').textContent=w.k2;
+  $('#k-p2').innerHTML=`${fmt(r.p2,w.k2u)}<u>${w.k2u}</u>`;
+  const d2=r.p2-b.p2;$('#k-p2-d').innerHTML=anyOn?`<span class="delta good num">${fmt(d2,w.k2u)} ${w.k2u}</span> vs before`:'Baseline before policies';
+  $('#k-bw').innerHTML=`${r.bw.toFixed(1)}<u>GB/s</u>`;
+  $('#k-zc').innerHTML=`${r.zc}<u>%</u>`;
+  $('#k-hit').innerHTML=`${r.hit}<u>%</u>`;$('#k-cpu').innerHTML=`${r.cpu.toFixed(1)}<u>%</u>`;$('#k-cpu').style.color=r.cpu>5?'var(--warn)':'';$('#k-iops').textContent=Math.round(r.bw*68)+'k';
+  // multi-node placement + path scope
+  const t=TOPO[k],f=nodeFactors(k),sel=state.node[k],hotOn=t.hot!=null&&f.hotOn;
+  const nodeName=n=>'node-'+String(n+1).padStart(2,'0');
+  const nodeWait=n=>Math.round(r.wait*f.f[n]);
+  $('#topo').innerHTML=`<div class="hd"><b>Placement · ${t.desc}</b><button type="button" class="scope" id="scope-all" aria-pressed="${sel==null}">All ${t.nodes} nodes · ${t.nodes*t.gpus} GPUs aggregated</button></div>
+   <div class="nodes">${Array.from({length:t.nodes},(_,n)=>`<button type="button" class="nrow ${hotOn&&n===t.hot?'hotn':''}" data-n="${n}" aria-pressed="${sel===n}" aria-label="${nodeName(n)} wait ${nodeWait(n)}%"><span class="nl">${nodeName(n)}</span><span class="cells">${Array.from({length:t.gpus},(_,g)=>`<i class="c-${lvl(gpuWait(r.wait,f.f[n],n,g))}" title="GPU ${g} · wait ${Math.round(gpuWait(r.wait,f.f[n],n,g))}%"></i>`).join('')}</span><span class="nv">${nodeWait(n)}%</span></button>`).join('')}</div>
+   <div class="lg">One cell = one GPU, color = GPU data wait.${hotOn?` Bottleneck node:<b style="color:var(--crit)">${nodeName(t.hot)}</b> · ${t.why}`:' Node-to-node spread is normal.'}</div>`;
+  $('#scope-all').onclick=()=>{state.node[k]=null;render()};
+  document.querySelectorAll('.nrow').forEach(el=>el.onclick=()=>{const n=+el.dataset.n;state.node[k]=state.node[k]===n?null:n;render()});
+  $('#path-title').textContent=`Data path · ${w.id}${sel==null?'':' · '+nodeName(sel)}`;
+  $('#path-scope').textContent=sel==null?`${t.nodes} nodes aggregated · bar = mean, below = node min–max`:`${nodeName(sel)} only · ${t.gpus} GPUs`;
+  const pathHot=L=>r.hot===L.k&&(sel==null||!hotOn||sel===t.hot);
+  $('#hops').innerHTML=LAYERS.filter(L=>r.hops[L.k]).map(L=>{
+    const [u0,lat]=r.hops[L.k],hot=pathHot(L);
+    const scale=L.k==='app'||L.k==='cold'?1:null;
+    const u=u0==null?null:(sel==null||scale?u0:clamp(Math.round(u0*f.f[sel]),3,99));
+    const vals=u0==null||scale?null:f.f.map(x=>clamp(Math.round(u0*x),3,99));
+    let feats=(r.feat[L.k]||[]).slice();if(L.k==='gpu'&&t.gpus>1)feats=feats.concat([{f:'NVLink',on:true}]);
+    const chips=feats.map(c=>`<span class="chip ${c.on?'on':'off'}">${c.f}</span>`).join('');
+    const spread=sel==null&&vals&&t.nodes>1?`<span class="spread">nodes ${Math.min(...vals)}–${Math.max(...vals)}%</span>`:'';
+    const mid=u==null?(L.k==='app'?appBars(k,r):'<div class="sb">Per-request metrics</div>'):barPair(k,L.k,u,spread);
+    return `<div class="hop ${L.k==='storage'?'storage':''} ${hot?'hot':''}">${hot?`<span class="tag">${w.base.hotTag}</span>`:''}<div><div class="nm">${L.nm}</div><div class="sb">${(W[k].tpl||k)!=='infer'&&L.k==='app'?'PyTorch · FSDP/DDP':(W[k].tpl||k)!=='infer'&&L.k==='cache'?'Page cache · burst buffer':L.sb}</div>${chips?`<div class="chips">${chips}</div>`:''}</div><div class="mid">${mid}</div><div class="lat num">${lat}</div></div>`;
+  }).join('');
+  // tiers
+  $('#tier-sub').textContent=w.id;
+  const tot=Object.values(r.hits).reduce((a,c)=>a+c,0)||1;
+  const hs=$('#hitstack');if(hs.dataset.k!==k){hs.dataset.k=k;hs.innerHTML=[...TIERS,'miss'].map(t=>`<span data-t="${t}" style="flex-basis:0%;background:${TCOL[t]}"></span>`).join('')}
+  [...TIERS,'miss'].forEach(t=>{const el=hs.querySelector(`[data-t="${t}"]`);el.style.flexBasis=(r.hits[t]/tot*100)+'%';el.title=`${t==='miss'?'miss':TNAME[t]} ${r.hits[t]}%`});
+  $('#hitlegend').innerHTML=[...TIERS,'miss'].filter(t=>r.hits[t]>0).map(t=>`<span><i style="background:${TCOL[t]}"></i>${t==='miss'?'miss · recompute/source':TNAME[t]} <span class="num">${r.hits[t]}%</span></span>`).join('');
+  const TR=['l0','l1','l2','l3','l4'],box=$('#tierrows');
+  if(box.dataset.k!==k){box.dataset.k=k;box.innerHTML=TR.map(t=>`<div class="tier ${t}" data-t="${t}"><span class="k">${TNAME[t]}</span><div class="bar"><b style="width:0%"></b></div><span class="r num"></span><span class="lbl"></span></div>`).join('')}
+  TR.forEach(t=>{const [u,l]=r.tiers[t]||[0,'—'],el=box.querySelector(`[data-t="${t}"]`);el.querySelector('b').style.width=u+'%';el.querySelector('.r').textContent=u+'%';el.querySelector('.lbl').textContent=l});
+  // diag
+  const fixed=r0.hot===null&&r0.wait<10;
+  const [vb,vp]=fixed?w.ok:w.verdict;
+  $('#verdict').className='verdict'+(fixed?' ok':'');
+  $('#verdict').innerHTML=`<b>${vb}</b><p>${vp}</p>`;
+  $('#diag-sub').textContent=fixed?'Resolved':(r.hot?`Likely cause: ${LAYERS.find(L=>L.k===r.hot).nm}`:'Observation');
+  drawChart(k,r);
+  drawSparks(k);
+  if(live)return;
+  $('#evidence').innerHTML=w.ev.map(e=>`<li>${e}</li>`).join('');
+  $('#acts').innerHTML=w.acts.map(a=>`<label class="act" for="a-${a.id}"><input type="checkbox" id="a-${a.id}" ${on[a.id]?'checked':''}><span><b>${a.b}</b><small>${a.s}</small></span></label>`).join('');
+  w.acts.forEach(a=>{$('#a-'+a.id).onchange=e=>{state.on[k]=state.on[k]||{};state.on[k][a.id]=e.target.checked;markT(k,a.id);addLog('Policy',`${W[k].id} · ${a.b} ${e.target.checked?'applied':'removed'} (policy.change)`);BUF[k].mk.push({i:BUF[k].A.length-1,on:e.target.checked});render()}});
+  renderSugg(k);
+  // Tiering policy list and cumulative effect
+  $('#policies').innerHTML=POL[k].map(P=>{if(P.base)return `<div class="pol base"><span class="st">Default</span><span class="pn">${P.n}</span><span class="pr">${P.r}</span><span class="pe exp">Baseline</span></div>`;
+    const a=w.acts.find(x=>x.id===P.act),isOn=!!on[P.act];
+    return `<button type="button" class="pol ${isOn?'on':''}" data-act="${P.act}" aria-pressed="${isOn}"><span class="st">${isOn?'Active':'Inactive'}</span><span class="pn">${P.n}</span><span class="pr">${P.r}</span><span class="pe ${isOn?'got':'exp'}">${isOn?'Effect':'Expected'}: ${effText(w,a)}</span></button>`}).join('');
+  document.querySelectorAll('.pol[data-act]').forEach(el=>el.onclick=()=>{const c=$('#a-'+el.dataset.act);c.checked=!c.checked;c.dispatchEvent(new Event('change'))});
+  const nOn=POL[k].filter(P=>P.act&&on[P.act]).length,nAll=POL[k].filter(P=>P.act).length;
+  const missB=b.hits.miss,missN=r0.hits.miss;
+  $('#poleff').innerHTML=`<span>Applied</span><span class="num">${nOn} / ${nAll} policies</span><span>GPU wait</span><span class="num">${b.wait}% → ${r0.wait}%</span><span>${w.k2}</span><span class="num">${fmt(b.p2,w.k2u)} → ${fmt(r0.p2,w.k2u)} ${w.k2u}</span>`+(missB?`<span>KV miss</span><span class="num">${missB}% → ${missN}%</span>`:'');
+}
+
+/* Timeline: rolling buffer of 60 points at 2 s (last 2 min). New values move halfway to the target so policy effects appear gradually */
+const NPT=60,BUF={};
+ORDER.forEach(k=>{const r=compute(k);BUF[k]={A:[],B:[],mk:[]};for(let i=0;i<NPT;i++){nzStep();const o=noisy(r,k);BUF[k].A.push(o.wait);BUF[k].B.push(o.p2)}});
+nzStep();
+/* KPI history: live (60 points at 2 s), 1-min avg (60 points, 1 h), 10-min avg (72 points, 12 h). The last point of each range updates live */
+const MET=['wait','p2','bw','zc','hit','cpu'],RNG={live:{n:60,step:2,u:'s'},m1:{n:60,step:1,u:'min'},m10:{n:72,step:10,u:'min'}};
+const HIST={};state.range='live';const hover={};
+function seeded(seed){let x=seed;return()=>{x=(x*9301+49297)%233280;return x/233280*2-1}}
+ORDER.forEach((k,ki)=>{const r=compute(k);HIST[k]={};MET.forEach((m,mi)=>{const v=r[m],R=seeded(17+ki*31+mi*7);
+  const live=Array.from({length:RNG.live.n},()=>v*(1+R()*.06));
+  const m1=Array.from({length:RNG.m1.n},(_,i)=>v*(1+R()*.05+.08*Math.sin(i/9)));
+  const m10=Array.from({length:RNG.m10.n},(_,i)=>v*(1+R()*.04+.22*Math.sin(i/72*Math.PI*2-1.2)));
+  HIST[k][m]={live,m1,m10};})});
+function pushHist(){ORDER.forEach(k=>{const o=noisy(compute(k),k);MET.forEach(m=>{const H=HIST[k][m];
+  H.live.push(o[m]);H.live.shift();
+  const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+  H.m1[H.m1.length-1]=avg(H.live.slice(-30));H.m10[H.m10.length-1]=H.m10.at(-1)*.9+H.m1.at(-1)*.1;})});}
+const fmtM=(m,v,k)=>m==='cpu'?v.toFixed(1)+'%':m==='p2'?fmt(v,W[k].k2u)+W[k].k2u:m==='bw'?v.toFixed(1)+' GB/s':Math.round(v)+'%';
+function agoLabel(i,n){const R=RNG[state.range],d=(n-1-i)*R.step;if(!d)return 'now';const u=R.u;
+  return u==='min'&&d>=60?`-${Math.floor(d/60)}h${d%60?' '+d%60+'min':''}`:`-${d}${u==='min'?' min':u}`}
+function drawSparks(k){document.querySelectorAll('.spk').forEach(el=>{const m=el.dataset.m,a=HIST[k][m][state.range],n=a.length;
+  const lo=Math.min(...a),hi=Math.max(...a),pad=(hi-lo)*.15||1,W0=200,H0=36;
+  const X=i=>i/(n-1)*W0,Y=v=>H0-((v-lo+pad)/(hi-lo+2*pad))*H0;
+  const d=a.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join('');
+  const col=m==='wait'?'var(--crit)':'var(--accent)',hi_=hover[m];
+  let svg=`<svg viewBox="0 0 ${W0} ${H0}" preserveAspectRatio="none"><path d="${d}L${W0} ${H0}L0 ${H0}Z" fill="${col}" fill-opacity=".10"/><path d="${d}" fill="none" stroke="${col}" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`;
+  const tgt=m==='wait'||m==='cpu'?5:null;if(tgt!=null&&tgt>lo-pad&&tgt<hi+pad)svg+=`<line x1="0" x2="${W0}" y1="${Y(tgt)}" y2="${Y(tgt)}" stroke="var(--accent)" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>`;
+  if(hi_!=null&&hi_<n)svg+=`<line x1="${X(hi_)}" x2="${X(hi_)}" y1="0" y2="${H0}" stroke="var(--muted)" stroke-dasharray="2 2" vector-effect="non-scaling-stroke"/>`;
+  el.innerHTML=rv(svg+'</svg>');
+  const dot=hi_!=null&&hi_<n?hi_:n-1;el.insertAdjacentHTML('beforeend',`<i style="position:absolute;left:calc(${dot/(n-1)*100}% - 3px);top:${Y(a[dot])-3}px;width:6px;height:6px;border-radius:50%;background:${col}"></i>`);
+  const rd=document.querySelector(`.spr[data-m="${m}"]`);rd.textContent=hi_!=null&&hi_<n?`${agoLabel(hi_,n)} · ${fmtM(m,a[hi_],k)}`:'';});}
+document.querySelectorAll('.spk').forEach(el=>{const m=el.dataset.m;
+  const at=e=>{const b=el.getBoundingClientRect(),n=HIST[state.w][m][state.range].length;hover[m]=clamp(Math.round((e.clientX-b.left)/b.width*(n-1)),0,n-1);drawSparks(state.w)};
+  el.addEventListener('pointermove',at);el.addEventListener('pointerleave',()=>{hover[m]=null;drawSparks(state.w)});});
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{state.range=b.dataset.r;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));drawSparks(state.w)});
+function pushBuf(){ORDER.forEach(k=>{const o=noisy(compute(k),k),B=BUF[k];const la=B.A.at(-1),lb=B.B.at(-1);
+  B.A.push(la+(o.wait-la)*.5);B.B.push(lb+(o.p2-lb)*.5);B.A.shift();B.B.shift();B.mk.forEach(m=>m.i--);B.mk=B.mk.filter(m=>m.i>=0)});}
+function drawChart(k,r){
+  const w=W[k],A=BUF[k].A,B=BUF[k].B,N=A.length-1;
+  const W0=640,H0=210,pl=40,pr=46,pt=14,pb=30,iw=W0-pl-pr,ih=H0-pt-pb;
+  const maxA=Math.max(30,Math.ceil(Math.max(...A)/10)*10),maxB=Math.max(W[k].base.p2,...B)*1.15;
+  const x=i=>pl+i/N*iw,ya=v=>pt+ih-v/maxA*ih,yb=v=>pt+ih-v/maxB*ih;
+  const pa=A.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${ya(v).toFixed(1)}`).join('');
+  const pbp=B.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${yb(v).toFixed(1)}`).join('');
+  const area=pa+`L${x(N)} ${pt+ih}L${x(0)} ${pt+ih}Z`;
+  const ticks=[0,maxA/2,maxA];
+  let svg=`<svg viewBox="0 0 ${W0} ${H0}" role="img" aria-label="GPU wait and ${w.k2} time series">`;
+  ticks.forEach(t=>{svg+=`<line x1="${pl}" x2="${pl+iw}" y1="${ya(t)}" y2="${ya(t)}" stroke="var(--line)"/><text x="${pl-6}" y="${ya(t)+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--f-data)">${t}%</text>`});
+  svg+=`<text x="${pl+iw+6}" y="${yb(maxB/1.15)+4}" font-size="11" fill="var(--muted)" font-family="var(--f-data)">${fmt(maxB/1.15,w.k2u)}${w.k2u}</text>`;
+  [0,15,30,45,N].forEach(i=>svg+=`<text x="${x(i)}" y="${H0-10}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--f-data)">${i===N?'now':'-'+(N-i)*2+'s'}</text>`);
+  BUF[k].mk.forEach(m=>{svg+=`<line x1="${x(m.i)}" x2="${x(m.i)}" y1="${pt}" y2="${pt+ih}" stroke="var(--accent)" stroke-dasharray="4 4"/><text x="${x(m.i)+5}" y="${pt+10}" font-size="11" fill="var(--accent)">${m.on?'Policy on':'Policy off'}</text>`});
+  svg+=`<path d="${area}" fill="var(--crit)" fill-opacity=".10"/><path d="${pa}" fill="none" stroke="var(--crit)" stroke-width="2"/><path d="${pbp}" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="1 0" opacity=".55"/>`;
+  svg+=`<circle cx="${x(N)}" cy="${ya(A[N])}" r="4" fill="var(--crit)"/><text x="${x(N)-6}" y="${ya(A[N])-8}" text-anchor="end" font-size="12" font-weight="600" fill="var(--crit)" font-family="var(--f-data)">${Math.round(A[N])}%</text>`;
+  svg+=`<g font-size="11.5" fill="var(--muted)"><rect x="${pl}" y="${H0-24}" width="0" height="0"/></g></svg>`;
+  svg+=`<div class="legend" style="margin-top:4px"><span><i style="background:var(--crit)"></i>GPU data wait (left axis)</span><span><i style="background:var(--ink);opacity:.55"></i>${w.k2} (right axis)</span></div>`;
+  $('#ch-l2').textContent=w.k2;
+  $('#chart').innerHTML=rv(svg);
+}
+
+/* Agent: fixed scenario answers */
+const QA={
+ infer:[['Why did TTFT rise?',()=>{const r=compute('infer');return r.hot?`Sessions grew to 40 and L1 DRAM (80 GiB) filled to 92%, pushing the KV miss rate to 42%. Chunks that are needed again must be read from DAOS, but they sit on 3 targets, so p99 latency is 18 ms. As a result GPUs spend ${r.wait}% of their time waiting for KV restores.\nRecommended: enable the L2 CXL tier → round-robin target placement → server-side prefetch, in that order.`:`The applied policies brought wait down to ${r.wait}%. What remains is mostly the server-DRAM hop on the L3 read path.`},'gpuflow_cache_lookup_total{tier}, gpuflow_storage_target_read_seconds, kv.load events'],
+  ['Which tier serves most KV?',()=>{const r=compute('infer');return `L0 HBM ${r.hits.l0}%, L1 DRAM ${r.hits.l1}%, L2 CXL ${r.hits.l2}%, L3 DAOS ${r.hits.l3}%, miss ${r.hits.miss}%. Misses lead to prefill recomputation.`},'gpuflow_cache_lookup_total{result="hit"} by tier']],
+ train:[['Why are checkpoint saves slow?',()=>`During write bursts, switch PFC pauses rise and one rank writes to its targets more slowly than the others. As in MLPerf Storage rules, the slowest rank sets the save time, so even striping and congestion-control tuning come first.`,'ckpt.write.start/end events, gpuflow_fabric_pfc_pause_total']],
+ ingest:[['Is anything wrong with this job?',()=>`It is within normal range. I/O stalls rise briefly only during the shuffle at epoch boundaries. This workload is a target for Y2 intelligent prefetching.`,'gpuflow_host_io_stall_seconds_total (KETI eBPF)']]
+};
+function renderSugg(k){$('#sugg').innerHTML='';(QA[k]||QA[W[k].tpl]).forEach(([q,fn,src])=>{const bt=document.createElement('button');bt.type='button';bt.textContent=q;bt.onclick=()=>answer(q,fn,src);$('#sugg').appendChild(bt)})}
+function answer(q,fn,src){$('#q').value=q;$('#ans').innerHTML='';const t=document.createTextNode(fn());$('#ans').appendChild(t);const s=document.createElement('span');s.className='src num';s.textContent='Evidence queried: '+src;$('#ans').appendChild(s)}
+$('#askf').addEventListener('submit',e=>{e.preventDefault();const k=state.w,[q,fn,src]=(QA[k]||QA[W[k].tpl])[0];answer($('#q').value||q,fn,src)});
+
+/* Path flow: at the bottleneck hop the rail narrows and turns red, and particles slow down and pile up */
+const Rail=(()=>{
+  const cv=document.getElementById('railc'),ctx=cv.getContext('2d'),rail=cv.parentElement;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+  let H=0,Wd=0,hot=null,cols={},P=[],last=0,tick=0;
+  const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function readCols(){cols={acc:css('--accent'),crit:css('--crit'),rail:css('--rail')}}
+  function layout(){
+    const dpr=window.devicePixelRatio||1,r=rail.getBoundingClientRect();
+    Wd=r.width;H=r.height;cv.width=Math.round(Wd*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+    const h=document.querySelector('#hops .hop.hot');
+    if(h){const b=h.getBoundingClientRect();hot={y0:b.top-r.top,y1:b.bottom-r.top}}else hot=null;
+    const n=Math.max(10,Math.round(H/34));
+    if(P.length!==n)P=Array.from({length:n},(_,i)=>i/n*H);
+    readCols();draw();
+  }
+  // h(y): 0 = normal, 1 = bottleneck; smooth 16px transition
+  const ss=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
+  function heat(y){if(!hot)return 0;const e=16;return Math.min(ss((y-(hot.y0-e))/e),ss(((hot.y1+e)-y)/e))}
+  function draw(){
+    ctx.clearRect(0,0,Wd,H);const cx=Wd/2;
+    for(let y=4;y<H-4;y+=2){const h=heat(y),w=7-5*h;
+      ctx.globalAlpha=.28*(1-h);ctx.fillStyle=cols.acc;ctx.fillRect(cx-w/2,y,w,2);
+      if(h>0){ctx.globalAlpha=.25+.75*h;ctx.fillStyle=cols.crit;ctx.fillRect(cx-w/2,y,w,2)}}
+    P.forEach(y=>{const h=heat(y);ctx.globalAlpha=.95;ctx.fillStyle=h>.5?cols.crit:cols.acc;
+      ctx.beginPath();ctx.arc(cx,y,4.2-1.8*h,0,Math.PI*2);ctx.fill()});
+    ctx.globalAlpha=1;
+  }
+  function step(t){
+    const dt=Math.min(50,t-(last||t));last=t;
+    if(!reduce.matches&&H>0){const base=H/2600; // normal section: about 2.6 s end to end
+      P=P.map(y=>{const v=base*(1-0.85*heat(y));y+=v*dt;return y>H-6?y-(H-10):y});
+      if(++tick%90===0)readCols();draw();}
+    requestAnimationFrame(step);
+  }
+  new ResizeObserver(layout).observe(document.getElementById('hops'));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readCols();draw()});
+  requestAnimationFrame(step);
+  return {layout};
+})();
+
+/* ── Infrastructure overview: GPU PODs · fabric · storage cluster. Click a node/workload to open workload detail ── */
+/* ── v1.0: 13 screens · scope selection (physical/logical) · role-based visibility ── */
+const PODS=[{id:'POD-A',role:'Inference',nodes:32},{id:'POD-B',role:'Training',nodes:32},{id:'POD-C',role:'Training · data',nodes:32},{id:'POD-D',role:'Dev · batch',nodes:32}];
+const PLACE={infer:{pod:0,off:0,g:4},train:{pod:1,off:0,g:8},ingest:{pod:2,off:0,g:8}};
+const WCOL={infer:'var(--wl1)',train:'var(--wl2)',ingest:'var(--wl3)'};
+const TEN={infer:{t:'team-infer',ns:'proj-llm-serving'},train:{t:'team-train',ns:'proj-llm-train'},ingest:{t:'team-data',ns:'proj-data'}};
+{const nxt=[0,0,0,0];FEAT.forEach(k=>{const P=PLACE[k];nxt[P.pod]=Math.max(nxt[P.pod],P.off+TOPO[k].nodes)});
+ ORDER.filter(k=>!FEAT.includes(k)).forEach(k=>{const S=WSPEC_POS[k];let off=nxt[S.pod];if(S.pod===3&&off<=16&&off+S.nodes>16)off=17;
+   PLACE[k]={pod:S.pod,off,g:S.g};nxt[S.pod]=off+S.nodes+((S.pod*7+off)%3===0?1:0);TEN[k]={t:S.ten,ns:S.ns};WCOL[k]=WCOL[W[k].tpl]});}
+const STOR={n:6,t:8,cap:[71,69,74,70,72,9]};let rebal=34;
+const NODEST={};            // e.g. 'd-node17' → 'Maintenance' (changed in ⑧)
+NODEST['d-node17']='Maintenance';
+const LOG=[];               // global change/event log (⑪ events, ⑫ audit)
+const ROLES={admin:'Admin',op:'Operator',user:'User',ro:'Read-only'};
+state.view='ov';state.scope={pod:'',rack:'',node:'',ten:'',ns:''};state.role='admin';
+function nowT(){return new Date().toLocaleTimeString('en-GB',{hour12:false,timeZone:'Asia/Seoul'})}
+function addLog(src,txt,kind){LOG.unshift({t:nowT(),src,txt,kind:kind||'change',actor:'operator01',role:ROLES[state.role]});if(LOG.length>60)LOG.pop()}
+function podOf(k){return PLACE[k].pod}
+const nodeName=(p,n)=>`${PODS[p].id.slice(-1).toLowerCase()}-node${String(n+1).padStart(2,'0')}`;
+const h01=(a,b)=>{let x=Math.sin(a*127.1+b*311.7)*43758.5453;return x-Math.floor(x)};
+function wlAt(p,n){for(const k of ORDER){const P=PLACE[k];if(P.pod===p&&n>=P.off&&n<P.off+TOPO[k].nodes)return {k,ni:n-P.off}}return null}
+/* One node = 8 GPUs. Returns [{w: wait|null, k: workload|'bg'|null}] */
+function nodeCells(p,n,R,F){const nm=nodeName(p,n),st=NODEST[nm];if(st)return Array.from({length:8},()=>({w:null,k:null,st}));
+  const c=wlAt(p,n);if(c){const g=PLACE[c.k].g;return Array.from({length:8},(_,i)=>i<g?{w:gpuWait(R[c.k].wait,F[c.k].f[c.ni],c.ni,i),k:c.k}:{w:null,k:null})}
+  const occ=h01(p,n)<(p===3?.45:.82);if(!occ)return Array.from({length:8},()=>({w:null,k:null}));
+  const base=3+h01(n,p)*6;return Array.from({length:8},(_,i)=>({w:Math.max(.5,base*(1+(h01(n,i)-.5)*.4)+rnd()*.6),k:'bg'}))}
+function lvlCol(v){return v>=15?'var(--crit)':v>=10?'var(--warn)':v>5?'var(--good)':'var(--good)'}
+function visibleW(){const s=state.scope;let ks=ORDER;if(state.role==='user')ks=ks.filter(k=>TEN[k].t==='team-infer');
+  if(s.ten)ks=ks.filter(k=>TEN[k].t===s.ten);if(s.ns)ks=ks.filter(k=>TEN[k].ns===s.ns);return ks}
+function storHTML(R,bwSum,full){const on=k=>state.on[k]||{};
+  const hotT=(sn,t)=>(!on('infer').rr&&sn===1&&t>=2&&t<=4)||(!on('train').stripe&&sn===4&&t<=3);
+  return `<div class="snodes">${Array.from({length:STOR.n},(_,sn)=>{const nw=sn===5,nm='stor0'+(sn+1),st=NODEST[nm];
+     const loads=Array.from({length:STOR.t},(_,t)=>st==='Drained'?0:nw?clamp(Math.round(rebal*.5+rnd()*6),2,99):clamp(Math.round((hotT(sn,t)?90:38+bwSum/20)+rnd()*8),2,99));
+     const rb=REB.on&&REB.node===sn;const hot=loads.some(v=>v>=85),avg=Math.round(loads.reduce((a,c)=>a+c,0)/loads.length);
+     return `<div class="snode${hot?' hot':''}"><span class="r1"><span>${nm}${nw?' · new':''}${st?' · '+st:''}${rb?' · Rebuild':''}</span><span>load ${avg}%</span></span><span class="tcells">${loads.map((v,t)=>`<i title="t${String(t).padStart(2,'0')} · load ${v}%" style="background:${v>=85?'var(--crit)':v>=60?'var(--warn)':'var(--accent)'};opacity:${(.35+v/150).toFixed(2)}"></i>`).join('')}</span><div class="bar cap" role="img" aria-label="capacity ${STOR.cap[sn]}%"><b style="width:${STOR.cap[sn]}%"></b></div><span class="r1"><span style="color:var(--muted)">capacity ${STOR.cap[sn]}%</span><span>NVMe 8</span></span></div>`}).join('')}</div>
+   <div><div class="eyebrow" style="margin-bottom:6px">Containers · tiers</div><div class="conts">
+     <div class="cont"><i style="background:var(--wl1)"></i><span>kv-qwen3 · L3 KV cache</span><span class="num">${R.infer.tiers.l3[0]}%</span><div class="bar"><b style="width:${R.infer.tiers.l3[0]}%"></b></div></div>
+     <div class="cont"><i style="background:var(--wl2)"></i><span>ckpt-llama70b · checkpoints</span><span class="num">${R.train.tiers.l3[0]}%</span><div class="bar"><b style="width:${R.train.tiers.l3[0]}%"></b></div></div>
+     <div class="cont"><i style="background:var(--wl3)"></i><span>dataset-a · training data 2.1 TiB</span><span class="num">${R.ingest.tiers.l3[0]}%</span><div class="bar"><b style="width:${R.ingest.tiers.l3[0]}%"></b></div></div>
+     <div class="cont"><i style="background:var(--muted)"></i><span>L4 external S3 · cold migration</span><span class="num">${R.train.tiers.l4[0]}%</span><div class="bar"><b style="width:${R.train.tiers.l4[0]}%"></b></div></div></div></div>
+   <div><div class="eyebrow" style="margin-bottom:6px">Operational events</div>
+     <div class="evline"><span class="pill ${rebal<100?'warn':'good'}">${rebal<100?'Rebalancing':'Done'}</span><span>stor06 added online · data redistribution<b class="num">${Math.round(rebal)}%</b></span></div>
+     <div class="bar" style="margin-top:6px"><b style="width:${rebal}%"></b></div>
+     ${REB.on?`<div class="evline" style="margin-top:8px"><span class="pill crit">Rebuild</span><span>stor0${REB.node+1} NVMe failure · rebuild <b class="num">${Math.round(REB.p)}%</b> · training impact <b class="num">${REB.imp.toFixed(1)}%</b> (target ≤ 10%)</span></div>`:''}
+     <div class="evline" style="margin-top:8px;color:var(--muted)"><span class="pill good">Normal</span><span>DR replication (sync: models, checkpoints) lag 0.4 s</span></div></div>`}
+const REB={on:false,node:3,p:0,imp:0};
+/* ① Overview */
+let HOVER='';
+function renderOverview(){const vw=visibleW();
+  const R={},F={};ORDER.forEach(k=>{R[k]=noisy(compute(k),k);F[k]=nodeFactors(k)});
+  const sp=state.scope.pod?[PODS.findIndex(P=>P.id===state.scope.pod)]:PODS.map((_,i)=>i);
+  // aggregate
+  let tot=0,used=0,wsum=0,mx=[];const occ={infer:0,train:0,ingest:0,bg:0,idle:0,mnt:0};
+  PODS.forEach((P,p)=>{for(let n=0;n<P.nodes;n++){const cs=nodeCells(p,n,R,F);cs.forEach(c=>{tot++;if(c.st){occ.mnt++;return}if(c.k){used++;wsum+=c.w;occ[c.k==='bg'?'bg':(W[c.k].tpl||c.k)]++}else occ.idle++});
+    const ws=cs.filter(c=>c.w!=null).map(c=>c.w);if(ws.length)mx.push({p,n,v:ws.reduce((a,b)=>a+b,0)/ws.length,k:cs[0].k})}});
+  const wavg=wsum/Math.max(1,used),bwSum=ORDER.reduce((a,k)=>a+R[k].bw,0),capUsed=STOR.cap.reduce((a,c)=>a+c,0)/STOR.n;
+  const nHot=ORDER.filter(k=>compute(k).wait>=15).length;
+  const kpi=(e,v,u,d,north)=>`<div class="panel kpi${north?' north':''}"><span class="eyebrow">${e}</span><span class="v num">${v}<u>${u}</u></span><span class="d">${d}</span></div>`;
+  let h=`<section class="ovk" aria-label="Cluster metrics">`+
+   kpi('GPU allocation · cluster',`${used}<u>/ ${tot}</u>`,'',`${PODS.length} PODs · ${PODS.reduce((a,P)=>a+P.nodes,0)} nodes · H100`)+
+   kpi('GPU data wait · cluster',wavg.toFixed(1),'%',`Weighted by allocated GPUs · <b style="color:var(--accent)">target ≤ 5%</b>`,true)+
+   kpi('Storage delivered bandwidth · cluster',bwSum.toFixed(1),'GB/s','Sum of L3 → GPU per workload (separate from KPI 2)')+
+   kpi('L3 capacity used',Math.round(capUsed),'%',`Average of ${STOR.n} storage nodes`)+
+   kpi('Active workloads',ORDER.length,'',`Inference ${GROUPS[0].keys.length} · training/data/dev ${GROUPS[1].keys.length} · <span style="color:var(--crit)">bottleneck ${nHot}</span>`)+`</section>`;
+  // POD tiles
+  const up=p=>{const ks=ORDER.filter(k=>podOf(k)===p);const hot=ks.some(k=>compute(k).hot==='fabric');const u=ks.length?Math.max(...ks.map(k=>R[k].hops.fabric[0])):clamp(Math.round(25+rnd()*5),2,99);return {u,hot}};
+  h+=`<div class="podtiles">${PODS.map((P,p)=>{const m=mx.filter(x=>x.p===p),worst=m.length?Math.max(...m.map(x=>x.v)):0,al=m.filter(x=>x.v>=15).length,u=up(p),sel=state.scope.pod===P.id;
+    const g=Array.from({length:P.nodes}).reduce((a,_,n)=>a+nodeCells(p,n,R,F).filter(c=>c.k).length,0);
+    return `<button type="button" class="ptile${sel?' sel':''}${worst>=15?' hotp':''}" data-pod="${P.id}"><span class="pt1"><b>${P.id}</b><span>${P.role}</span></span>
+      <span class="pt2"><span>Max wait</span><b class="num" style="color:${lvlCol(worst)}">${worst.toFixed(0)}%</b></span><span class="pt2"><span>GPU alloc</span><b class="num">${g}/${P.nodes*8}</b></span>
+      <span class="pt2"><span>Alerts</span><b class="num" style="color:${al?'var(--crit)':'var(--muted)'}">${al}</b></span><span class="pt2"><span>Uplink</span><b class="num" style="color:${u.hot?'var(--crit)':'inherit'}">${u.u}%</b></span></button>`}).join('')}</div>`;
+  // heatmap + top N + occupancy
+  const top=mx.slice().sort((a,b)=>b.v-a.v).slice(0,8);
+  const occT=tot,occBar=[['infer','Inference',WCOL.infer],['train','Training',WCOL.train],['ingest','Data',WCOL.ingest],['bg','Other batch','var(--muted)'],['idle','Idle','var(--idle)'],['mnt','Maintenance','var(--warn)']];
+  h+=`<div class="ovgrid"><section class="panel" aria-label="GPU heatmap"><div class="ph"><h2>GPU heatmap · ${state.scope.pod||'Whole cluster'}</h2><small>Column = node · cell = GPU · color = data wait · underline = workload · Canvas</small></div>
+    <div class="hmwrap"><canvas id="hm" role="img" aria-label="GPU wait heatmap"></canvas></div><div class="hmtip num" id="hmtip">${HOVER||'Hover a cell to see node, GPU, workload and wait. Click to drill into that scope.'}</div>
+    <div class="ovlg"><span>Underline:</span><span><i style="background:var(--wl1)"></i>Inference</span><span><i style="background:var(--wl2)"></i>Training</span><span><i style="background:var(--wl3)"></i>Data · eval · dev</span><span>Cell:</span><span><i style="background:var(--idle)"></i>Idle</span><span><i style="background:var(--warn);opacity:.5"></i>Maintenance</span><span><i class="c-good" style="display:inline-block"></i>&lt; 10%</span><span><i class="c-warn" style="display:inline-block"></i>10–15%</span><span><i class="c-crit" style="display:inline-block"></i>≥ 15%</span></div><div style="height:12px"></div></section>
+   <aside class="kside"><section class="panel" aria-label="Top nodes by wait"><div class="ph"><h2>Top nodes by wait</h2><small>Top 8 · click for detail</small></div><ol class="topn">${top.map(x=>`<li><button type="button" data-node="${x.p}:${x.n}"><span class="num">${nodeName(x.p,x.n)}</span><span>${x.k&&x.k!=='bg'?W[x.k].id:'Batch job'}</span><b class="num" style="color:${lvlCol(x.v)}">${x.v.toFixed(0)}%</b></button></li>`).join('')}</ol></section>
+   <section class="panel" aria-label="Workload occupancy"><div class="ph"><h2>GPU occupancy by workload type</h2><small>Cluster · ${occT} GPUs</small></div><div class="kspad"><div class="stack" style="height:16px">${occBar.map(([k,,c])=>`<span style="flex-basis:${occ[k]/occT*100}%;background:${c}"></span>`).join('')}</div>
+     <div class="legend">${occBar.map(([k,nm,c])=>`<span><i style="background:${c}"></i>${nm} <span class="num">${occ[k]}</span></span>`).join('')}</div>
+     <div class="eyebrow">Top workloads by wait · all ${vw.length} in ② Workload Lens</div><div class="wchips">${vw.slice().sort((a,b)=>R[b].wait-R[a].wait).slice(0,8).map(k=>`<button type="button" class="wchip" data-k="${k}"><i style="background:${WCOL[k]}"></i>${W[k].id}<span class="num" style="color:${lvlCol(R[k].wait)}">${R[k].wait}%</span> detail →</button>`).join('')}</div></div></section></aside></div>`;
+  // storage summary
+  h+=`<section class="panel" aria-label="Storage cluster"><div class="ph"><h2>Storage cluster summary</h2><small>ExaStor / DAOS · ${STOR.n} nodes · details in ⑥ Storage Fabric</small></div><div class="stor stor3">${storHTML(R,bwSum)}</div></section>`;
+  $('#ov').innerHTML=h;drawHM(R,F,sp);
+  document.querySelectorAll('#ov [data-k]').forEach(el=>el.onclick=()=>{const k=el.dataset.k;state.w=k;state.node[k]=null;go('②')});
+  document.querySelectorAll('#ov [data-pod]').forEach(el=>el.onclick=()=>{state.scope.pod=state.scope.pod===el.dataset.pod?'':el.dataset.pod;state.scope.rack='';state.scope.node='';syncScope();render()});
+  document.querySelectorAll('#ov [data-node]').forEach(el=>el.onclick=()=>{const [p,n]=el.dataset.node.split(':').map(Number);openNode(p,n)});
+}
+function openNode(p,n){const c=wlAt(p,n);state.scope.pod=PODS[p].id;state.scope.rack='r0'+(Math.floor(n/8)+1);state.scope.node=nodeName(p,n);syncScope();
+  if(c){state.w=c.k;state.node[c.k]=c.ni;go('③')}else{addLog('Scope',`${nodeName(p,n)} selected · batch-job node (no workload detail)`,'info');render()}}
+function drawHM(R,F,sp){const cv=$('#hm');if(!cv)return;const one=sp.length===1;const cw=one?18:9,ch=one?14:7,gap=1,lab=58,rowH=8*ch+(one?26:14);
+  const W0=lab+32*(cw+gap)+(one?3*6:0)+8,H0=sp.length*rowH+4;const dpr=window.devicePixelRatio||1;cv.width=W0*dpr;cv.height=H0*dpr;cv.style.aspectRatio=W0+'/'+H0;
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W0,H0);
+  const C=n=>CSSV(n),col={good:C('--good'),warn:C('--warn'),crit:C('--crit'),idle:C('--idle'),mut:C('--muted'),ink:C('--ink')};
+  const map=[];
+  sp.forEach((p,ri)=>{const y0=ri*rowH+2;x.fillStyle=col.ink;x.font=`600 ${one?12:10}px ${getComputedStyle(document.body).fontFamily}`;x.fillText(PODS[p].id,2,y0+ch*4);
+    for(let n=0;n<32;n++){const rack=Math.floor(n/8),xx=lab+n*(cw+gap)+(one?rack*6:0);const cs=nodeCells(p,n,R,F),nm=nodeName(p,n);
+      const selN=state.scope.node===nm,rackSel=state.scope.rack&&state.scope.pod===PODS[p].id&&state.scope.rack!=='r0'+(rack+1);
+      cs.forEach((c,g)=>{const yy=y0+g*ch;x.globalAlpha=rackSel?.25:1;
+        x.fillStyle=c.st?col.warn:c.w==null?col.idle:c.w>=15?col.crit:c.w>=10?col.warn:col.good;if(c.st)x.globalAlpha*=.45;else if(c.w!=null&&c.w<10)x.globalAlpha*=.55;
+        x.fillRect(xx,yy,cw,ch-1);map.push({x:xx,y:yy,w:cw,h:ch,p,n,g,c})});
+      x.globalAlpha=1;const k=cs[0].k;if(k&&k!=='bg'){x.fillStyle=C(WCOL[k].slice(4,-1));x.fillRect(xx,y0+8*ch+1,cw,3)}
+      if(selN){x.strokeStyle=col.ink;x.lineWidth=2;x.strokeRect(xx-1,y0-1,cw+2,8*ch+1)}}
+    if(one){x.fillStyle=col.mut;x.font=`10px ${getComputedStyle(document.body).fontFamily}`;for(let r=0;r<4;r++)x.fillText('r0'+(r+1),lab+r*(8*(cw+gap)+6),y0+8*ch+16)}});
+  cv.onmousemove=e=>{const b=cv.getBoundingClientRect(),sx=(e.clientX-b.left)*W0/b.width,sy=(e.clientY-b.top)*H0/b.height;const m=map.find(q=>sx>=q.x&&sx<q.x+q.w&&sy>=q.y&&sy<q.y+q.h);
+    HOVER=m?`${nodeName(m.p,m.n)} · r0${Math.floor(m.n/8)+1} · GPU ${m.g} · ${m.c.st?m.c.st:m.c.k==null?'Unallocated':m.c.k==='bg'?'Batch job':W[m.c.k].id} · ${m.c.w==null?'—':'wait '+m.c.w.toFixed(1)+'%'}`:'';$('#hmtip').textContent=HOVER||' ';cv.style.cursor=m?'pointer':'default'};
+  cv.onmouseleave=()=>{HOVER=''};
+  cv.onclick=e=>{const b=cv.getBoundingClientRect(),sx=(e.clientX-b.left)*W0/b.width,sy=(e.clientY-b.top)*H0/b.height;const m=map.find(q=>sx>=q.x&&sx<q.x+q.w&&sy>=q.y&&sy<q.y+q.h);if(m)openNode(m.p,m.n)};
+}
+
+/* ── Intelligent storage (KETI): workload profile → extended metadata → policy derivation → per-storage config → apply. Demo controls ── */
+const KS={sel:'infer',tgt:'daos',log:[],risk:[18,22,41,15,27,9],
+ prof:{
+  infer:{cls:'Inference · KV cache reuse',ext:true,conf:.91,pat:'Random chunk reads, session revisits',size:'250 MiB chunks',rw:'R',rwt:'Mostly R (new KV is W)',lat:'High',bw:'High',cont:'kv-qwen3',apply:'rr',pf:'pf'},
+  train:{cls:'Checkpoint (write)',conf:.95,pat:'Bursty sequential writes + fsync',size:'MB – GB',rw:'W',rwt:'W',lat:'Low',bw:'Very high',cont:'ckpt-llama70b',apply:'stripe',pf:null},
+  ingest:{cls:'Training ingest (large files)',conf:.88,pat:'Sequential reads in random order, epoch shuffle',size:'Tens to hundreds of MB',rw:'R',rwt:'R',lat:'Low',bw:'Very high',cont:'dataset-a',apply:'keti',pf:'keti'}},
+ meta:{infer:{bw:12,lat:2,pri:'high',red:'rp2'},train:{bw:20,lat:50,pri:'mid',red:'ec8p2'},ingest:{bw:8,lat:20,pri:'mid',red:'ec4p2'}},
+ pfcfg:{infer:{h:60,dev:'NPU'},ingest:{h:60,dev:'NPU'}},
+ hci:{'POD-A':'semi','POD-B':'semi','POD-C':'fully'}};
+const RED={rp2:['Replica 2',1,'RP_2G'],rp3:['Replica 3',2,'RP_3G'],ec4p2:['EC 4+2',2,'EC_4P2G'],ec8p2:['EC 8+2',2,'EC_8P2G']};
+const PRI={high:'High',mid:'Medium',low:'Low'};
+function ksPolicy(k){const m=KS.meta[k],P=KS.prof[k];const st=clamp(Math.ceil(m.bw/1.25),1,16);
+  const oclass=RED[m.red][2]+(st>=16?'X':st);
+  const tier=m.lat<=5?'L1 DRAM → L2 CXL → L3 (latency first)':P.rw==='W'?'Direct L3 write → previous round to L4':'Resident on L3 + L1 page cache';
+  const cache=P.rw==='W'?'Write burst buffer (server DRAM)':m.lat<=5?'Server DRAM preload + GPU staging window':'Read prefetch (predictive)';
+  const path=m.lat<=5?'GDR (direct to GPU memory)':m.bw>=10?'GDS + RDMA':'dfuse POSIX';
+  const chunk=P.rw==='W'?'4MiB':m.lat<=5?'1MiB':'2MiB';
+  return {st,oclass,tier,cache,path,chunk,qos:PRI[m.pri],rf:RED[m.red][1]};}
+function ksConfig(k){const p=ksPolicy(k),P=KS.prof[k];
+  if(KS.tgt==='daos')return `daos cont create pool0 --label ${P.cont} --type POSIX \\\n  --oclass ${p.oclass} --chunk-size ${p.chunk} \\\n  --properties rd_fac:${p.rf},rd_lvl:rank\n# tier: ${p.tier}\n# cache: ${p.cache}\n# data path: ${p.path} · QoS ${p.qos}`;
+  if(KS.tgt==='lustre')return `lfs setstripe -c ${p.st} -S ${p.chunk.replace('iB','')} /exastor/${P.cont}\n${P.rw==='R'?`lfs ladvise -a willread /exastor/${P.cont}   # prefetch hint\n`:''}lfs project -p ${k==='infer'?101:k==='train'?102:103} -s /exastor/${P.cont}\nlfs setquota -p ${k==='infer'?101:k==='train'?102:103} -B 0 /exastor   # QoS ${p.qos}: via TBF rules\n# redundancy: relies on OST RAID (${RED[KS.meta[k].red][0]} applies directly only on DAOS)`;
+  return `apiVersion: storage.k8s.io/v1\nkind: StorageClass\nmetadata:\n  name: gpuflow-${k}\nprovisioner: dfs.csi.daos.io\nparameters:\n  pool: pool0\n  oclass: ${p.oclass}\n  chunkSize: ${p.chunk}\n  gpuflow.io/tier: "${p.tier}"\n  gpuflow.io/path: "${p.path}"\n  gpuflow.io/qos: ${KS.meta[k].pri}\nvolumeBindingMode: WaitForFirstConsumer`;}
+function ksLog(txt){const t=new Date().toLocaleTimeString('en-GB',{hour12:false,timeZone:'Asia/Seoul'});KS.log.unshift({t,txt});KS.log=KS.log.slice(0,8);addLog('KETI',txt)}
+function ksSetAct(k,id,v){state.on[k]=state.on[k]||{};if(!!state.on[k][id]===v)return;state.on[k][id]=v;markT(k,id);BUF[k].mk.push({i:BUF[k].A.length-1,on:v})}
+function renderKS(live){const box=$('#ks');
+  if(live&&box.dataset.built){ // update live values only
+    document.querySelectorAll('#ks [data-live]').forEach(el=>{const f=KSLIVE[el.dataset.live];if(f)el.textContent=f()});
+    document.querySelectorAll('#ks .rk').forEach((el,i)=>{el.querySelector('b').style.width=KS.risk[i]+'%';el.querySelector('span:last-child').textContent=Math.round(KS.risk[i])+'%';el.classList.toggle('hi',KS.risk[i]>=60)});return}
+  box.dataset.built=1;const k=KS.sel,P=KS.prof[k],m=KS.meta[k],p=ksPolicy(k),on=state.on[k]||{},applied=!!on[P.apply];
+  const pfOn=P.pf&&!!on[P.pf],a=W[k].acts.find(x=>x.id===P.apply);
+  let h=`<div class="ksban"><b>Demo controls</b> Settings on this screen change only the page state and are not applied to any system. In production they go through the KETI policy API and the Gluesys applier to the storage.</div>
+  <div class="ksgrid"><nav class="panel" aria-label="Workload profiles"><div class="ph"><h2>Workloads · AWSM classification</h2><small>From eBPF traces</small></div><ul class="wl">${FEAT.map(x=>{const Q=KS.prof[x],ap=!!(state.on[x]||{})[Q.apply];
+    return `<li><button type="button" data-ks="${x}" aria-pressed="${x===k}"><span class="n">${W[x].id}</span><span class="pill ${ap?'good':'warn'}">${ap?'Policy applied':'Not applied'}</span><span class="t">${Q.cls}${Q.ext?' (extended)':''}</span><span class="m num">confidence ${Math.round(Q.conf*100)}%</span></button></li>`}).join('')}</ul>
+    <div class="kscap">KETI API · GET /awsm/profiles</div></nav>
+  <section class="panel" aria-label="Policy derivation"><div class="ph"><h2>Profile → policy · ${W[k].id}</h2><small>${P.cls}</small></div><div class="kspipe">
+    <div class="kscol"><div class="eyebrow">1 · I/O profile (measured by KETI)</div><dl class="kv"><dt>Dominant pattern</dt><dd>${P.pat}</dd><dt>Access size</dt><dd>${P.size}</dd><dt>R/W</dt><dd>${P.rwt}</dd><dt>Latency sensitivity</dt><dd>${P.lat}</dd><dt>Bandwidth need</dt><dd>${P.bw}</dd></dl></div>
+    <div class="kscol"><div class="eyebrow">2 · Extended metadata (adjustable)</div>
+      <label class="fl" for="m-bw">Required bandwidth <b class="num" id="m-bw-v">${m.bw} GB/s</b></label><input type="range" id="m-bw" min="1" max="40" value="${m.bw}">
+      <label class="fl" for="m-lat">Latency budget <b class="num" id="m-lat-v">${m.lat} ms</b></label><input type="range" id="m-lat" min="1" max="100" value="${m.lat}">
+      <label class="fl" for="m-pri">I/O priority</label><select id="m-pri">${Object.entries(PRI).map(([v,t])=>`<option value="${v}" ${m.pri===v?'selected':''}>${t}</option>`).join('')}</select>
+      <label class="fl" for="m-red">Redundancy</label><select id="m-red">${Object.entries(RED).map(([v,t])=>`<option value="${v}" ${m.red===v?'selected':''}>${t[0]}</option>`).join('')}</select></div>
+    <div class="kscol"><div class="eyebrow">3 · Derived policy (automatic)</div><dl class="kv pol2"><dt>Tier</dt><dd>${p.tier}</dd><dt>Layout</dt><dd class="num">${p.oclass} · stripe ${p.st} · ${p.chunk}</dd><dt>Cache</dt><dd>${p.cache}</dd><dt>Data path</dt><dd>${p.path}</dd><dt>QoS</dt><dd>${p.qos}</dd></dl>
+      <div class="kseff">${applied?'Effect':'Expected effect'}: ${effText(W[k],a)}</div></div>
+  </div>
+  <div class="ksconf"><div class="tabs2" role="group" aria-label="Target storage">${[['daos','DAOS'],['lustre','Lustre (ExaStor)'],['k8s','K8s StorageClass']].map(([v,t])=>`<button type="button" data-tgt="${v}" aria-pressed="${KS.tgt===v}">${t}</button>`).join('')}</div>
+    <pre class="code" id="ks-code"></pre>
+    <div class="ksact"><button type="button" class="btn" id="ks-apply">${applied?'Remove':'Apply to workload'}</button><span class="kscap">Applying also turns on the tiering policy in workload detail (${W[k].acts.find(x=>x.id===P.apply).b}) · KETI API · POST /policies/apply</span></div></div></section>
+  <aside class="kside"><section class="panel" aria-label="Intelligent prefetching"><div class="ph"><h2>Intelligent prefetching engine</h2><small>eBPF + Informer forecast</small></div><div class="kspad">
+    ${P.pf?`<label class="sw"><input type="checkbox" id="pf-on" ${pfOn?'checked':''}><span>Prefetching for ${W[k].id}: ${pfOn?'on':'off'}</span></label>
+    <div class="row2"><label class="fl" for="pf-h">Horizon</label><select id="pf-h">${[30,60,120].map(v=>`<option ${KS.pfcfg[k].h===v?'selected':''} value="${v}">${v} s ahead</option>`).join('')}</select>
+    <label class="fl" for="pf-d">Inference device</label><select id="pf-d">${['NPU','CPU'].map(v=>`<option ${KS.pfcfg[k].dev===v?'selected':''}>${v}</option>`).join('')}</select></div>
+    <dl class="kv"><dt>Forecast accuracy</dt><dd class="num" data-live="acc">—</dd><dt>Prefetch hit</dt><dd class="num" data-live="hitp">—</dd><dt>I/O stall saved</dt><dd class="num" data-live="save">—</dd><dt>Inference latency</dt><dd class="num" data-live="inf">—</dd></dl>`
+    :`<p class="kscap" style="margin:0">Write-heavy workload; read prefetching does not apply.</p>`}
+    <div class="kscap">KETI API · PUT /prefetch/{workload}</div></div></section>
+   <section class="panel" aria-label="HCI deployment profile"><div class="ph"><h2>HCI deployment profile</h2><small>Data locality vs resource contention</small></div><div class="kspad">
+    ${PODS.map(Q=>{const v=KS.hci[Q.id];return `<div class="hrow"><span>${Q.id} · ${Q.role}</span><select data-hci="${Q.id}" aria-label="${Q.id} deployment profile"><option value="semi" ${v==='semi'?'selected':''}>SemiConverged</option><option value="fully" ${v==='fully'?'selected':''}>FullyConverged</option></select><span class="kscap">${v==='fully'?'High locality · contention CPU 12%, memory 18%':'Medium locality · low contention'}</span></div>`}).join('')}
+    <div class="kscap">KETI API · PUT /hci/profiles</div></div></section>
+   <section class="panel" aria-label="Degradation forecast"><div class="ph"><h2>Storage node degradation forecast</h2><small>30 min ahead</small></div><div class="kspad">
+    ${KS.risk.map((r,i)=>`<div class="rk${r>=60?' hi':''}"><span class="num">stor0${i+1}</span><div class="bar"><b style="width:${r}%"></b></div><span class="num">${Math.round(r)}%</span></div>`).join('')}
+    <button type="button" class="btn ghost" id="ks-risk">Lower rebalance priority for at-risk node</button></div></section></aside></div>
+  <section class="panel" aria-label="Apply history"><div class="ph"><h2>Apply history</h2><small>KETI proposes → Gluesys applies</small></div><ul class="klog">${KS.log.length?KS.log.map(e=>`<li><span class="num">${e.t}</span>${e.txt}</li>`).join(''):'<li class="kscap">No changes yet. Applying a policy or changing a setting records it here.</li>'}</ul></section>`;
+  box.innerHTML=h;$('#ks-code').textContent=ksConfig(k);
+  box.querySelectorAll('[data-ks]').forEach(b=>b.onclick=()=>{KS.sel=b.dataset.ks;renderKS()});
+  box.querySelectorAll('[data-tgt]').forEach(b=>b.onclick=()=>{KS.tgt=b.dataset.tgt;renderKS()});
+  const upd=()=>{m.bw=+$('#m-bw').value;m.lat=+$('#m-lat').value;m.pri=$('#m-pri').value;m.red=$('#m-red').value;renderKS()};
+  $('#m-bw').oninput=()=>{$('#m-bw-v').textContent=$('#m-bw').value+' GB/s'};$('#m-lat').oninput=()=>{$('#m-lat-v').textContent=$('#m-lat').value+' ms'};
+  ['m-bw','m-lat','m-pri','m-red'].forEach(id=>$('#'+id).onchange=()=>{upd();ksLog(`${W[k].id} extended metadata changed → ${ksPolicy(k).oclass}, ${ksPolicy(k).path}`);renderKS()});
+  $('#ks-apply').onclick=()=>{const v=!applied;ksSetAct(k,P.apply,v);ksLog(`${W[k].id} policy ${v?'applied':'removed'}: ${ksPolicy(k).oclass} · ${ksPolicy(k).tier}`);render()};
+  if(P.pf){$('#pf-on').onchange=e=>{ksSetAct(k,P.pf,e.target.checked);ksLog(`${W[k].id} prefetching ${e.target.checked?'started':'stopped'} (${KS.pfcfg[k].h} s ahead, ${KS.pfcfg[k].dev})`);render()};
+    $('#pf-h').onchange=e=>{KS.pfcfg[k].h=+e.target.value;ksLog(`${W[k].id} horizon ${e.target.value} s`);renderKS()};
+    $('#pf-d').onchange=e=>{KS.pfcfg[k].dev=e.target.value;ksLog(`${W[k].id} inference device ${e.target.value}`);renderKS()};}
+  box.querySelectorAll('[data-hci]').forEach(s=>s.onchange=()=>{KS.hci[s.dataset.hci]=s.value;ksLog(`${s.dataset.hci} deployment profile → ${s.value==='fully'?'FullyConverged':'SemiConverged'}`);renderKS()});
+  $('#ks-risk').onclick=()=>{const i=KS.risk.indexOf(Math.max(...KS.risk));ksLog(`stor0${i+1} degradation forecast ${Math.round(KS.risk[i])}% → lower priority for placement and rebalancing`);renderKS()};
+}
+const KSLIVE={
+ acc:()=>{const k=KS.sel,P=KS.prof[k];if(!P.pf||!(state.on[k]||{})[P.pf])return '—';const h=KS.pfcfg[k].h;return Math.round((h===30?86:h===60?79:68)+rnd()*3)+'%'},
+ hitp:()=>{const k=KS.sel,P=KS.prof[k];if(!P.pf||!(state.on[k]||{})[P.pf])return '—';return Math.round(72+rnd()*4)+'%'},
+ save:()=>{const k=KS.sel,P=KS.prof[k];if(!P.pf||!(state.on[k]||{})[P.pf])return '—';const a=W[k].acts.find(x=>x.id===P.pf);return k==='infer'?`wait ${a.d.wait}%p`:`${Math.abs(a.d.p2)} ms/step`},
+ inf:()=>{const k=KS.sel,P=KS.prof[k];if(!P.pf||!(state.on[k]||{})[P.pf])return '—';return (KS.pfcfg[k].dev==='NPU'?2.1:6.8+rnd()).toFixed(1)+' ms'}};
+function ksTick(){KS.risk=KS.risk.map((r,i)=>i===2?Math.min(78,r+rnd()*1.5+0.9):clamp(r+rnd()*2,3,45))}
+
+/* ── Network & DPU (MangoBoost): fabric topology, DPU detail, settings (demo), switch ports (read-only) ── */
+const PROF={dcqcn:'Default DCQCN',burst:'Burst-write optimized (checkpoint)',fanin:'KV fan-in/out optimized (inference)'};
+const DPUS=[
+ {id:'dpu-s1',host:'stor01',side:'storage',model:'BoostX Pro · 2×200GbE',fn:['RoCEv2 RDMA','NVMe-oF Target(NRT)']},
+ {id:'dpu-s2',host:'stor02',side:'storage',model:'BoostX Pro · 2×200GbE',fn:['RoCEv2 RDMA','NVMe-oF Target(NRT)']},
+ {id:'dpu-g1',host:'b-node01',side:'gpu',model:'BoostX · 400GbE',fn:['RoCEv2 RDMA']},
+ {id:'dpu-g2',host:'a-node02',side:'gpu',model:'BoostX · 400GbE',fn:['RoCEv2 RDMA','KV offload (trial)']}];
+const defCfg=()=>({prof:'dcqcn',ecn:150,pfc:true,qp:4096,nrt:true,mtu:4096});
+const NET={sel:'dpu-s1',cfg:{},draft:{},prev:{},log:[]};
+DPUS.forEach(d=>{NET.cfg[d.id]=defCfg();NET.draft[d.id]=defCfg()});
+const trainCC=()=>!!(state.on.train||{}).cc;
+function netLog(t){const s=new Date().toLocaleTimeString('en-GB',{hour12:false,timeZone:'Asia/Seoul'});NET.log.unshift({t:s,txt:t});NET.log=NET.log.slice(0,8);addLog('DPU',t)}
+/* Per-device live values: checkpoint congestion (cc off) raises PFC/CNP on storage DPUs; inference target skew raises KV latency on dpu-g2 */
+function dpuStat(d){const c=NET.cfg[d.id],hotS=d.side==='storage'&&!trainCC(),hotG=d.id==='dpu-g2'&&!((state.on.infer||{}).rr)&&c.prof!=='fanin';
+  const j=x=>x*(1+rnd()*.06);const base=d.side==='storage'?28:22;
+  return {tx:j(base*(hotS?1.2:1)),rx:j(base*.8),qp:Math.round(j(d.side==='storage'?1840:620)),
+   cnp:Math.round(j(hotS?9200:hotG?3100:420)),ecn:Math.round(j(hotS?15400:hotG?4800:900)),pfc:Math.round(j(c.pfc?(hotS?2600:40):0)),
+   retx:Math.round(j(hotS?38:4)),iops:d.side==='storage'&&c.nrt?Math.round(j(1.9)*100)/100:null,lat:d.side==='storage'&&c.nrt?j(hotS?310:96):null,
+   kv:d.id==='dpu-g2'?j(hotG?7.8:2.4):null,eng:Math.round(j(hotS?91:58)),temp:Math.round(j(hotS?78:64)),hot:hotS||hotG}}
+function linkUtil(){return {A:clamp(Math.round(38+rnd()*4),2,99),B:clamp(Math.round((trainCC()?64:87)+rnd()*4),2,99),C:clamp(Math.round(20+rnd()*4),2,99),S:clamp(Math.round((trainCC()?52:71)+rnd()*4),2,99)}}
+function topoSVG(){const U=linkUtil(),col=u=>u>=85?'var(--crit)':u>=60?'var(--warn)':'var(--accent)',w=u=>(1.5+u/25).toFixed(1);
+  const sp=[{x:280,y:40},{x:480,y:40}],lf={A:{x:110,y:130},B:{x:290,y:130},C:{x:470,y:130},S:{x:650,y:130}};
+  let s=`<svg viewBox="0 0 760 300" role="img" aria-label="RoCEv2 fabric topology" class="topo2">`;
+  for(const L in lf)sp.forEach(S=>{s+=`<line x1="${lf[L].x}" y1="${lf[L].y-14}" x2="${S.x}" y2="${S.y+14}" stroke="${col(U[L])}" stroke-width="${w(U[L])}" stroke-opacity=".8"/>`});
+  sp.forEach((S,i)=>{s+=`<rect x="${S.x-60}" y="${S.y-14}" width="120" height="28" rx="6" fill="var(--node-bg)" stroke="var(--muted)" stroke-opacity=".5"/><text x="${S.x}" y="${S.y+4}" text-anchor="middle" font-size="12" fill="var(--ink)">Spine ${i+1} · SN4700</text>`});
+  const lfN={A:'Leaf-A · POD-A',B:'Leaf-B · POD-B',C:'Leaf-C · POD-C',S:'Leaf-S · storage'};
+  for(const L in lf){const p=lf[L];s+=`<rect x="${p.x-70}" y="${p.y-14}" width="140" height="28" rx="6" fill="var(--node-bg)" stroke="${U[L]>=85?'var(--crit)':'var(--muted)'}" stroke-opacity="${U[L]>=85?1:.5}"/><text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-size="11.5" fill="var(--ink)">${lfN[L]}</text><text x="${p.x+74}" y="${p.y-18}" font-size="10.5" fill="${col(U[L])}" font-family="var(--f-data)">${U[L]}%</text>`}
+  const pods=[['A','POD-A · 32 nodes',['dpu-g2']],['B','POD-B · 32 nodes',['dpu-g1']],['C','POD-C/D · 64 nodes',[]]];
+  pods.forEach(([L,nm,ds])=>{const p=lf[L];s+=`<line x1="${p.x}" y1="${p.y+14}" x2="${p.x}" y2="196" stroke="var(--line)"/><rect x="${p.x-70}" y="196" width="140" height="48" rx="6" fill="var(--node-bg)" stroke="var(--muted)" stroke-opacity=".5"/><text x="${p.x}" y="213" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${nm}</text>`;
+    ds.forEach(id=>{const sel=NET.sel===id,st=dpuStat(DPUS.find(d=>d.id===id));s+=`<g class="dpuhit" data-dpu="${id}" tabindex="0" role="button" aria-label="Select ${id}"><rect x="${p.x-40}" y="220" width="80" height="18" rx="5" fill="${st.hot?'var(--badge-hot)':'var(--badge)'}" stroke="${sel?'var(--ink)':'none'}" stroke-width="2"/><text x="${p.x}" y="233" text-anchor="middle" font-size="11" font-weight="600" fill="var(--badge-fg)" font-family="var(--f-data)">${id}</text></g>`})});
+  const ps=lf.S;s+=`<line x1="${ps.x}" y1="${ps.y+14}" x2="${ps.x}" y2="190" stroke="var(--line)"/>`;
+  for(let i=0;i<6;i++){const cx=ps.x-75+(i%3)*51,cy=192+Math.floor(i/3)*40,id=i<2?DPUS[i].id:null,st=id?dpuStat(DPUS[i]):null,sel=NET.sel===id;
+    s+=`<rect x="${cx}" y="${cy}" width="48" height="36" rx="5" fill="var(--node-bg)" stroke="var(--muted)" stroke-opacity=".5"/><text x="${cx+24}" y="${cy+13}" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)" font-family="var(--f-data)">stor0${i+1}</text>`;
+    if(id)s+=`<g class="dpuhit" data-dpu="${id}" tabindex="0" role="button" aria-label="Select ${id}"><rect x="${cx+5}" y="${cy+18}" width="38" height="14" rx="4" fill="${st.hot?'var(--badge-hot)':'var(--badge)'}" stroke="${sel?'var(--ink)':'none'}" stroke-width="2"/><text x="${cx+24}" y="${cy+28.5}" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--badge-fg)">DPU</text></g>`;
+    else s+=`<text x="${cx+24}" y="${cy+28}" text-anchor="middle" font-size="9.5" fill="var(--muted)">NVMe-oF</text>`}
+  s+=`<g font-size="11" fill="var(--muted)"><rect x="24" y="276" width="10" height="10" rx="2" fill="var(--badge)"/><text x="40" y="285">MangoBoost DPU (click to select)</text><line x1="230" y1="281" x2="262" y2="281" stroke="var(--accent)" stroke-width="3"/><text x="268" y="285">Link width/color = utilization</text><line x1="480" y1="281" x2="512" y2="281" stroke="var(--crit)" stroke-width="5"/><text x="518" y="285">≥ 85% · congested</text></g></svg>`;
+  return rv(s)}
+const fmtN=v=>v>=1000?(v/1000).toFixed(1)+'k':String(v);
+function dpuStatsHTML(d){const st=dpuStat(d);return `<dl class="kv dstat"><dt>Tx / Rx</dt><dd class="num">${st.tx.toFixed(1)} / ${st.rx.toFixed(1)} GB/s</dd><dt>Active QPs</dt><dd class="num">${st.qp}</dd>
+  <dt>CNP received</dt><dd class="num${st.cnp>3000?' bad':''}">${fmtN(st.cnp)}/s</dd><dt>ECN marked</dt><dd class="num${st.ecn>4000?' bad':''}">${fmtN(st.ecn)}/s</dd><dt>PFC pause</dt><dd class="num${st.pfc>500?' bad':''}">${fmtN(st.pfc)}/s</dd><dt>Retransmits</dt><dd class="num${st.retx>20?' bad':''}">${st.retx}/s</dd>
+  ${st.iops!=null?`<dt>NVMe-oF IOPS</dt><dd class="num">${st.iops} M</dd><dt>NVMe-oF p99</dt><dd class="num${st.lat>200?' bad':''}">${Math.round(st.lat)} µs</dd>`:''}${st.kv!=null?`<dt>KV transfer p99</dt><dd class="num${st.kv>5?' bad':''}">${st.kv.toFixed(1)} ms</dd>`:''}
+  <dt>Offload engine</dt><dd class="num${st.eng>85?' bad':''}">${st.eng}%</dd><dt>Temperature</dt><dd class="num${st.temp>75?' bad':''}">${st.temp} °C</dd></dl>`}
+function diffList(id){const a=NET.cfg[id],b=NET.draft[id],L={prof:'Congestion-control profile',ecn:'ECN threshold',pfc:'PFC',qp:'QP limit',nrt:'NVMe-oF offload',mtu:'RoCE MTU'},f=(k,v)=>k==='prof'?PROF[v]:k==='ecn'?v+' KB':typeof v==='boolean'?(v?'on':'off'):v;
+  return Object.keys(L).filter(k=>a[k]!==b[k]).map(k=>`${L[k]}: ${f(k,a[k])} → ${f(k,b[k])}`)}
+function portRows(){const U=linkUtil(),rows=[['swp1-4','Leaf-A uplink',U.A],['swp5-8','Leaf-B uplink',U.B],['swp9-10','Leaf-C uplink',U.C],['swp11-14','Leaf-S uplink',U.S]];
+  return rows.map(([p,n,u])=>`<tr class="${u>=85?'hot':''}"><td class="num">${p}</td><td>${n}</td><td class="num">${u}%</td><td class="num">${fmtN(Math.round((u>=85?1800:u>=60?240:20)*(1+rnd()*.1)))}/s</td><td class="num">${fmtN(Math.round((u>=85?12000:u>=60?2200:300)*(1+rnd()*.1)))}/s</td></tr>`).join('')}
+function renderNET(live){const box=$('#net');const d=DPUS.find(x=>x.id===NET.sel);
+  if(live&&box.dataset.built){$('#ntopo').innerHTML=topoSVG();bindDpu();$('#dstat').innerHTML=dpuStatsHTML(d);$('#ports').innerHTML=portRows();
+    document.querySelectorAll('#dinv tr[data-dpu]').forEach(tr=>{const st=dpuStat(DPUS.find(x=>x.id===tr.dataset.dpu));tr.querySelector('.ut').textContent=(st.tx+st.rx).toFixed(1)+' GB/s';tr.querySelector('.tp').textContent=st.temp+' °C';tr.classList.toggle('hot',st.hot)});return}
+  box.dataset.built=1;const c=NET.draft[d.id],df=diffList(d.id);
+  box.innerHTML=`<div class="ksban"><b>Demo controls</b> Changes affect only the page state. Real integration will use the MangoBoost DPU SDK (planned for Y3); switches belong to the TTA testbed and are read-only.</div>
+  <div class="ngrid"><section class="panel" aria-label="Fabric topology"><div class="ph"><h2>RoCEv2 400GbE fabric</h2><small>2 spines · 4 leaves · 4 DPUs (2 storage · 2 GPU servers)</small></div><div id="ntopo" class="ntopo">${topoSVG()}</div>
+    <div class="tw"><table class="dtab" id="dinv"><thead><tr><th>DPU</th><th>Host</th><th>Model</th><th>Offload functions</th><th>Throughput</th><th>Temp</th></tr></thead><tbody>${DPUS.map(x=>{const st=dpuStat(x);return `<tr data-dpu="${x.id}" class="${x.id===NET.sel?'sel':''} ${st.hot?'hot':''}" tabindex="0"><td class="num">${x.id}</td><td class="num">${x.host}</td><td>${x.model}</td><td>${x.fn.join(', ')}</td><td class="num ut">${(st.tx+st.rx).toFixed(1)} GB/s</td><td class="num tp">${st.temp} °C</td></tr>`}).join('')}</tbody></table></div></section>
+  <aside class="kside"><section class="panel" aria-label="DPU detail"><div class="ph"><h2>${d.id} · ${d.host}</h2><small>${d.model}</small></div><div class="kspad"><div id="dstat">${dpuStatsHTML(d)}</div><div class="kscap">Source: MangoBoost DPU exporter · gpuflow_fabric_*</div></div></section>
+   <section class="panel" aria-label="DPU settings"><div class="ph"><h2>Settings</h2><small>Current profile: ${PROF[NET.cfg[d.id].prof]}</small></div><div class="kspad">
+    <label class="fl" for="n-prof">Congestion-control profile</label><select id="n-prof">${Object.entries(PROF).map(([v,t])=>`<option value="${v}" ${c.prof===v?'selected':''}>${t}</option>`).join('')}</select>
+    <label class="fl" for="n-ecn">ECN marking threshold <b class="num" id="n-ecn-v">${c.ecn} KB</b></label><input type="range" id="n-ecn" min="20" max="400" step="10" value="${c.ecn}">
+    <label class="fl" for="n-qp">QP limit</label><select id="n-qp">${[1024,2048,4096,8192].map(v=>`<option ${c.qp===v?'selected':''}>${v}</option>`).join('')}</select>
+    <label class="fl" for="n-mtu">RoCE MTU</label><select id="n-mtu">${[1024,2048,4096].map(v=>`<option ${c.mtu===v?'selected':''}>${v}</option>`).join('')}</select>
+    <label class="sw"><input type="checkbox" id="n-pfc" ${c.pfc?'checked':''}><span>PFC (lossless priority 3)</span></label>
+    ${d.side==='storage'?`<label class="sw"><input type="checkbox" id="n-nrt" ${c.nrt?'checked':''}><span>NVMe-oF target hardware offload</span></label>`:''}
+    <div class="diff">${df.length?`<b>${df.length} pending change(s)</b><ul>${df.map(x=>`<li>${x}</li>`).join('')}</ul>`:'<span class="kscap">No changes</span>'}</div>
+    <div class="ksact"><button type="button" class="btn" id="n-apply" ${df.length?'':'disabled'}>Apply</button><button type="button" class="btn ghost" id="n-rb" ${NET.prev[d.id]?'':'disabled'}>Roll back to previous</button></div>
+    <div class="kscap">${d.side==='storage'?'Applying "burst-write optimized" on storage DPUs also turns on the RoCE congestion-control policy for training':'GPU server DPU settings'} · MangoBoost SDK · PUT /dpu/{id}/config</div></div></section></aside></div>
+  <div class="ngrid2"><section class="panel" aria-label="Switch ports"><div class="ph"><h2>Switch ports · SN4700</h2><small>TTA testbed · read-only</small></div><div class="tw"><table class="dtab"><thead><tr><th>Port</th><th>Link</th><th>Util</th><th>PFC pause</th><th>ECN marked</th></tr></thead><tbody id="ports">${portRows()}</tbody></table></div></section>
+   <section class="panel" aria-label="Change history"><div class="ph"><h2>Settings change history</h2><small>DPU settings · rollback</small></div><ul class="klog">${NET.log.length?NET.log.map(e=>`<li><span class="num">${e.t}</span>${e.txt}</li>`).join(''):'<li class="kscap">No changes yet.</li>'}</ul></section></div>`;
+  bindDpu();
+  box.querySelectorAll('#dinv tr[data-dpu]').forEach(tr=>{tr.onclick=()=>{NET.sel=tr.dataset.dpu;renderNET()};tr.onkeydown=e=>{if(e.key==='Enter')tr.onclick()}});
+  const D=NET.draft[d.id];
+  $('#n-prof').onchange=e=>{D.prof=e.target.value;renderNET()};$('#n-ecn').oninput=e=>{$('#n-ecn-v').textContent=e.target.value+' KB'};$('#n-ecn').onchange=e=>{D.ecn=+e.target.value;renderNET()};
+  $('#n-qp').onchange=e=>{D.qp=+e.target.value;renderNET()};$('#n-mtu').onchange=e=>{D.mtu=+e.target.value;renderNET()};$('#n-pfc').onchange=e=>{D.pfc=e.target.checked;renderNET()};
+  if($('#n-nrt'))$('#n-nrt').onchange=e=>{D.nrt=e.target.checked;renderNET()};
+  $('#n-apply').onclick=()=>{const ch=diffList(d.id);NET.prev[d.id]={...NET.cfg[d.id]};NET.cfg[d.id]={...D};netLog(`${d.id} applied · ${ch.join(' · ')}`);
+    if(d.side==='storage'){const any=DPUS.filter(x=>x.side==='storage').some(x=>NET.cfg[x.id].prof==='burst');ksSetAct('train','cc',any)}render()};
+  $('#n-rb').onclick=()=>{if(!NET.prev[d.id])return;NET.cfg[d.id]={...NET.prev[d.id]};NET.draft[d.id]={...NET.prev[d.id]};delete NET.prev[d.id];netLog(`${d.id} rolled back · ${PROF[NET.cfg[d.id].prof]}`);
+    if(d.side==='storage'){const any=DPUS.filter(x=>x.side==='storage').some(x=>NET.cfg[x.id].prof==='burst');ksSetAct('train','cc',any)}render()};
+}
+function bindDpu(){document.querySelectorAll('#net .dpuhit').forEach(g=>{g.onclick=()=>{NET.sel=g.dataset.dpu;renderNET()};g.onkeydown=e=>{if(e.key==='Enter')g.onclick()}})}
+
+/* Screen list and role matrix. F full control · S own scope only · R read-only · X hidden */
+const SCR=[
+ {n:'①',v:'ov',t:'AI Factory Overview',g:'MONITOR',y:'Y1 P0',r:'FFSR'},
+ {n:'②',v:'dt',a:'Workloads',t:'Workload Lens',y:'Y1 P0',r:'FFSR'},
+ {n:'③',v:'dt',a:'Data path',t:'End-to-End Path',y:'Y1 P0',r:'FFSR'},
+ {n:'④',v:'dt',a:'Bottleneck diagnosis',t:'Bottleneck Analyzer',y:'Y1 P0',r:'FFSR'},
+ {n:'⑤',v:'dt',a:'Tiers',t:'Tiering & Cache',y:'Y1 P0',r:'FFSR'},
+ {n:'⑥',v:'fab',t:'Storage Fabric',y:'Y1 P1',r:'FFXR'},
+ {n:'⑦',v:'dt',a:'Agent query',t:'Agent Console',y:'Y1 fixed queries · Y3 natural language',r:'FFSX'},
+ {n:'⑧',v:'node',t:'Nodes & Cluster',g:'MANAGE',y:'Y1 view · Y3 control',r:'FSXX'},
+ {n:'⑨',v:'pol',t:'Policies',y:'Y1 toggles · Y3 closed loop',r:'FSXX'},
+ {n:'⑩',v:'ten',t:'Tenants, Volumes & QoS',y:'Y2 · Y3 advanced',r:'FRSR'},
+ {n:'⑪',v:'alr',t:'Alerts & Events',y:'Y1 basic · Y2',r:'FFSR'},
+ {n:'⑫',v:'aud',t:'Access & Audit',y:'Y2 · Y3 audit',r:'FRXX'},
+ {n:'⑬',v:'sc',t:'KPI Scorecard',g:'VERIFY',y:'Y1 results · Y3 complete',r:'FFRR'}];
+const RI={admin:0,op:1,user:2,ro:3};
+state.scr='①';
+const perm=s=>s.r[RI[state.role]];
+function renderSide(){let h='',g='';SCR.forEach(s=>{const p=perm(s);if(p==='X')return;if(s.g&&s.g!==g){g=s.g;h+=`<div class="sg">${g}</div>`}
+  h+=`<button type="button" class="si${state.scr===s.n?' on':''}" data-s="${s.n}"><span class="sn">${s.n}</span><span class="st">${s.t}</span>${p==='R'?'<span class="sb">view</span>':p==='S'?'<span class="sb">own</span>':''}</button>`});
+  $('#side').innerHTML=h;document.querySelectorAll('#side .si').forEach(b=>b.onclick=()=>go(b.dataset.s))}
+function go(n){const s=SCR.find(x=>x.n===n);if(perm(s)==='X')return;state.scr=n;const v=s.v;
+  ['ov','dt','fab','node','pol','ten','alr','aud','sc'].forEach(id=>{$('#'+id).hidden=id!==v});state.view=v;
+  document.body.classList.toggle('ro',perm(s)==='R');
+  $('#scrh').innerHTML=`<h1>${s.n} ${s.t}</h1><span class="yb">${s.y}</span><span class="srcb"><i class="d-live"></i>Live <i class="d-rep"></i>Replay <i class="d-sim"></i>Scenario values</span>${perm(s)==='R'?'<span class="yb ro">Read-only</span>':''}`;
+  renderSide();render();
+  if(s.a){const el=document.querySelector(`#dt [aria-label="${s.a}"]`);if(el){el.scrollIntoView({block:'start',behavior:'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}else window.scrollTo({top:0})}
+/* Scope bar */
+function scopeOpts(){const s=state.scope,p=PODS.findIndex(P=>P.id===s.pod);
+  const nodes=p<0?[]:Array.from({length:32},(_,n)=>n).filter(n=>!s.rack||('r0'+(Math.floor(n/8)+1))===s.rack).map(n=>nodeName(p,n));
+  const tens=[...new Set(ORDER.map(k=>TEN[k].t))],nss=ORDER.filter(k=>!s.ten||TEN[k].t===s.ten).map(k=>TEN[k].ns);
+  const sel=(id,lab,opts,val,dis)=>`<label class="sc"><span>${lab}</span><select id="${id}" ${dis?'disabled':''}>${opts.map(([v,t])=>`<option value="${v}" ${v===val?'selected':''}>${t}</option>`).join('')}</select></label>`;
+  return `<div class="scg"><span class="scl">PHYSICAL</span>${sel('sc-pod','',[['','Whole cluster'],...PODS.map(P=>[P.id,P.id+' · '+P.role])],s.pod)}<span class="arr">▸</span>${sel('sc-rack','',[['','All racks'],...['r01','r02','r03','r04'].map(r=>[r,r])],s.rack,!s.pod)}<span class="arr">▸</span>${sel('sc-node','',[['','All nodes'],...nodes.map(x=>[x,x])],s.node,!s.pod)}</div>
+   <div class="scg"><span class="scl">LOGICAL</span>${sel('sc-ten','',[['','All tenants'],...tens.map(t=>[t,t])],s.ten,state.role==='user')}<span class="arr">▸</span>${sel('sc-ns','',[['','All namespaces'],...nss.map(x=>[x,x])],s.ns)}</div>
+   <div class="scg">${sel('sc-per','Period',[['live','Live (2 s)'],['m1','1 h (1 min)'],['m10','12 h (10 min)']],state.range)}${sel('sc-role','Role',Object.entries(ROLES),state.role)}</div>`}
+function syncScope(){$('#scopebar').innerHTML=scopeOpts();const s=state.scope;
+  $('#sc-pod').onchange=e=>{s.pod=e.target.value;s.rack='';s.node='';syncScope();render()};
+  $('#sc-rack').onchange=e=>{s.rack=e.target.value;s.node='';syncScope();render()};
+  $('#sc-node').onchange=e=>{s.node=e.target.value;if(s.node){const p=PODS.findIndex(P=>P.id===s.pod),n=+s.node.slice(-2)-1;openNode(p,n)}else render()};
+  $('#sc-ten').onchange=e=>{s.ten=e.target.value;s.ns='';fixW();syncScope();render()};
+  $('#sc-ns').onchange=e=>{s.ns=e.target.value;fixW();render()};
+  $('#sc-per').onchange=e=>{state.range=e.target.value;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.r===state.range));render()};
+  $('#sc-role').onchange=e=>{state.role=e.target.value;if(state.role==='user'){s.ten='team-infer';s.ns=''}else if(s.ten==='team-infer'&&state.role!=='user')s.ten='';fixW();addLog('Access',`Role switched → ${ROLES[state.role]}`,'audit');
+    syncScope();const cur=SCR.find(x=>x.n===state.scr);go(perm(cur)==='X'?'①':state.scr)}}
+function fixW(){const vw=visibleW();if(vw.length&&!vw.includes(state.w))state.w=vw[0]}
+/* ⑥ Storage Fabric: storage & metadata / fabric & DPU */
+state.fabTab='st';state.backend='lustre';
+function renderFab(){const R={};ORDER.forEach(k=>R[k]=noisy(compute(k),k));const bwSum=ORDER.reduce((a,k)=>a+R[k].bw,0);
+  $('#fab-tabs').innerHTML=[['st','Storage · metadata'],['net','Fabric · DPU (MangoBoost)']].map(([v,t])=>`<button type="button" data-ft="${v}" aria-pressed="${state.fabTab===v}">${t}</button>`).join('');
+  document.querySelectorAll('#fab-tabs button').forEach(b=>b.onclick=()=>{state.fabTab=b.dataset.ft;$('#net').dataset.built='';render()});
+  $('#fab-st').hidden=state.fabTab!=='st';$('#net').hidden=state.fabTab!=='net';if(state.fabTab!=='st')return;
+  const L=state.backend==='lustre',md=L?[['MDT0000','mds01',1]]:[];
+  const mdRows=L?[['MDT0000','mds01',.62],['MDT0001','mds02',.41]]:Array.from({length:6},(_,i)=>[`stor0${i+1}/e0`,`stor0${i+1}`,.35+(i===1?.3:0)]);
+  const ops=f=>Math.round((L?42:18)*f*(1+rnd()*.08)),lat=f=>((L?.6:.25)*(1+f)*(1+rnd()*.1));
+  const dRows=L?Array.from({length:12},(_,i)=>[`OST${String(i).padStart(4,'0')}`,`oss0${Math.floor(i/2)+1}`,clamp(Math.round(40+(i===3||i===9?48:0)+rnd()*8),2,99)]):Array.from({length:6},(_,i)=>[`stor0${i+1}`,'engine 2 · target 8',clamp(Math.round(40+rnd()*8+(i===1?45:0)),2,99)]);
+  $('#fab-st').innerHTML=`<div class="ngrid"><section class="panel" aria-label="Storage nodes"><div class="ph"><h2>Storage nodes · target load</h2><small>${STOR.n} nodes · ${STOR.n*STOR.t} targets</small></div><div class="stor">${storHTML(R,bwSum)}</div></section>
+   <aside class="kside"><section class="panel" aria-label="Metadata load"><div class="ph"><h2>Metadata & data server load</h2><small>Y1 scope: MDS/OSS load balancing</small></div><div class="kspad">
+    <div class="tabs2" role="group" aria-label="Backend">${[['lustre','Lustre (ExaStor)'],['daos','DAOS']].map(([v,t])=>`<button type="button" data-be="${v}" aria-pressed="${state.backend===v}">${t}</button>`).join('')}</div>
+    <div class="eyebrow">${L?'MDT (metadata)':'Metadata handling per engine (distributed)'}</div>
+    ${mdRows.map(([a,b,f])=>`<div class="mdr"><span class="num">${a}</span><span class="kscap">${b}</span><span class="num">${ops(f)}k ops/s</span><span class="num">${lat(f).toFixed(2)} ms</span><div class="bar"><b style="width:${Math.round(f*100)}%"></b></div></div>`).join('')}
+    <div class="eyebrow">${L?'OST (data)':'Engine data load'}</div>
+    <div class="ostg">${dRows.map(([a,b,u])=>`<div class="ost${u>=85?' hot':''}" title="${a} · ${b} · ${u}%"><span class="num">${a}</span><div class="bar"><b style="width:${u}%"></b></div><span class="num">${u}%</span></div>`).join('')}</div>
+    <div class="kscap">${L?'Lustre: MDT/OST labels · lctl get_param mdt.*.md_stats / obdfilter.*.stats':'DAOS: engine/target labels · daos_metrics (dfs metadata ops)'} · switch via the backend label</div></div></section></aside></div>`;
+  document.querySelectorAll('[data-be]').forEach(b=>b.onclick=()=>{state.backend=b.dataset.be;render()})}
+/* ⑧ Nodes & cluster */
+function renderNode(){const st=nm=>NODEST[nm]||'Normal';
+  const rows=Array.from({length:STOR.n},(_,i)=>{const nm='stor0'+(i+1),s=i===5&&rebal<100?'Joining':st(nm);return `<tr><td class="num">${nm}</td><td>${state.backend==='lustre'?(i<2?'MDS+OSS':'OSS'):'DAOS engine ×2'}</td><td><span class="pill ${s==='Normal'?'good':s==='Failed'||REB.on&&REB.node===i?'crit':'warn'}">${REB.on&&REB.node===i?'Rebuild':s}</span></td><td class="num">${STOR.cap[i]}%</td>
+    <td class="acts2"><button type="button" class="btn ghost" data-na="mnt" data-nm="${nm}">${st(nm)==='Maintenance'?'Return':'Maintenance'}</button><button type="button" class="btn ghost" data-na="drain" data-nm="${nm}" ${st(nm)==='Drained'?'disabled':''}>Drain</button></td></tr>`}).join('');
+  const gm=Object.entries(NODEST).filter(([k])=>!k.startsWith('stor'));
+  $('#node').innerHTML=`<div class="ksban"><b>Demo controls</b> Y1 covers viewing; control (add, drain, rebalance) is Y3 scope. Buttons change only the page state.</div>
+  <div class="ngrid2"><section class="panel" aria-label="Storage node management"><div class="ph"><h2>Storage nodes</h2><small>Management API · POST /nodes/{id}/maintenance · /drain</small></div><div class="tw"><table class="dtab"><thead><tr><th>Node</th><th>Role</th><th>State</th><th>Capacity</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="kspad"><button type="button" class="btn ghost" id="n-add">Add storage node (stor07)</button></div></section>
+   <section class="panel" aria-label="Rebalance and rebuild"><div class="ph"><h2>Rebalance · Rebuild</h2><small>Performance impact target ≤ 10%</small></div><div class="kspad">
+    <div class="evline"><span class="pill ${rebal<100?'warn':'good'}">${rebal<100?'Rebalancing':'Done'}</span><span>stor06 joined · redistribution <b class="num">${Math.round(rebal)}%</b> · bandwidth used <b class="num">${rebal<100?(2.1+rnd()*.3).toFixed(1):'0.0'} GB/s</b> (low priority)</span></div><div class="bar"><b style="width:${rebal}%"></b></div>
+    ${REB.on?`<div class="evline"><span class="pill crit">Rebuild</span><span>stor0${REB.node+1} NVMe3 failure · EC rebuild <b class="num">${Math.round(REB.p)}%</b></span></div><div class="bar"><b style="width:${REB.p}%;background:var(--crit)"></b></div>
+      <dl class="kv"><dt>Affected workloads</dt><dd>train-llama70b, ingest-dataset-a</dd><dt>Training impact</dt><dd class="num">${REB.imp.toFixed(1)}% (target ≤ 10%)</dd><dt>ETA</dt><dd class="num">${Math.max(0,Math.round((100-REB.p)*1.2))} s</dd></dl>`
+     :`<button type="button" class="btn ghost" id="n-fail">Simulate disk failure (stor04 NVMe3)</button>`}
+    <div class="eyebrow" style="margin-top:6px">GPU nodes</div><div class="kscap" style="font-family:var(--f-ui)">${PODS.reduce((a,P)=>a+P.nodes,0)} total · ${gm.filter(([,v])=>v==='Maintenance').length} in maintenance${gm.length?' · '+gm.map(([k,v])=>`${k}(${v})`).join(', '):''}</div>
+    <button type="button" class="btn ghost" id="n-gpu">${NODEST['d-node17']?'End maintenance on d-node17':'Put d-node17 in maintenance'}</button></div></section></div>`;
+  document.querySelectorAll('[data-na]').forEach(b=>b.onclick=()=>{const nm=b.dataset.nm;if(b.dataset.na==='mnt'){if(NODEST[nm]==='Maintenance')delete NODEST[nm];else NODEST[nm]='Maintenance';addLog('Node',`${nm} ${NODEST[nm]?'entered maintenance':'returned to normal'} (node.maintenance)`)}
+    else{NODEST[nm]='Drained';addLog('Node',`${nm} drain started → data redistribution (node.leave)`)}render()});
+  $('#n-add').onclick=()=>{rebal=0;addLog('Node','stor07 join requested → rebalancing started (node.join)');render()};
+  if($('#n-fail'))$('#n-fail').onclick=()=>{REB.on=true;REB.p=0;REB.imp=0;addLog('Storage','stor04 NVMe3 failure detected → EC rebuild started (storage.rebuild.start)','alert');render()};
+  $('#n-gpu').onclick=()=>{if(NODEST['d-node17'])delete NODEST['d-node17'];else NODEST['d-node17']='Maintenance';addLog('Node',`d-node17 ${NODEST['d-node17']?'entered maintenance':'left maintenance'}`);render()}}
+/* ⑨ Policies: registry + KETI policy derivation */
+function renderPol(){const rows=[];
+  FEAT.forEach(k=>POL[k].forEach(P=>{if(P.base){rows.push({id:'base-'+k,ty:'Tiering',tg:W[k].id,nm:P.n,r:P.r,own:'Gluesys',on:true,base:true});return}
+    const a=W[k].acts.find(x=>x.id===P.act);rows.push({id:P.act,k,ty:P.act==='keti'||P.act==='pf'?'Prefetch':P.act==='rr'||P.act==='stripe'?'Placement':'Tiering',tg:W[k].id,nm:P.n,r:P.r,own:P.act==='cxl'?'SNU':P.act==='rr'||P.act==='pf'?'Sogang':P.act==='keti'?'KETI':'Gluesys',on:!!(state.on[k]||{})[P.act],eff:effText(W[k],a)})}));
+  rows.push({id:'cc',k:'train',ty:'Network',tg:'Storage DPU',nm:'Congestion-control profile',r:DPUS.filter(d=>d.side==='storage').map(d=>d.id+': '+PROF[NET.cfg[d.id].prof]).join(' · '),own:'MangoBoost',on:!!(state.on.train||{}).cc,eff:effText(W.train,W.train.acts.find(x=>x.id==='cc')),ro:true});
+  TENS.forEach(t=>rows.push({id:'qos-'+t.id,ty:'QoS',tg:t.id,nm:'Tenant bandwidth limit',r:`${t.qos} GB/s · priority ${t.pri}`,own:'Gluesys',on:true,base:true}));
+  $('#polreg').innerHTML=`<section class="panel" aria-label="Policy registry"><div class="ph"><h2>Policy registry</h2><small>${rows.length} total · ${rows.filter(r=>r.on).length} active · Management API · GET /policies</small></div><div class="tw"><table class="dtab"><thead><tr><th>Type</th><th>Target</th><th>Policy</th><th>Rule</th><th>Owner</th><th>State</th><th>Effect</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${r.ty}</td><td class="num">${r.tg}</td><td>${r.nm}</td><td class="kscap" style="font-family:var(--f-data)">${r.r}</td><td>${r.own}</td><td>${r.base?'<span class="pill good">Default</span>':r.ro?`<span class="pill ${r.on?'good':'warn'}">${r.on?'Active':'Inactive'}</span><div class="kscap">Change in ⑥ DPU settings</div>`:`<button type="button" class="tg${r.on?' on':''}" data-pk="${r.k}" data-pa="${r.id}" aria-pressed="${r.on}">${r.on?'Active':'Inactive'}</button>`}</td><td class="kscap" style="color:${r.on&&!r.base?'var(--good)':'var(--muted)'}">${r.eff?(r.on?'Effect: ':'Expected: ')+r.eff:'—'}</td></tr>`).join('')}</tbody></table></div></section>
+    <div class="ph" style="padding:0"><h2>KETI intelligent storage · profile-based policy derivation</h2></div>`;
+  document.querySelectorAll('#polreg [data-pa]').forEach(b=>b.onclick=()=>{const k=b.dataset.pk,id=b.dataset.pa,v=!(state.on[k]||{})[id];ksSetAct(k,id,v);addLog('Policy',`${W[k].id} · ${W[k].acts.find(x=>x.id===id).b} ${v?'applied':'removed'} (policy.change)`);render()})}
+/* ⑩ Tenants, volumes & QoS */
+const TENS=[{id:'team-infer',ns:'proj-llm-serving',k:'infer',gq:64,sq:600,qos:20,pri:'High'},{id:'team-train',ns:'proj-llm-train',k:'train',gq:256,sq:1200,qos:40,pri:'Medium'},{id:'team-data',ns:'proj-data',k:'ingest',gq:64,sq:300,qos:15,pri:'Medium'}];
+const PVCS=[{n:'kv-cache-pvc',ns:'proj-llm-serving',sc:'gpuflow-infer',sz:'512Gi',c:'pool0/kv-qwen3'},{n:'ckpt-pvc',ns:'proj-llm-train',sc:'gpuflow-train',sz:'8Ti',c:'pool0/ckpt-llama70b'},{n:'dataset-pvc',ns:'proj-data',sc:'gpuflow-ingest',sz:'3Ti',c:'pool0/dataset-a'}];
+const ISO=[['Per-tenant storage QoS (bandwidth/IOPS limits)','Y2',true],['Network QoS (RoCE traffic classes)','Y2',true],['DAOS pool/container ACL · Lustre project quota','Y1',true],['RBAC roles and group permissions','Y2',true],['Virtual volume (CSI PVC) isolation','Y2',true],['DPU inline encryption','Y3',false]];
+function renderTen(){const R={};ORDER.forEach(k=>R[k]=noisy(compute(k),k));
+  const talk=[...ORDER.map(k=>({n:W[k].id,t:TEN[k].t,b:R[k].bw})),{n:'batch-etl-07',t:'team-data',b:3.1+rnd()*.4},{n:'dev-notebook-12',t:'team-infer',b:1.2+rnd()*.3}].sort((a,b)=>b.b-a.b);
+  $('#ten').innerHTML=`<div class="ksban"><b>Y2 scope</b> Wireframe level. Values are scenario examples; QoS changes affect only the page state.</div>
+  <div class="orch">${[['Kubernetes','gpuflow-k8s · v1.30','3 namespaces · 41 pods · 3 PVCs','KETI · K8s/CSI'],['Slurm','partition gpu · 22.05','12 jobs running · 4 pending','Gluesys · workload registry']].map(([a,b,c,d])=>`<div class="panel oc"><span class="pill good">Connected</span><b>${a}</b><span class="kscap">${b}</span><span>${c}</span><span class="kscap">${d} · synced 2 s ago</span></div>`).join('')}</div>
+  <div class="ngrid2"><section class="panel" aria-label="Tenants"><div class="ph"><h2>Tenants · quotas · QoS</h2><small>Management API · PUT /tenants/{id}/qos</small></div><div class="tw"><table class="dtab"><thead><tr><th>Tenant</th><th>GPU</th><th>Storage</th><th>Bandwidth limit</th></tr></thead><tbody>${TENS.map(t=>{const g=TOPO[t.k].nodes*PLACE[t.k].g,s=Math.round(t.sq*(R[t.k].tiers.l3[0]/100));
+    return `<tr><td><b>${t.id}</b><div class="kscap">${t.ns}</div></td><td class="num">${g}/${t.gq}<div class="bar"><b style="width:${g/t.gq*100}%"></b></div></td><td class="num">${s}/${t.sq} TiB<div class="bar"><b style="width:${s/t.sq*100}%"></b></div></td><td><select data-qos="${t.id}" aria-label="${t.id} bandwidth limit">${[10,15,20,30,40,60].map(v=>`<option ${v===t.qos?'selected':''} value="${v}">${v} GB/s</option>`).join('')}</select><div class="kscap num">using ${R[t.k].bw.toFixed(1)} GB/s</div></td></tr>`}).join('')}</tbody></table></div></section>
+   <section class="panel" aria-label="Top Talkers"><div class="ph"><h2>Top Talkers</h2><small>Top storage bandwidth</small></div><ol class="topn">${talk.slice(0,5).map(x=>`<li><span class="tt"><span class="num">${x.n}</span><span class="kscap">${x.t}</span><b class="num">${x.b.toFixed(1)} GB/s</b></span></li>`).join('')}</ol></section></div>
+  <div class="ngrid2"><section class="panel" aria-label="Volumes"><div class="ph"><h2>Volumes (CSI · StorageClass)</h2><small>KETI · csi.provision events</small></div><div class="tw"><table class="dtab"><thead><tr><th>PVC</th><th>Namespace</th><th>StorageClass</th><th>Size</th><th>Backing</th></tr></thead><tbody>${PVCS.map(p=>`<tr><td class="num">${p.n}</td><td>${p.ns}</td><td class="num">${p.sc}</td><td class="num">${p.sz}</td><td class="num">${p.c}</td></tr>`).join('')}</tbody></table></div>
+    <div class="kspad"><button type="button" class="btn ghost" id="t-prov">Demo dynamic PVC provisioning (proj-llm-serving)</button></div></section>
+   <section class="panel" aria-label="Isolation techniques"><div class="ph"><h2>Isolation techniques</h2><small>KPI 9 · target ≥ 6</small></div><div class="kspad">${ISO.map(([n,y,on])=>`<div class="isor"><span class="pill ${on?'good':'warn'}">${on?'Active':'Planned'}</span><span>${n}</span><span class="yb">${y}</span></div>`).join('')}</div></section></div>`;
+  document.querySelectorAll('[data-qos]').forEach(s=>s.onchange=()=>{const t=TENS.find(x=>x.id===s.dataset.qos);t.qos=+s.value;addLog('QoS',`${t.id} bandwidth limit → ${t.qos} GB/s (qos.limit.change)`);render()});
+  $('#t-prov').onclick=()=>{const n='kv-cache-pvc-'+(PVCS.length+1);PVCS.push({n,ns:'proj-llm-serving',sc:'gpuflow-infer',sz:'256Gi',c:'pool0/'+n});addLog('Volume',`${n} created → bound to DAOS container (csi.provision)`);render()}}
+/* ⑪ Alerts & events */
+const ACK={};const FIRST={};
+function alerts(){const A=[];ORDER.forEach(k=>{const r=compute(k);if(r.wait>=15)A.push({id:'w-'+k,sev:'crit',src:'GPU',tg:W[k].id,m:`GPU data wait ${r.wait}% (bottleneck threshold 15%)`,go:'④'});else if(r.wait>=10)A.push({id:'w-'+k,sev:'warn',src:'GPU',tg:W[k].id,m:`GPU data wait ${r.wait}% (warning 10%)`,go:'②'});});
+  if(!(state.on.train||{}).cc)A.push({id:'pfc',sev:'warn',src:'Fabric',tg:'Leaf-B',m:'Uplink PFC pauses rising (above 1.7k/min)',go:'⑥'});
+  const ri=KS.risk.indexOf(Math.max(...KS.risk));if(KS.risk[ri]>=60)A.push({id:'risk',sev:'warn',src:'KETI forecast',tg:'stor0'+(ri+1),m:`Degradation forecast within 30 min: ${Math.round(KS.risk[ri])}%`,go:'⑨'});
+  if(REB.on)A.push({id:'reb',sev:'crit',src:'Storage',tg:'stor0'+(REB.node+1),m:`NVMe failure · Rebuild ${Math.round(REB.p)}%`,go:'⑧'});
+  Object.entries(NODEST).forEach(([n,s])=>A.push({id:'n-'+n,sev:'info',src:'Node',tg:n,m:s,go:'⑧'}));
+  A.forEach(a=>{if(!FIRST[a.id])FIRST[a.id]=nowT()});return A}
+function renderAlr(){const A=alerts();const S={crit:'Critical',warn:'Warning',info:'Info'};
+  $('#alr').innerHTML=`<div class="ngrid2"><section class="panel" aria-label="Alerts"><div class="ph"><h2>${A.filter(a=>!ACK[a.id]).length} unacknowledged alerts</h2><small>Threshold rules · alert.fire / resolve</small></div><ul class="alist">${A.map(a=>`<li class="${a.sev}${ACK[a.id]?' ack':''}"><span class="pill ${a.sev==='info'?'good':a.sev}">${S[a.sev]}</span><span class="am"><b>${a.tg}</b> ${a.m}<span class="kscap">${a.src} · first ${FIRST[a.id]}</span></span><span class="aa"><button type="button" class="btn ghost" data-go="${a.go}">View ${a.go}</button>${ACK[a.id]?'<span class="kscap">Acknowledged</span>':`<button type="button" class="btn ghost" data-ack="${a.id}">Acknowledge</button>`}</span></li>`).join('')||'<li class="kscap">No alerts.</li>'}</ul></section>
+   <section class="panel" aria-label="Event log"><div class="ph"><h2>Event log</h2><small>Policy, node, QoS, volume and DPU changes; system events</small></div><ul class="klog">${LOG.slice(0,20).map(e=>`<li><span class="num">${e.t}</span><span class="pill ${e.kind==='alert'?'crit':e.kind==='audit'?'warn':'good'}">${e.src}</span>${e.txt}</li>`).join('')||'<li class="kscap">No events yet. Changing policies or nodes on other screens adds entries here.</li>'}</ul></section></div>`;
+  document.querySelectorAll('#alr [data-ack]').forEach(b=>b.onclick=()=>{ACK[b.dataset.ack]=1;addLog('Alert',`${b.dataset.ack} acknowledged`,'audit');render()});
+  document.querySelectorAll('#alr [data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go))}
+/* ⑫ Access & audit */
+function renderAud(){const sym={F:'●',S:'◐',R:'○',X:'–'};
+  $('#aud').innerHTML=`<div class="ngrid2"><section class="panel" aria-label="Role matrix"><div class="ph"><h2>Screen visibility by role</h2><small>Current role: ${ROLES[state.role]} · switch with 'Role' at the top</small></div><div class="tw"><table class="dtab mtx"><thead><tr><th>Screen</th>${Object.values(ROLES).map(r=>`<th>${r}</th>`).join('')}</tr></thead><tbody>${SCR.map(s=>`<tr><td>${s.n} ${s.t}</td>${[...s.r].map((c,i)=>`<td class="${i===RI[state.role]?'cur':''}">${sym[c]}</td>`).join('')}</tr>`).join('')}</tbody></table>
+     <div class="kscap" style="margin-top:6px;font-family:var(--f-ui)">● full control · ◐ own scope only · ○ view only · – hidden. This matrix is the RBAC test scenario.</div></div></section>
+   <section class="panel" aria-label="Audit log"><div class="ph"><h2>Audit log</h2><small>audit.change / audit.access · actor · role</small></div><div class="tw"><table class="dtab"><thead><tr><th>Time</th><th>User</th><th>Role</th><th>Target</th><th>Change</th></tr></thead><tbody>${LOG.slice(0,15).map(e=>`<tr><td class="num">${e.t}</td><td class="num">${e.actor}</td><td>${e.role}</td><td>${e.src}</td><td>${e.txt}</td></tr>`).join('')||'<tr><td colspan="5" class="kscap">No changes yet.</td></tr>'}</tbody></table></div></section></div>`}
+/* ⑬ KPI scorecard */
+function renderSc(){const pc=LOG.filter(e=>e.src==='Policy').length,prov=LOG.filter(e=>e.txt.includes('csi.provision')).length,iso=ISO.filter(x=>x[2]).length,cpu=noisy(compute('train'),'train').cpu;
+  const S=[['1. I/O performance uplift','≥ 20%','—','Not measured','Y2 · vs TTA reference system','⑬'],
+   ['2. Sequential read per storage node','≥ 200 GB/s','—','Not measured','IO500 easy-read (P1)','⑥'],
+   ['3. Sequential write per storage node','≥ 140 GB/s','—','Not measured','IO500 easy-write (P1)','⑥'],
+   ['4. Checkpoint read','≥ 40 GiB/s','—','Not measured','Y2 MLPerf certification','②'],
+   ['5. Checkpoint write','≥ 20 GiB/s','—','Not measured','Y2 MLPerf certification','②'],
+   ['6. Feedback latency','≤ 200 ms','—','Not measured','policy.change − analysis time','⑨'],
+   ['7. Host CPU usage','≤ 5%',`${cpu.toFixed(1)}%`,'Scenario','Training nodes · with DPU offload','③'],
+   ['8. Remote recovery RTO','≤ 30 s','—','Not measured','dr.failover event','⑥'],
+   ['9. Isolation techniques supported','≥ 6',`${iso}`,'Scenario','⑩ isolation techniques list','⑩'],
+   ['10. Provisioning automation','Supported',prov?`${prov} demo run(s)`:'—',prov?'Scenario':'Not measured','csi.provision events','⑩']];
+  const ok=(t,v)=>v==='—'?'none':t.includes('≤')?parseFloat(v)<=parseFloat(t.replace('≤','')):t.includes('≥')?parseFloat(v)>=parseFloat(t.replace('≥','')):v!=='—';
+  $('#sc').innerHTML=`<div class="ksban"><b>Y1 results · complete in Y3</b> Measured values will be filled in from TTA tests, IO500 and MLPerf results. 'Scenario' marks mockup example values.</div>
+  <section class="panel" aria-label="Scorecard"><div class="ph"><h2>10 quantitative KPIs</h2><small>Target · current · source</small></div><div class="tw"><table class="dtab"><thead><tr><th>KPI</th><th>Target</th><th>Current</th><th>Status</th><th>Source</th><th>Basis / note</th><th>Screen</th></tr></thead><tbody>${S.map(([n,t,v,src,note,scr])=>{const o=ok(t,v);
+    return `<tr><td><b>${n}</b></td><td class="num">${t}</td><td class="num">${v}</td><td><span class="pill ${o==='none'?'warn':o?'good':'crit'}">${o==='none'?'Not measured':o?'Met':'Not met'}</span></td><td><span class="src s-${src==='Scenario'?'sim':src==='Measured'?'live':'none'}">${src}</span></td><td class="kscap" style="font-family:var(--f-ui)">${note}</td><td><button type="button" class="btn ghost" data-go="${scr}">${scr}</button></td></tr>`}).join('')}</tbody></table></div></section>`;
+  document.querySelectorAll('#sc [data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go))}
+
+/* ── Forecast (KETI eBPF + Informer): future utilization per layer. Each workload type has periodic bursts;
+   burst amplitude shrinks after a policy is turned on. Past = signal + measurement noise, future = signal ± confidence band ── */
+state.onT={};state.ph=60;
+const markT=(k,id)=>{(state.onT[k]=state.onT[k]||{})[id]=Date.now()/1000};
+const FCL=['gpu','cache','transport','fabric','storage','cold'];
+const FPER={infer:80,train:120,ingest:60};
+const FAMP={infer:{gpu:10,cache:14,transport:15,fabric:12,storage:24,cold:1},train:{gpu:8,cache:6,transport:16,fabric:22,storage:14,cold:4},ingest:{gpu:6,cache:16,transport:8,fabric:6,storage:12,cold:1}};
+const FRED={rr:{storage:.4},pf:{storage:.6,transport:.6},cxl:{cache:.5},stripe:{storage:.5},cc:{fabric:.35},ef:{transport:.6},keti:{storage:.5,cache:.5}};
+const FREC={infer:{storage:'pf',transport:'pf',cache:'cxl',fabric:'rr',gpu:'pf'},train:{storage:'stripe',fabric:'cc',transport:'ef',gpu:'stripe',cache:'stripe'},ingest:{storage:'keti',cache:'keti',transport:'keti',gpu:'keti',fabric:'keti'}};
+function fSig(k,L,t,u0){const tp=W[k].tpl||k,P=FPER[tp],ph=(ORDER.indexOf(k)*37)%P,x=((t+ph)%P+P)%P,w=P*.14;
+  const b=Math.exp(-((x-P*.6)**2)/(2*w*w));let A=(FAMP[tp][L]||0)*(W[k].base.wait/W[tp].base.wait)**.5;
+  const on=state.on[k]||{},T=state.onT[k]||{};for(const a in FRED){if(on[a]&&FRED[a][L]&&(T[a]==null||t>=T[a]))A*=FRED[a][L]}
+  return Math.max(2,Math.min(99,u0-A*.2+A*b))}
+const fNoise=(k,t)=>(h01(ORDER.indexOf(k)+1,Math.floor(t/2))-.5)*6;
+function fBase(k){const r=compute(k),o={};FCL.forEach(L=>{o[L]=r.hops[L]&&r.hops[L][0]!=null?r.hops[L][0]:null});return o}
+function fPeak(k,L,u0,now,H){let pk=-1,pt=0;for(let s=2;s<=H;s+=2){const v=fSig(k,L,now+s,u0);if(v>pk){pk=v;pt=s}}return {pk,pt,cur:fSig(k,L,now,u0)}}
+const fAcc=()=>{const h=state.ph;return h===30?86:h===60?79:68};
+/* Per-layer 'now' bar + '1-min forecast' bar (different color; warn at 70%, red alert at 85%) */
+function barPair(k,L,u,spread){const u0=fBase(k)[L],now=Date.now()/1000,{pk,pt,cur}=fPeak(k,L,u0,now,60),p=Math.round(pk),cls=p>=85?'crit':p>=70?'warn':'';
+  return `<div class="b2"><span class="bl">Now</span><div class="bar" role="img" aria-label="Current utilization ${u}%"><b style="width:${u}%"></b></div><span class="num">${u}%</span></div>
+   <div class="b2 pb ${cls}"><span class="bl">1-min fcst</span><div class="bar" role="img" aria-label="1-min forecast peak ${p}%"><b style="width:${p}%"></b></div><span class="num">${p}%</span></div>
+   ${p>=85?`<div class="pwarn">⚠ ${pk>cur+2?`+${pt}s `:''}bottleneck expected · ${L==='storage'?'KETI':'Gluesys'} forecast</div>`:''}${spread?`<div class="bw num">${spread}</div>`:''}`}
+/* Application layer: for inference, TTFT p95 bar with a 1 s reference line, plus 1-min forecast TTFT */
+function appBars(k,r){const tp=W[k].tpl||k;if(tp!=='infer')return '<div class="sb">Per-request metrics</div>';
+  const now=Date.now()/1000,uS=fBase(k).storage,{pk,cur}=fPeak(k,'storage',uS,now,60),uC=fBase(k).cache,c2=fPeak(k,'cache',uC,now,60);
+  const t0=r.p2,t1=t0*(1+Math.max(0,pk-cur)/100*.9+Math.max(0,c2.pk-c2.cur)/100*.4),MX=6,w=v=>Math.min(100,v/MX*100),ref=w(1);
+  const cl=v=>v>2?'crit':v>1?'warn':'ok';
+  return `<div class="b2 tt ${cl(t0)}"><span class="bl">TTFT</span><div class="bar ttb" role="img" aria-label="TTFT p95 ${t0.toFixed(1)} s, reference 1 s"><b style="width:${w(t0)}%"></b><i style="left:${ref}%"></i></div><span class="num">${t0.toFixed(1)}s</span></div>
+   <div class="b2 pb tt ${cl(t1)==='ok'?'':cl(t1)==='warn'?'warn':'crit'}"><span class="bl">1-min fcst</span><div class="bar ttb"><b style="width:${w(t1)}%"></b><i style="left:${ref}%"></i></div><span class="num">${t1.toFixed(1)}s</span></div>
+   <div class="bw num">Line = 1 s ref · now ${t0.toFixed(1)}× ref</div>${t1>t0+.2?`<div class="pwarn">⚠ TTFT expected to worsen by +${(t1-t0).toFixed(1)} s within 1 min</div>`:''}`}
+function predHTML(k,L,u0){if(u0==null)return '';const now=Date.now()/1000,{pk,pt,cur}=fPeak(k,L,u0,now,state.ph),up=pk>cur+2;
+  const c=pk>=85?'var(--crit)':pk>=70?'var(--warn)':'var(--muted)';
+  return `<div class="pred" style="color:${c}"><span class="psrc">${L==='storage'?'KETI':'Gluesys'}</span> forecast +${state.ph}s <b class="num">${up?'▲':'▶'} ${Math.round(pk)}%</b>${up?` · peak at +${pt}s`:''}</div>`}
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='fc-h'){state.ph=+e.target.value;KS.pfcfg.infer.h=state.ph;render()}});
+function renderFC(){const k=state.w,box=$('#fcsvg');if(!box)return;const now=Date.now()/1000,H=state.ph,B=fBase(k),Ls=FCL.filter(L=>B[L]!=null);
+  const W0=760,lab=128,rgt=50,lh=54,top=22,iw=W0-lab-rgt,x=s=>lab+(s+120)/(120+H)*iw,H0=top+Ls.length*lh+26;
+  let s=`<svg viewBox="0 0 ${W0} ${H0}" role="img" aria-label="Forecast flow by layer">`;
+  [-120,-60,0,H].forEach(v=>{s+=`<text x="${x(v)}" y="14" text-anchor="middle" font-size="10.5" fill="var(--muted)" font-family="var(--f-data)">${v===0?'now':v>0?'+'+v+'s':v+'s'}</text>`});
+  s+=`<rect x="${x(0)}" y="${top-4}" width="${x(H)-x(0)}" height="${Ls.length*lh+4}" fill="var(--accent)" fill-opacity=".05"/>`;
+  const ev=[];
+  Ls.forEach((L,i)=>{const y0=top+i*lh,yy=v=>y0+lh-4-(v/100)*(lh-8),u0=B[L],nm={gpu:'GPU · L0 HBM',cache:'Host cache L1/L2',transport:'Transport path',fabric:'Network · DPU',storage:'Parallel storage L3',cold:'Cold tier L4'}[L];
+    s+=`<text x="4" y="${y0+lh/2+4}" font-size="12" font-weight="${L==='storage'?600:400}" fill="var(--ink)">${nm}</text><text x="4" y="${y0+lh/2+18}" font-size="10.5" fill="${L==='storage'?'var(--wl3)':'var(--muted)'}">${L==='storage'?'KETI · eBPF+Informer':'Gluesys forecast'}</text><line x1="${lab}" x2="${lab+iw}" y1="${y0+lh-4}" y2="${y0+lh-4}" stroke="var(--line)"/><line x1="${lab}" x2="${lab+iw}" y1="${yy(85)}" y2="${yy(85)}" stroke="var(--crit)" stroke-opacity=".35" stroke-dasharray="2 3"/>`;
+    let pa='',fu='',bu='',bl='';for(let t=-120;t<=0;t+=2){const v=Math.max(2,Math.min(99,fSig(k,L,now+t,u0)+fNoise(k,now+t)));pa+=`${t===-120?'M':'L'}${x(t).toFixed(1)} ${yy(v).toFixed(1)}`}
+    const pts=[];for(let t=0;t<=H;t+=2){const v=fSig(k,L,now+t,u0),b=2+t*.09;pts.push([t,v,b])}
+    fu=pts.map(([t,v],j)=>`${j?'L':'M'}${x(t).toFixed(1)} ${yy(v).toFixed(1)}`).join('');
+    bu=pts.map(([t,v,b],j)=>`${j?'L':'M'}${x(t).toFixed(1)} ${yy(Math.min(99,v+b)).toFixed(1)}`).join('')+pts.slice().reverse().map(([t,v,b])=>`L${x(t).toFixed(1)} ${yy(Math.max(2,v-b)).toFixed(1)}`).join('')+'Z';
+    s+=`<path d="${pa}L${x(0)} ${y0+lh-4}L${x(-120)} ${y0+lh-4}Z" fill="var(--accent)" fill-opacity=".12"/><path d="${pa}" fill="none" stroke="var(--accent)" stroke-width="1.4"/>`;
+    s+=`<path d="${bu}" fill="var(--wl1)" fill-opacity=".16"/><path d="${fu}" fill="none" stroke="var(--wl1)" stroke-width="1.6" stroke-dasharray="4 3"/>`;
+    const {pk,pt,cur}=fPeak(k,L,u0,now,H),c=pk>=85?'var(--crit)':pk>=70?'var(--warn)':'var(--muted)';
+    if(pk>cur+2){s+=`<circle cx="${x(pt)}" cy="${yy(pk)}" r="3.5" fill="${c}"/>`}
+    s+=`<text x="${W0-4}" y="${y0+lh/2+4}" text-anchor="end" font-size="12" font-weight="600" fill="${c}" font-family="var(--f-data)">${Math.round(pk)}%</text>`;
+    if(pk>=70&&pk>cur+2)ev.push({L,nm,pk,pt,conf:Math.round(fAcc()-pt*.08)})});
+  s+=`<line x1="${x(0)}" x2="${x(0)}" y1="${top-6}" y2="${top+Ls.length*lh}" stroke="var(--ink)" stroke-opacity=".5"/>`;
+  s+=`<g font-size="10.5" fill="var(--muted)"><line x1="${lab}" x2="${lab+18}" y1="${H0-8}" y2="${H0-8}" stroke="var(--accent)" stroke-width="2"/><text x="${lab+24}" y="${H0-4}">Measured (eBPF, metrics)</text><line x1="${lab+130}" x2="${lab+148}" y1="${H0-8}" y2="${H0-8}" stroke="var(--wl1)" stroke-width="2" stroke-dasharray="4 3"/><text x="${lab+154}" y="${H0-4}">Forecast · shaded = confidence band</text><line x1="${lab+300}" x2="${lab+318}" y1="${H0-8}" y2="${H0-8}" stroke="var(--crit)" stroke-dasharray="2 3"/><text x="${lab+324}" y="${H0-4}">Bottleneck threshold 85%</text><text x="${W0-4}" y="${H0-4}" text-anchor="end">Right = peak in forecast window</text></g></svg>`;
+  box.innerHTML=rv(s);$('#fc-acc').textContent=`Forecast accuracy (+${H}s, last 10 min) · storage KETI ${fAcc()}% · others Gluesys ${fAcc()-5}%`;
+  ev.sort((a,b)=>a.pt-b.pt);const on=state.on[k]||{};
+  $('#fclist').innerHTML=ev.length?ev.map(e=>{const rec=FREC[W[k].tpl||k][e.L],a=W[k].acts.find(q=>q.id===rec);const done=!!on[rec];
+    return `<li class="${e.pk>=85?'crit':'warn'}"><span class="num">+${e.pt}s</span><span><b>${e.nm}</b> ${Math.round(e.pk)}% forecast · confidence ${e.conf}% · ${e.L==='storage'?'KETI':'Gluesys'}</span><span class="kscap" style="font-family:var(--f-ui)">Recommended: ${a?a.b:'—'}</span>${a?(done?'<span class="pill good">Applied</span>':`<button type="button" class="btn ghost" data-pre="${rec}">Apply now</button>`):''}</li>`}).join('')
+   :'<li class="kscap" style="font-family:var(--f-ui)">No layer exceeds 70% in the forecast window.</li>';
+  document.querySelectorAll('#fclist [data-pre]').forEach(b=>b.onclick=()=>{const id=b.dataset.pre;ksSetAct(k,id,true);addLog('Forecast',`${W[k].id} forecast bottleneck · ${W[k].acts.find(q=>q.id===id).b} applied proactively (predict.bottleneck → policy.change)`);render()})}
+
+const _render=render;render=function(l){_render(l);const v=state.view;
+  if(v==='ov')renderOverview();
+  if(v==='fab'){renderFab();if(state.fabTab==='net')renderNET(l)}
+  if(v==='pol'){if(!l)renderPol();renderKS(l)}
+  if(v==='node')renderNode();if(v==='ten'&&!l)renderTen();if(v==='alr')renderAlr();if(v==='aud'&&!l)renderAud();if(v==='sc'&&!l)renderSc();
+  if(v==='dt'){renderFC();Rail.layout()}}
+let paused=false,down=false;
+addEventListener('pointerdown',()=>down=true,true);addEventListener('pointerup',()=>setTimeout(()=>down=false,50),true);
+const clk=()=>{$('#clock').textContent=new Date().toLocaleTimeString('en-GB',{hour12:false,timeZone:'Asia/Seoul'})+' KST · 2 s refresh'};
+$('#pause').onclick=e=>{paused=!paused;e.target.setAttribute('aria-pressed',paused);e.target.textContent=paused?'Resume':'Pause';$('#live').classList.toggle('off',paused)};
+setInterval(()=>{if(paused)return;rebal=Math.min(100,rebal+0.6);ksTick();nzStep();pushBuf();pushHist();clk();if(down)return;render(true);
+  document.querySelectorAll('.kpi .v').forEach(v=>{v.classList.add('blink');setTimeout(()=>v.classList.remove('blink'),300)})},2000);
+const reTheme=()=>{const b=$('#net');if(b)b.dataset.built='';render()};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',reTheme);
+new MutationObserver(reTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class','style']});
+clk();syncScope();go('①');
+</script>
+
+</body></html>

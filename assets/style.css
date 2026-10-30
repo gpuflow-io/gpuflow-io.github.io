@@ -281,6 +281,28 @@ section.alt table.oss-t { background: var(--bg); }
 .eco .row span { padding: 8px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: 14.5px; }
 .eco .row span.core { border-color: var(--accent); color: var(--accent); font-weight: 600; }
 
+/* console */
+.console-band {
+  background:
+    radial-gradient(800px 360px at 90% 0%, rgba(106,75,216,.30), transparent 60%),
+    linear-gradient(170deg, var(--hero-a), var(--hero-b));
+  color: #e6edf9;
+}
+.console-band .sec-head p { color: #b8c3d9; }
+.console-band .sec-head .eyebrow { color: #7fd0ff; }
+.shots { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; align-items: start; }
+.shot { display: block; color: #9fb0cc; font-size: 13.5px; }
+.shot:hover { text-decoration: none; }
+.shot img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); box-shadow: 0 18px 50px rgba(0,0,0,.45); transition: transform .2s ease; }
+.shot:hover img { transform: translateY(-3px); }
+.shot span { display: block; margin-top: 10px; }
+.screens { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 36px; }
+.screens > div { border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 16px 18px; background: rgba(255,255,255,.03); }
+.screens h4 { margin: 0 0 6px; font-family: var(--mono); font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: #7fd0ff; }
+.screens p { margin: 0; font-size: 14.5px; color: #c6d1e6; }
+.console-cta { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.console-cta span { font-size: 14px; color: #9fb0cc; max-width: 620px; }
+
 /* projects */
 .repos { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
 .repo { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; display: grid; gap: 14px; min-width: 0; }
@@ -325,7 +347,7 @@ footer p { margin: 0 0 8px; }
   .hero { padding: 64px 0 56px; }
   .hero-stats { grid-template-columns: repeat(2, 1fr); }
   .problem, .oss, footer .wrap, .demand { grid-template-columns: 1fr; }
-  .repos, .repo-feats { grid-template-columns: 1fr; }
+  .repos, .repo-feats, .shots, .screens { grid-template-columns: 1fr; }
   .tech, .orgs, .kpis, .kpis.three, .certs, .timeline, .products { grid-template-columns: 1fr; }
   .layer { grid-template-columns: 1fr; }
   .hop { white-space: normal; }
