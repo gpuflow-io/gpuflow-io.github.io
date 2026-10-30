@@ -29,6 +29,7 @@
       <li><a href="#consortium">Consortium</a></li>
       <li><a href="#targets">Targets</a></li>
       <li><a href="#journey">Journey</a></li>
+      <li><a href="#projects">Projects</a></li>
     </ul>
     <a class="gh" href="https://github.com/gpuflow-io">GitHub</a>
   </div>
@@ -455,6 +456,44 @@
         <span>GPU virtualization · partitioning &amp; multi-tenant isolation</span>
         <span class="core">GPUFlow · core data-path platform</span>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROJECTS ============ -->
+<section id="projects">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Projects</div>
+      <h2>Open-source software from GPUFlow</h2>
+      <p>Repositories released as GPUFlow results. Each one is usable on its own today and will be integrated into the full GPUFlow stack over the course of the project.</p>
+    </div>
+
+    <div class="repos">
+      <article class="repo">
+        <header>
+          <div>
+            <h3><a href="https://github.com/gluesys/daos-operator">gluesys/daos-operator</a></h3>
+            <div class="repo-meta">Gluesys · Go · Apache-2.0 · v0.1.0 · API v1alpha1</div>
+          </div>
+          <span class="status">First release</span>
+        </header>
+        <p>Run <a href="https://docs.daos.io/">DAOS</a> on Kubernetes. It is the cloud-native deployment and provisioning layer for the GPUFlow storage engine.</p>
+        <ul class="repo-feats">
+          <li><b>Operator</b><span>Manages the DAOS system, pools, and containers through <code>DaosSystem</code>, <code>DaosPool</code>, and <code>DaosContainer</code> resources, plus host preparation, telemetry, and a Grafana dashboard</span></li>
+          <li><b>CSI driver</b><span>Mounts a DAOS container as a <code>ReadWriteMany</code> volume</span></li>
+          <li><b>S3 gateway</b><span>Serves a pool over the S3 protocol</span></li>
+          <li><b>KV-cache reference</b><span>vLLM + LMCache using a DAOS container as the KV cache</span></li>
+        </ul>
+        <pre class="install"><code>helm install daos-operator oci://ghcr.io/gluesys/charts/daos-operator \
+  --namespace daos-system --create-namespace</code></pre>
+        <div class="tags"><span class="tag L2">storage</span><span class="tag L4">operations</span></div>
+      </article>
+
+      <aside class="repo upcoming">
+        <h3>More on the way</h3>
+        <p>Additional repositories from the consortium will be published under <a href="https://github.com/gpuflow-io">github.com/gpuflow-io</a> and listed here as they are released.</p>
+      </aside>
     </div>
   </div>
 </section>
