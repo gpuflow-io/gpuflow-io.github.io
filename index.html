@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPUFlow — Data-Path-Optimized Parallel Storage for AI</title>
+<meta name="description" content="GPUFlow is a Korean national R&D project building an accelerator-initiated, zero-copy parallel storage software stack that delivers 200 GB/s+ per node to large GPU clusters.">
+<meta property="og:title" content="GPUFlow — Data-Path-Optimized Parallel Storage for AI">
+<meta property="og:description" content="Accelerator-initiated, zero-copy parallel storage delivering 200 GB/s+ per node to AI factories.">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="GPUFlow home">
+      <img src="assets/logo.svg" width="26" height="26" alt="">
+      GPUFlow
+    </a>
+    <ul>
+      <li><a href="#problem">Why</a></li>
+      <li><a href="#technology">Technology</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#consortium">Consortium</a></li>
+      <li><a href="#targets">Targets</a></li>
+      <li><a href="#journey">Journey</a></li>
+    </ul>
+    <a class="gh" href="https://github.com/gpuflow-io">GitHub</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow">Korean national R&amp;D project · 2026 – 2028</div>
+    <h1>Feed the GPUs.<br><span class="grad">Not the CPU.</span></h1>
+    <p class="lede">GPUFlow is an ultra-high-bandwidth parallel storage software stack built around an
+      <b>accelerator-initiated, zero-copy data path</b>, so that data moves from NVMe to GPU memory without passing through
+      host CPUs or system memory, and expensive accelerators stop waiting on I/O.</p>
+    <div class="meta">
+      <span><b>Program</b> AI Cloud Competitiveness Enhancement</span>
+      <span><b>Period</b> Apr 2026 – Dec 2028</span>
+      <span><b>Lead</b> Gluesys + 6 research partners</span>
+    </div>
+    <div class="cta">
+      <a class="btn primary" href="#architecture">Explore the architecture</a>
+      <a class="btn ghost" href="https://github.com/gpuflow-io">Follow on GitHub →</a>
+    </div>
+
+    <div class="hero-stats">
+      <div><div class="v">200<small>GB/s</small></div><div class="k">Sequential read per storage node</div></div>
+      <div><div class="v">140<small>GB/s</small></div><div class="k">Sequential write per storage node</div></div>
+      <div><div class="v">≤5<small>%</small></div><div class="k">Host CPU spent on storage I/O</div></div>
+      <div><div class="v">Top‑3</div><div class="k">IO500 target ranking</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ PROBLEM ============ -->
+<section id="problem">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">The problem</div>
+      <h2>AI has become data-bound. The I/O path hasn't caught up.</h2>
+      <p>Multimodal models push training sets into the petabytes, and LLM serving now streams KV-cache
+        on every request. GPUs got faster, but the path that feeds them still detours through the CPU.</p>
+    </div>
+
+    <div class="problem">
+      <div class="paths">
+        <div class="path">
+          <h4>Today · CPU-centric I/O</h4>
+          <div class="hops">
+            <span class="hop">NVMe</span><span class="arrow">→</span>
+            <span class="hop bad">Kernel / page cache</span><span class="arrow">→</span>
+            <span class="hop bad">Host DRAM bounce buffer</span><span class="arrow">→</span>
+            <span class="hop bad">TCP/IP</span><span class="arrow">→</span>
+            <span class="hop">GPU HBM</span>
+          </div>
+          <p>Multiple memory copies, context switches, and interrupt overhead. Latency stacks up and GPUs sit idle.</p>
+        </div>
+        <div class="path">
+          <h4>GPUFlow · Accelerator-initiated I/O</h4>
+          <div class="hops">
+            <span class="hop">NVMe (SPDK)</span><span class="arrow">→</span>
+            <span class="hop good">RDMA / RoCEv2 · DPU offload</span><span class="arrow">→</span>
+            <span class="hop good">GPUDirect P2P DMA</span><span class="arrow">→</span>
+            <span class="hop">GPU HBM</span>
+          </div>
+          <p>User-space, kernel-bypass, zero-copy, with a CXL memory tier for hot KV-cache and metadata.</p>
+        </div>
+      </div>
+
+      <ul class="points">
+        <li><b>The memory wall</b><span>Every byte bound for a GPU is copied through host memory at least once, and often more than once.</span></li>
+        <li><b>Mixed AI traffic</b><span>Large sequential training reads (elephant flows) collide with checkpoints and KV-cache loads (mouse flows), and general-purpose filesystems treat them all the same.</span></li>
+        <li><b>Inference latency</b><span>Slow KV-cache loading raises time-to-first-token and leaves accelerators starved.</span></li>
+        <li><b>Operational blind spots</b><span>When GPU utilization drops, it is hard to tell whether storage, network, or scheduling is to blame.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TECHNOLOGY ============ -->
+<section id="technology" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Technology</div>
+      <h2>Nine core technologies, one GPU-centric data service</h2>
+      <p>GPUFlow combines an end-to-end direct data path, hardware offload, and AI-driven storage intelligence to serve the AI factory's repeated train → infer cycle.</p>
+    </div>
+
+    <div class="tech">
+      <div class="tcard"><div class="n">01 · Data path</div><h3>GPUDirect zero-copy I/O</h3>
+        <p>GPUs pull storage data directly over RDMA, through both POSIX and object (S3) interfaces, with cuFile/cuObject-compatible drivers.</p>
+        <div class="from"><s>CPU-mediated copies</s> → direct GPU path</div></div>
+      <div class="tcard"><div class="n">02 · Availability</div><h3>Sub-30-second failover</h3>
+        <p>Distributed mirroring and an automated DR controller keep training running through component or site failures.</p>
+        <div class="from"><s>Long service outages</s> → RTO ≤ 30 s</div></div>
+      <div class="tcard"><div class="n">03 · Intelligence</div><h3>AI-powered storage resources</h3>
+        <p>eBPF-based telemetry and access-pattern models predict load and faults, then re-place data and resources ahead of demand.</p>
+        <div class="from"><s>Static placement</s> → predictive optimization</div></div>
+      <div class="tcard"><div class="n">04 · Cloud native</div><h3>Unified VM + container storage</h3>
+        <p>One storage stack serves virtual machines and Kubernetes pods on the same nodes, with CSI-driven dynamic provisioning and non-disruptive rebalancing.</p>
+        <div class="from"><s>Single-runtime storage</s> → heterogeneous runtimes</div></div>
+      <div class="tcard"><div class="n">05 · Offload</div><h3>DPU-accelerated data processing</h3>
+        <p>NVMe-oF/RDMA, encryption, compression, and checksums are offloaded to a domestic FPGA-based DPU, with UEC-ready congestion control.</p>
+        <div class="from"><s>CPU-bound protocol stacks</s> → DPU offload</div></div>
+      <div class="tcard"><div class="n">06 · Observability</div><h3>Workload-aware diagnosis</h3>
+        <p>Correlates GPU idle time with storage and network latency to explain <em>why</em> GPUs starve, from cluster view down to a single volume.</p>
+        <div class="from"><s>Infrastructure-only monitoring</s> → bottleneck root cause</div></div>
+      <div class="tcard"><div class="n">07 · Validation</div><h3>Internationally certified performance</h3>
+        <p>Performance is proven through IO500 and MLCommons MLPerf Storage, together with a new benchmark for AI inference storage.</p>
+        <div class="from"><s>In-house benchmarks</s> → global certification</div></div>
+      <div class="tcard"><div class="n">08 · Memory</div><h3>CXL metadata acceleration</h3>
+        <p>A CXL memory tier with ghost caching, batched metadata handling, and contention-aware asynchronous I/O scheduling.</p>
+        <div class="from"><s>Metadata stalls</s> → microsecond-scale access</div></div>
+      <div class="tcard"><div class="n">09 · Inference</div><h3>KV-cache &amp; framework integration</h3>
+        <p>PyDAOS bindings pass PyTorch/CuPy tensors to storage without conversion, a vLLM connector, and an adaptive GPUDirect/host-staging path selector.</p>
+        <div class="from"><s>Format conversion</s> → native tensor I/O</div></div>
+    </div>
+
+    <div class="products">
+      <div class="prod"><b>GPUFlow‑CORE</b><span>Zero-copy, accelerator-attached parallel storage engine</span></div>
+      <div class="prod"><b>GPUFlow‑ACCEL</b><span>CXL/DPU I/O acceleration &amp; compute offload module</span></div>
+      <div class="prod"><b>GPUFlow‑Manager</b><span>Workload-aware tiering &amp; unified management platform</span></div>
+      <div class="prod"><b>GPUFlow‑HCI</b><span>Hyper-converged compute, network &amp; storage with a CXL memory pool</span></div>
+      <div class="prod"><b>GPUFlow‑SYS</b><span>Integrated HW + SW appliance for AI factories</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ARCHITECTURE ============ -->
+<section id="architecture">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Architecture</div>
+      <h2>Five layers, one end-to-end path</h2>
+      <p>From GPU/HBM on the AI factory nodes down to sharded NVMe on the storage nodes, each layer removes a hop or offloads a cost and reports what it sees to a single control plane.</p>
+    </div>
+
+    <div class="arch">
+      <div class="stack">
+        <div class="layer L1">
+          <div class="lh">GPU cluster &amp; client<small>AI factory train / infer nodes</small></div>
+          <div class="lb">
+            <span class="chip">GPUDirect I/O library + GPU path selector</span>
+            <span class="chip">cuFile / cuObject-compatible drivers</span>
+            <span class="chip">PyTorch DataLoader</span><span class="chip">POSIX FUSE adapter</span>
+            <span class="chip">MPI-IO / HDF5</span><span class="chip">Py KV-cache binder</span><span class="chip">vLLM KV module</span>
+            <span class="chip">CXL KV-cache &amp; metadata cache</span>
+          </div>
+        </div>
+        <div class="layer L2">
+          <div class="lh">Parallel storage engine<small>Storage nodes</small></div>
+          <div class="lb">
+            <span class="chip">SPDK / RDMA user-space I/O</span><span class="chip">NVMe sharding</span>
+            <span class="chip">Network erasure coding</span><span class="chip">Parallel RPC (CaRT)</span>
+            <span class="chip">Key-Value-Array &amp; S3 models</span><span class="chip">WORM integrity</span>
+            <span class="chip">Self-healing &amp; auto-rebalance</span><span class="chip">Real-time replication</span>
+            <span class="chip">Multi-tenant QoS &amp; RBAC</span><span class="chip">Container CSI</span>
+          </div>
+        </div>
+        <div class="layer L3">
+          <div class="lh">Network &amp; DPU acceleration<small>RDMA / RoCEv2 fabric</small></div>
+          <div class="lb">
+            <span class="chip">NVMe-oF / RDMA DPU offload</span><span class="chip">Inline encryption &amp; compression</span>
+            <span class="chip">RoCE congestion control</span><span class="chip">UEC transport layer</span>
+            <span class="chip">Multipath adaptive routing</span>
+          </div>
+        </div>
+        <div class="layer L4">
+          <div class="lh">Operations &amp; intelligence<small>Unified control plane</small></div>
+          <div class="lb">
+            <span class="chip">eBPF workload telemetry</span><span class="chip">Workload inference</span>
+            <span class="chip">Fault-pattern prediction</span><span class="chip">NPU-based optimization</span>
+            <span class="chip">HCI control</span><span class="chip">Real-time GPU data-path bottleneck UX</span>
+            <span class="chip">Open API</span>
+          </div>
+        </div>
+        <div class="layer L5">
+          <div class="lh">Validation &amp; certification<small>Testbed &amp; benchmarks</small></div>
+          <div class="lb">
+            <span class="chip">IO500</span><span class="chip">MLPerf Storage</span>
+            <span class="chip">AI inference storage benchmark</span><span class="chip">Integrated CI/CD</span>
+            <span class="chip">HW/SW compatibility matrix</span><span class="chip">E2E test automation</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidecol">
+        <div class="side">
+          <h4>Workload-aware placement</h4>
+          <ol>
+            <li><b>Training reads</b>: elephant flows striped over sharded NVMe at full bandwidth</li>
+            <li><b>Checkpoints</b>: POSIX/HDF5 with prioritized synchronous replication</li>
+            <li><b>KV-cache</b>: object/KV path with a CXL hot tier for low TTFT</li>
+            <li><b>Metadata</b>: CXL ghost cache and batched requests</li>
+          </ol>
+        </div>
+        <div class="side">
+          <h4>Design principles</h4>
+          <ol>
+            <li>No CPU on the data path</li>
+            <li>POSIX <em>and</em> object, natively</li>
+            <li>Offload what hardware does better</li>
+            <li>Measure it, explain it, certify it</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONSORTIUM ============ -->
+<section id="consortium" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Consortium</div>
+      <h2>Seven organizations, each owning a layer</h2>
+      <p>Industry, a national research institute, a standards and certification body, and two universities work in a shared joint-research space with quarterly integration reviews.</p>
+    </div>
+
+    <div class="orgs">
+      <article class="org lead">
+        <header>
+          <h3>Gluesys</h3>
+          <span class="kind">Lead organization · Industry</span>
+        </header>
+        <p class="role">Overall project lead, system architecture, core parallel-storage engine, integration, and commercialization. Builds on Gluesys's commercial parallel storage products for HPC and AI.</p>
+        <div class="lead-grid">
+          <div><h5>Client layer</h5><ul><li>GPUDirect Storage client module</li><li>POSIX / S3 GPU acceleration</li><li>CXL-based filesystem cache</li></ul></div>
+          <div><h5>Storage layer</h5><ul><li>Elephant-flow parallel processing</li><li>Non-disruptive scale-out &amp; rebalancing</li><li>Automatic recovery, per-project isolation</li></ul></div>
+          <div><h5>Ops &amp; validation</h5><ul><li>Unified management tool, RBAC</li><li>SmartNIC compute offload</li><li>Integrated validation &amp; GPU-cloud pilots</li></ul></div>
+        </div>
+        <div class="tags"><span class="tag L1">client</span><span class="tag L2">storage</span><span class="tag L4">operations</span><span class="tag L5">validation</span></div>
+      </article>
+
+      <article class="org">
+        <header><h3>KETI</h3><span class="kind">Research institute</span></header>
+        <p class="role">Korea Electronics Technology Institute: cloud-native resource management and AI-driven autonomous storage operation.</p>
+        <ul>
+          <li>WORM storage for training-data integrity &amp; versioning</li>
+          <li>Kubernetes-based storage control &amp; cloud-native deployment</li>
+          <li>AI workload inference, NPU-based optimization, HCI control</li>
+        </ul>
+        <div class="tags"><span class="tag L2">storage</span><span class="tag L4">operations</span></div>
+      </article>
+
+      <article class="org">
+        <header><h3>MangoBoost</h3><span class="kind">Industry · DPU</span></header>
+        <p class="role">Data-processing-unit (DPU) hardware and software for storage and network offload.</p>
+        <ul>
+          <li>NVMe-oF storage protocol offload</li>
+          <li>RoCEv2 congestion-control optimization</li>
+          <li>Transport encryption &amp; compression offload, UEC adoption</li>
+        </ul>
+        <div class="tags"><span class="tag L2">storage</span><span class="tag L3">network</span></div>
+      </article>
+
+      <article class="org">
+        <header><h3>OnlinePowers</h3><span class="kind">Industry · UI/UX</span></header>
+        <p class="role">Integrated monitoring and operations experience for AI infrastructure.</p>
+        <ul>
+          <li>AI workload monitoring</li>
+          <li>Unified management UI &amp; GPUFlow dashboard</li>
+          <li>Large-scale telemetry visualization (Canvas/WebGL)</li>
+        </ul>
+        <div class="tags"><span class="tag L4">operations</span></div>
+      </article>
+
+      <article class="org">
+        <header><h3>TTA</h3><span class="kind">Standards &amp; certification</span></header>
+        <p class="role">Telecommunications Technology Association: test methodology, a large-scale testbed, and international certification.</p>
+        <ul>
+          <li>IO500 international certification</li>
+          <li>MLPerf Storage / training performance evaluation</li>
+          <li>Inference-storage evaluation metrics &amp; benchmark</li>
+        </ul>
+        <div class="tags"><span class="tag L5">validation</span></div>
+      </article>
+
+      <article class="org">
+        <header><h3>Seoul National University</h3><span class="kind">University</span></header>
+        <p class="role">Multi-tier I/O profiling and adaptive CXL memory management.</p>
+        <ul>
+          <li>CXL-based KV-cache acceleration cache</li>
+          <li>CXL-based metadata acceleration cache</li>
+          <li>Contention-aware I/O scheduling</li>
+        </ul>
+        <div class="tags"><span class="tag L1">client</span></div>
+      </article>
+
+      <article class="org">
+        <header><h3>Sogang University</h3><span class="kind">University</span></header>
+        <p class="role">GPU-direct I/O paths and LLM-serving storage optimization.</p>
+        <ul>
+          <li>GPUDirect I/O library, dual-path I/O scheduling</li>
+          <li>KV-cache object data model</li>
+          <li>AI-driven data-path optimization algorithms</li>
+        </ul>
+        <div class="tags"><span class="tag L1">client</span></div>
+      </article>
+    </div>
+
+    <div class="demand">
+      <b>Demand organizations</b>
+      <span>KISTI (Korea Institute of Science and Technology Information), national supercomputing &amp; AI infrastructure</span>
+      <span>KT Cloud, AI data-center operator</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TARGETS ============ -->
+<section id="targets">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Targets</div>
+      <h2>What "done" looks like</h2>
+      <p>Final-year quantitative goals, measured with public benchmarks wherever possible.</p>
+    </div>
+
+    <div class="kgroup">Bandwidth &amp; performance</div>
+    <div class="kpis three">
+      <div class="kpi"><div class="v"><span class="op">≥</span>200<span class="u">GB/s</span></div><h4>Sequential read per node</h4><p>Average per-node bandwidth for elephant-flow workloads.</p><div class="bench">IO500 ior-easy-read</div></div>
+      <div class="kpi"><div class="v"><span class="op">≥</span>140<span class="u">GB/s</span></div><h4>Sequential write per node</h4><p>Average per-node bandwidth for elephant-flow workloads.</p><div class="bench">IO500 ior-easy-write</div></div>
+      <div class="kpi"><div class="v"><span class="op">≥</span>40<span class="u">GiB/s</span></div><h4>LLM checkpoint read per node</h4><p>Large-language-model training checkpoint load.</p><div class="bench">MLPerf Storage · checkpointing</div></div>
+      <div class="kpi"><div class="v"><span class="op">≥</span>20<span class="u">GiB/s</span></div><h4>LLM checkpoint write per node</h4><p>Large-language-model training checkpoint save.</p><div class="bench">MLPerf Storage · checkpointing</div></div>
+      <div class="kpi"><div class="v"><span class="op">≥</span>20<span class="u">%</span></div><h4>I/O performance uplift</h4><p>Over the best-performing comparable domestic commercial storage.</p><div class="bench">Comparative benchmark</div></div>
+      <div class="kpi"><div class="v"><span class="op">≤</span>5<span class="u">%</span></div><h4>Host CPU for storage I/O</h4><p>Through GPUDirect Storage, RDMA offload, and storage-side compute.</p><div class="bench">CPU utilization under load</div></div>
+    </div>
+
+    <div class="kgroup">Operations &amp; availability</div>
+    <div class="kpis">
+      <div class="kpi"><div class="v"><span class="op">≤</span>30<span class="u">s</span></div><h4>Remote recovery time (RTO)</h4><p>Failover to the DR site without stopping AI training.</p><div class="bench">Failover drill</div></div>
+      <div class="kpi"><div class="v"><span class="op">≤</span>200<span class="u">ms</span></div><h4>AI-powered engine feedback</h4><p>Response latency after a fault or efficiency event is detected.</p><div class="bench">Event-to-action latency</div></div>
+      <div class="kpi"><div class="v"><span class="op">≥</span>6</div><h4>Storage isolation techniques</h4><p>Multi-tenant isolation of space, performance, and access.</p><div class="bench">Feature verification</div></div>
+      <div class="kpi"><div class="v">✓</div><h4>Cloud-native provisioning</h4><p>Kubernetes orchestration and IaC-based deploy, scale-out, and recovery.</p><div class="bench">Automation test</div></div>
+    </div>
+
+    <div class="kgroup">International certification</div>
+    <div class="certs">
+      <div class="cert"><div class="badge">IO500</div><div><b>World Top-3 IO500 certification</b><span>High-bandwidth I/O performance on the official IO500 list</span></div></div>
+      <div class="cert"><div class="badge">ML</div><div><b>MLCommons MLPerf Storage</b><span>Certified checkpoint read/write throughput for AI training</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ JOURNEY ============ -->
+<section id="journey" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Journey</div>
+      <h2>From architecture to production</h2>
+      <p>The work is staged so that each year builds on a verified foundation, ending in field deployment at the demand organizations.</p>
+    </div>
+
+    <div class="timeline">
+      <div class="stage">
+        <div class="dot">Y1</div>
+        <div class="when">Apr – Dec 2026</div>
+        <h3>Integrated architecture &amp; foundations</h3>
+        <ul>
+          <li>End-to-end GPUFlow data-path architecture</li>
+          <li>Parallel filesystem core structure</li>
+          <li>RDMA / NVMe-oF transport path analysis</li>
+          <li>Baseline AI-workload performance validation</li>
+        </ul>
+        <span class="trl">TRL 4 → 5</span>
+      </div>
+      <div class="stage">
+        <div class="dot">Y2</div>
+        <div class="when">2027</div>
+        <h3>Workload-aware integration &amp; prototype</h3>
+        <ul>
+          <li>GPU-aware data-path control</li>
+          <li>AI-specific I/O scheduling</li>
+          <li>Kubernetes-based automation</li>
+          <li>Integrated system prototype</li>
+        </ul>
+        <span class="trl">TRL 5 → 6</span>
+      </div>
+      <div class="stage">
+        <div class="dot">Y3</div>
+        <div class="when">2028</div>
+        <h3>Field validation, production-grade</h3>
+        <ul>
+          <li>Pilots at KISTI and KT Cloud</li>
+          <li>200 GB/s-per-node validation</li>
+          <li>IO500 and MLPerf Storage submissions</li>
+          <li>Product-level stability, reference sites</li>
+        </ul>
+        <span class="trl">TRL 6 → 7</span>
+      </div>
+      <div class="stage future">
+        <div class="dot">→</div>
+        <div class="when">2029 onward</div>
+        <h3>Commercialization &amp; adoption</h3>
+        <ul>
+          <li>GPUFlow commercial product release</li>
+          <li>National AI data-center programs</li>
+          <li>Public, CSP, and enterprise markets</li>
+          <li>Global OEM / ODM partnerships</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="oss">
+      <div>
+        <h3>Built in the open</h3>
+        <p>Consortium software is published under the <a href="https://github.com/gpuflow-io">gpuflow-io</a> GitHub organization under a permissive BSD-2-Clause-based license, so results can be reused and redistributed.</p>
+        <p>We will also hold at least one open-source community event or technical seminar every year with partner associations and user groups.</p>
+      </div>
+      <table class="oss-t">
+        <thead><tr><th>Open-source goal</th><th class="num">Year 1</th><th class="num">Year 2</th><th class="num">Year 3</th></tr></thead>
+        <tbody>
+          <tr><td>Public repositories</td><td class="num">3</td><td class="num">7</td><td class="num">10</td></tr>
+          <tr><td>Commits</td><td class="num">20</td><td class="num">60</td><td class="num">100</td></tr>
+          <tr><td>Contributors</td><td class="num">5</td><td class="num">12</td><td class="num">20</td></tr>
+          <tr><td>Outreach events</td><td class="num">–</td><td class="num">1</td><td class="num">2</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="eco">
+      <h3>Part of a full-stack AI cloud</h3>
+      <p>GPUFlow is the storage pillar among sibling projects in the same national program. Together they form a reference architecture for Korean AI cloud infrastructure, connected through shared interfaces, joint demos, and exchange of I/O profiling data.</p>
+      <div class="row">
+        <span>Network fabric · RoCEv2 low-latency transport</span>
+        <span>GPU orchestration · workload-aware scheduling</span>
+        <span>GPU virtualization · partitioning &amp; multi-tenant isolation</span>
+        <span class="core">GPUFlow · core data-path platform</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p><b>GPUFlow</b>: Ultra-High-Bandwidth Parallel Storage Software with Data-Path Optimization for AI Computing</p>
+      <p>This project is carried out under the "AI Cloud Competitiveness Enhancement" program of the Korean government's 2026 ICT R&amp;D program.</p>
+    </div>
+    <div>
+      <p><b>Consortium</b> Gluesys (lead) · KETI · MangoBoost · OnlinePowers · TTA · Seoul National University · Sogang University</p>
+      <p><a href="https://github.com/gpuflow-io">github.com/gpuflow-io</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
