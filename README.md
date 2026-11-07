@@ -25,6 +25,9 @@ python3 -m http.server 8000
 # open http://localhost:8000
 ```
 
+The console includes an optional Korean widget-to-metric/API review mode for meetings.
+See [console review guide](console/REVIEW.md) for local notes, exports and browser tests.
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).

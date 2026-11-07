@@ -1,0 +1,803 @@
+{
+  "schema_version": 1,
+  "revision": "2026-11-07.1",
+  "status": "글루시스 검토 초안 · 최종 계약 아님",
+  "sources": [
+    {
+      "title": "화면–데이터 매핑표 · 검토 PR #3",
+      "url": "https://github.com/gpuflow-io/onlinepowers-integration/pull/3"
+    },
+    {
+      "title": "GPUFlow toolkit 표준 카탈로그",
+      "url": "https://github.com/gpuflow-io/gpuflow-kit/blob/main/catalog/metrics.yaml"
+    }
+  ],
+  "boundary": "제품 UI → 온라인파워스 백엔드 → VM 직접 PromQL / 글루시스 업무 API. 이 검토 화면은 설명·기록만 제공하며 실제 API를 호출하지 않습니다.",
+  "widgets": [
+    {
+      "id": "W01-01",
+      "key": "allocation",
+      "screens": [
+        "①"
+      ],
+      "title": "GPU 할당량",
+      "meaning": "할당 GPU 수 / 전체 GPU 수. GPU 사용률과 다른 값.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "부분 조회 가능 · 집계 계약 미정",
+      "limits": "placement 필드만으로 GPU 할당 수와 전체 인벤토리가 검증되지는 않음.",
+      "decisions": [
+        "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
+      ],
+      "query": "GET /v1/workloads?page_size=1",
+      "query_state": "기존 목록 호출 확인 · GPU 집계는 미검증",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:17:17Z",
+        "http_status": 200,
+        "records": 1,
+        "data_origin": "unknown",
+        "more_available": true
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리."
+    },
+    {
+      "id": "W01-02",
+      "key": "cluster-wait",
+      "screens": [
+        "①"
+      ],
+      "title": "클러스터 GPU 데이터 대기율",
+      "meaning": "I/O stall 시간 ÷ GPU 할당 시간의 클러스터 집계. 단순 GPU idle 비율이 아님.",
+      "metrics": [
+        "gpuflow_derived_gpu_data_wait_ratio",
+        "gpuflow_host_io_stall_seconds_total",
+        "gpuflow_gpu_allocated_seconds_total"
+      ],
+      "api": [
+        "VM PromQL · raw / 집계 저장소"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "계약 후보 · 실측 미확인",
+      "limits": "호스트 I/O stall을 모든 GPU에 복제하면 중복 집계됨. 다중 GPU 귀속·시간 정렬 검증 필요.",
+      "decisions": [
+        "GPU별 시간 가중·분모 0·미계측 GPU 처리·측정 주체"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W01-03",
+      "key": "cluster-bandwidth",
+      "screens": [
+        "①"
+      ],
+      "title": "스토리지 전달 대역폭",
+      "meaning": "워크로드에 전달된 bytes/s를 합산해 GB/s로 표시. 누적 bytes 자체가 아님.",
+      "metrics": [
+        "gpuflow_storage_target_read_bytes_total",
+        "gpuflow_storage_target_write_bytes_total"
+      ],
+      "api": [
+        "VM PromQL · raw"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "관련 DAOS 실측 있음 · 전달량 귀속 미확인",
+      "limits": "DAOS target counter를 L3→GPU 전달량으로 바로 해석하거나 read+write를 중복 합산하지 않음.",
+      "decisions": [
+        "counter reset·rate 구간·단위·중복 제거·워크로드 귀속"
+      ],
+      "query": "gpuflow_storage_target_read_bytes_total{data_origin=\"measured\",simulated=\"false\"}",
+      "query_state": "검증된 관련 counter 조회 · 위젯 완성 쿼리 아님",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:01:29Z",
+        "series": 4,
+        "data_origin": "measured",
+        "note": "DAOS 누적 read/write counter 각각 4시리즈. 워크로드 대역폭 표본이 아님."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W01-04",
+      "key": "capacity",
+      "screens": [
+        "①"
+      ],
+      "title": "L3 용량 사용률",
+      "meaning": "사용 용량 / 전체 용량. 노드 비율의 단순 평균과 용량 가중 평균을 구분.",
+      "metrics": [
+        "gpuflow_storage_capacity_used_ratio"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "계약 이름 있음 · 실측 미확인",
+      "limits": "실측 GPU/DAOS I/O 통과가 용량 계측까지 보장하지 않음.",
+      "decisions": [
+        "L3 대상·용량 분모·집계 단위·노드 제외 조건"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W01-05",
+      "key": "active-workloads",
+      "screens": [
+        "①"
+      ],
+      "title": "활성 워크로드 수",
+      "meaning": "목록 중 활성 판정된 워크로드 수. 전체 레코드 수와 별도.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "목록 조회 가능 · 상태 판정 미정",
+      "limits": "검증 표본 provenance는 unknown. 페이지 전체 조회와 started_at/ended_at의 의미 합의 필요.",
+      "decisions": [
+        "활성 기준·기간·중복·페이지·tenant 필터"
+      ],
+      "query": "GET /v1/workloads?page_size=1",
+      "query_state": "기존 호출 확인 · 화면용 활성 집계 미구현",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:17:17Z",
+        "http_status": 200,
+        "records": 1,
+        "data_origin": "unknown",
+        "more_available": true
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리."
+    },
+    {
+      "id": "W01-06",
+      "key": "heatmap",
+      "screens": [
+        "①"
+      ],
+      "title": "GPU 대기율 히트맵",
+      "meaning": "노드×GPU별 대기율과 워크로드 할당을 조합. GPU utilization 색상으로 대체하지 않음.",
+      "metrics": [
+        "gpuflow_derived_gpu_data_wait_ratio",
+        "gpuflow_host_io_stall_seconds_total",
+        "gpuflow_gpu_allocated_seconds_total"
+      ],
+      "api": [
+        "VM PromQL",
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "귀속·실측 미확인",
+      "limits": "목업 H100 다수 셀은 실제 테스트베드 인벤토리 아님.",
+      "decisions": [
+        "GPU ID 연결·공유 할당·결측 셀·임계값·클릭 필터"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W01-07",
+      "key": "storage-summary",
+      "screens": [
+        "①"
+      ],
+      "title": "스토리지 요약",
+      "meaning": "용량·상태·I/O를 구분해 표시. 기본 모니터링 범위.",
+      "metrics": [
+        "gpuflow_storage_target_read_bytes_total",
+        "gpuflow_storage_target_write_bytes_total",
+        "gpuflow_storage_capacity_used_ratio"
+      ],
+      "api": [
+        "VM PromQL",
+        "GET /v1/topology-nodes"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "DAOS I/O 일부 실측 · 관리 조회 미완",
+      "limits": "DAOS 실측과 Lustre/DPU/리빌드 상태를 하나의 검증 결과로 취급하지 않음.",
+      "decisions": [
+        "1차 모니터링 항목·DAOS/Lustre 구분·관리 조회 책임"
+      ],
+      "query": "gpuflow_storage_target_write_bytes_total{data_origin=\"measured\",simulated=\"false\"}",
+      "query_state": "검증된 관련 counter 조회 · 상태 API 아님",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:01:29Z",
+        "series": 4,
+        "data_origin": "measured",
+        "note": "DAOS 누적 read/write counter 각각 4시리즈. 워크로드 대역폭 표본이 아님."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W02-01",
+      "key": "workload-list",
+      "screens": [
+        "②"
+      ],
+      "title": "워크로드 목록",
+      "meaning": "workload_id·type·tenant·namespace·pod·placement·storage·started_at/ended_at 표시.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "PG 목록 조회 가능 · 출처 unknown",
+      "limits": "현재 목록 API 중심. 임의 SQL·임의 filter·상세 endpoint를 가정하지 않음.",
+      "decisions": [
+        "필수 필드·정렬·필터·상세 이동·활성 정의"
+      ],
+      "query": "GET /v1/workloads?page_size=1",
+      "query_state": "기존 호출 확인",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:17:17Z",
+        "http_status": 200,
+        "records": 1,
+        "data_origin": "unknown",
+        "more_available": true
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리."
+    },
+    {
+      "id": "W02-02",
+      "key": "workload-wait",
+      "screens": [
+        "②",
+        "③",
+        "④"
+      ],
+      "title": "워크로드 GPU 데이터 대기율",
+      "meaning": "선택 워크로드의 I/O stall / GPU 할당 시간. % 표시와 ratio 저장을 구분.",
+      "metrics": [
+        "gpuflow_derived_gpu_data_wait_ratio",
+        "gpuflow_host_io_stall_seconds_total",
+        "gpuflow_gpu_allocated_seconds_total"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "실측 미확인",
+      "limits": "DAOS pool/rank/target 데이터를 임의 workload_id로 귀속하지 않음.",
+      "decisions": [
+        "분모·다중 GPU 가중·관측 구간·0/결측·제공 시점"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W02-03",
+      "key": "workload-performance",
+      "screens": [
+        "②"
+      ],
+      "title": "워크로드 주요 성능",
+      "meaning": "목업에서 workload 유형에 따라 TTFT·학습 처리량 등이 바뀌는 카드. 지표/단위도 함께 전환.",
+      "metrics": [
+        "gpuflow_app_request_ttft_seconds",
+        "gpuflow_app_train_steps_total"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "계약 후보 · 실측 미확인",
+      "limits": "TTFT histogram 여부·quantile·학습 step당 샘플 수 미확인. 하나의 고정 쿼리로 표현하지 않음.",
+      "decisions": [
+        "유형별 metric·단위·평균/p95·window·학습 처리량 변환"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W02-04",
+      "key": "workload-bandwidth",
+      "screens": [
+        "②",
+        "③"
+      ],
+      "title": "워크로드 전달 대역폭",
+      "meaning": "선택 workload의 전달 bytes/s와 IOPS. 서로 다른 단위·계측.",
+      "metrics": [
+        "gpuflow_storage_target_read_bytes_total",
+        "gpuflow_storage_target_write_bytes_total",
+        "gpuflow_storage_target_ops_total"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "DAOS I/O 관련 실측 · workload 귀속 미확인",
+      "limits": "target counter만으로 선택 workload 대역폭/IOPS를 산출할 수 없음.",
+      "decisions": [
+        "workload 연결 키·read/write·중복·rate window"
+      ],
+      "query": "gpuflow_storage_target_read_bytes_total{data_origin=\"measured\",simulated=\"false\"}",
+      "query_state": "관련 원천 조회만 검증",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:01:29Z",
+        "series": 4,
+        "data_origin": "measured",
+        "note": "DAOS 누적 read/write counter 각각 4시리즈. 워크로드 대역폭 표본이 아님."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W02-05",
+      "key": "zero-copy",
+      "screens": [
+        "②",
+        "③"
+      ],
+      "title": "Zero-copy 경로 비율",
+      "meaning": "GDS/GDR 전송량 / 동일 범위 전체 전송량. 중복·다른 경로 분모 구분.",
+      "metrics": [
+        "gpuflow_derived_path_zerocopy_ratio",
+        "gpuflow_transport_bytes_total"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "계약 후보 · 실측 미확인",
+      "limits": "기능 활성화 플래그만으로 실제 byte 비율을 계산하지 않음.",
+      "decisions": [
+        "GDS/GDR 중복·분모·경로 라벨·측정 주체"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W02-06",
+      "key": "cache-hit",
+      "screens": [
+        "②"
+      ],
+      "title": "캐시 적중률",
+      "meaning": "캐시 조회 중 적중 비율. tier별 분모와 miss 의미 합의 필요.",
+      "metrics": [
+        "gpuflow_derived_tier_hit_ratio",
+        "gpuflow_cache_lookup_total"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "계약 후보 · 실측 미확인",
+      "limits": "기관 원본 샘플 확인 필요. 추가 통합 규격은 후속 RFC 예정.",
+      "decisions": [
+        "기존 공통 계약 기준 제공 가능 지표·분자/분모·1차 표시 범위"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W02-07",
+      "key": "host-cpu",
+      "screens": [
+        "②"
+      ],
+      "title": "호스트 CPU 사용률",
+      "meaning": "노드 CPU 사용률의 평균. workload CPU 사용량과 구분.",
+      "metrics": [
+        "gpuflow_host_cpu_util_ratio"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "계약 후보 · 해당 표준 지표 실측 미확인",
+      "limits": "host 메모리 실측 조회 성공이 CPU 계측 검증은 아님.",
+      "decisions": [
+        "idle/iowait 정의·노드 평균 가중·workload 귀속 여부"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W03-01",
+      "key": "placement",
+      "screens": [
+        "③"
+      ],
+      "title": "배치·GPU 연결",
+      "meaning": "워크로드 placement와 노드/GPU 인벤토리의 연결.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "목록 조회 가능 · 실제 연결 미검증",
+      "limits": "workloads 출처 unknown, topology simulation 표본.",
+      "decisions": [
+        "공통 ID·노드/GPU 매핑·scope·갱신·삭제 처리"
+      ],
+      "query": "GET /v1/topology-nodes?page_size=1",
+      "query_state": "기존 호출 확인 · 실제 배치 아님",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:17:17Z",
+        "http_status": 200,
+        "records_per_resource": 1,
+        "data_origin": "simulation"
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리."
+    },
+    {
+      "id": "W03-02",
+      "key": "path",
+      "screens": [
+        "③"
+      ],
+      "title": "계층별 데이터 경로",
+      "meaning": "nodes/edges와 계층별 지표를 연결해 병목 후보를 표시. 서로 다른 지표의 %를 동일 의미로 취급하지 않음.",
+      "metrics": [
+        "gpuflow_gpu_util_ratio",
+        "gpuflow_storage_target_latency_seconds"
+      ],
+      "api": [
+        "GET /v1/topology-nodes",
+        "GET /v1/topology-edges",
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "topology simulation · GPU 일부 실측",
+      "limits": "app/gpu/host/cache/transport/fabric/storage/bench와 목업 cold 티어 매핑 필요. GPU utilization은 GPU 대기율이 아님.",
+      "decisions": [
+        "edge metric_ref·계층 단위/임계값·host/bench 위치·cold 의미"
+      ],
+      "query": "gpuflow_gpu_util_ratio{data_origin=\"measured\",simulated=\"false\"}",
+      "query_state": "GPU 단일 지표 조회만 검증 · 경로 전체 검증 아님",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:01:29Z",
+        "series": 1,
+        "data_origin": "measured",
+        "note": "GPU utilization 1시리즈. 실제 topology 연결·GPU wait 검증 아님."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n/v1/topology-edges → items[].data: from_id, to_id, link, capable, metric_ref, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W03-03",
+      "key": "forecast",
+      "screens": [
+        "③",
+        "④"
+      ],
+      "title": "계층별 예측·권고",
+      "meaning": "관측 시각·예측 생성 시각·대상 시각을 분리해 예측과 권고 표시.",
+      "metrics": [
+        "gpuflow_predict_util_ratio",
+        "gpuflow_predict_util_lower",
+        "gpuflow_predict_util_upper",
+        "gpuflow_predict_accuracy_ratio"
+      ],
+      "api": [
+        "VM PromQL",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "계약 후보 · 실제 예측 검증 전",
+      "limits": "목업 confidence/accuracy 숫자는 시나리오. 실제 정책 실행은 별도이며 이번 화면 검토에서 호출하지 않음.",
+      "decisions": [
+        "+30/+60/+120초·예측 대상 단위·정확도·predict.bottleneck→policy.change 연결"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/events → items[].data: event_key, event, severity, ts_ns, source, node, workload_id, labels, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W11-01",
+      "key": "alerts",
+      "screens": [
+        "⑪"
+      ],
+      "title": "활성 경보·확인(ack)",
+      "meaning": "alert.fire/resolve로 현재 상태를 만들고 ack를 별도 기록.",
+      "metrics": [],
+      "api": [
+        "GET /v1/events",
+        "활성 경보/ack 전용 API — 미정"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "이벤트 목록 가능 · 상태/ack API 미정",
+      "limits": "이벤트 목록 조회는 활성 경보 상태·ack 영속화 API를 대신하지 않음. 목업 ack는 브라우저 시나리오.",
+      "decisions": [
+        "발생/해제 연결·중복·ack 저장 주체·권한·1차 포함"
+      ],
+      "query": "GET /v1/events?page_size=1",
+      "query_state": "이벤트 목록 호출만 확인",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:17:17Z",
+        "http_status": 200,
+        "records": 1,
+        "data_origin": "simulation"
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/events → items[].data: event_key, event, severity, ts_ns, source, node, workload_id, labels, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리."
+    },
+    {
+      "id": "W11-02",
+      "key": "events",
+      "screens": [
+        "⑪"
+      ],
+      "title": "이벤트 목록",
+      "meaning": "event_key·event·severity·ts_ns·source·workload_id·labels·attrs 표시.",
+      "metrics": [],
+      "api": [
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "PG 목록 조회 가능 · simulation 표본",
+      "limits": "기본 최근 1시간/요청 구간 최대 24시간. page_size 1~200, cursor 조건 유지. ns 정밀도 보존.",
+      "decisions": [
+        "기간·severity/workload 필터·페이지 갱신·출처/시각·텍스트 처리"
+      ],
+      "query": "GET /v1/events?page_size=1",
+      "query_state": "기존 호출 확인",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:17:17Z",
+        "http_status": 200,
+        "records": 1,
+        "data_origin": "simulation"
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/events → items[].data: event_key, event, severity, ts_ns, source, node, workload_id, labels, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리."
+    }
+  ]
+}
