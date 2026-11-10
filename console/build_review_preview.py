@@ -41,6 +41,6 @@ if __name__ == '__main__':
     parser.add_argument('output', type=Path)
     parser.add_argument('--snapshot', type=Path)
     parser.add_argument('--workload')
-    parser.add_argument('--screen', choices=('path','workload','analysis'))
+    parser.add_argument('--screen', choices=('overview','path','workload','analysis'))
     args=parser.parse_args()
     build(args.output,args.snapshot,args.workload,args.screen)
