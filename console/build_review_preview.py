@@ -3,7 +3,7 @@ import argparse
 import json
 from pathlib import Path
 
-def build(output, snapshot=None, workload=None, screen=None):
+def build(output, snapshot=None, workload=None, screen=None, meeting=False):
     root = Path(__file__).resolve().parent
     html = (root / 'index.html').read_text()
     css = (root / 'review.css').read_text()
@@ -36,6 +36,10 @@ def build(output, snapshot=None, workload=None, screen=None):
         embedded+='<script>{const u=new URL(location.href);if(!u.searchParams.has("screen")){u.searchParams.set("screen",'+encoded_screen+');history.replaceState(null,"",u);}}</script>\n'
     html=html.replace('<script src="testbed.js"></script>', embedded+'<script>'+testbed_js+'</script>')
     html = html.replace('href="../"', 'href="https://gpuflow-io.github.io/"')
+    if meeting:
+        # Run before other scripts, without replacing explicitly requested views.
+        defaults='<script>{const u=new URL(location.href);for(const [k,v] of Object.entries({data:"scenario",review:"1",widget:"W01-01",screen:"overview"}))if(!u.searchParams.has(k))u.searchParams.set(k,v);history.replaceState(null,"",u);}</script>'
+        html=html.replace('<head>', '<head>'+defaults, 1)
     # Fonts remain optional: the browser falls back to system fonts offline.
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(html)
@@ -47,5 +51,6 @@ if __name__ == '__main__':
     parser.add_argument('--snapshot', type=Path)
     parser.add_argument('--workload')
     parser.add_argument('--screen', choices=('overview','path','workload','analysis'))
+    parser.add_argument('--meeting', action='store_true', help='Open the original mockup and source/responsibility review; keep the embedded observation selectable')
     args=parser.parse_args()
-    build(args.output,args.snapshot,args.workload,args.screen)
+    build(args.output,args.snapshot,args.workload,args.screen,args.meeting)

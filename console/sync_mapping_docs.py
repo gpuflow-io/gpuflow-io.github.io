@@ -13,11 +13,11 @@ def csv_text(headers,rows):
     output=io.StringIO(newline='');writer=csv.writer(output);writer.writerow(headers);writer.writerows(rows);return output.getvalue().replace("\r\n","\n")
 
 def generated(c):
-    stamp='2026-11-10 · 매핑 보완판 3 · revision '+c['revision']+' · 검토 초안. 담당·제품 주기·평가 조건은 미팅 확정.\n\n'
+    stamp='2026-11-10 · 목업·소스·가공·화면 연결판 · revision '+c['revision']+' · 검토 초안. 담당·제품 주기·평가 조건은 미팅 확정.\n\n'
     cadence=c['widgets'][0]['cadence']
     apis='# 기존 API 4개 화면 매핑\n\n'+stamp+table(['화면','요청','필드','응답·표시 상태'],[(a['screen'],a['method']+' '+a['path'],', '.join(a['fields']),'LLM: 고정 mock, 정상/근거 없음/HTTP504. 목록: items[].data/provenance/quality, next_cursor, backend. API 존재·UI 연결·실측 검증은 별도.') for a in c['review_apis'].values()])
     apis+='\n정책 주키는 `policy`이며 스코어카드 연결 필드는 `indicator`입니다. workload_id를 키로 한 새 상세 API를 가정하지 않습니다. 목록은 같은 page_size/조건으로 cursor 끝까지 읽고 반복 cursor·중간 오류·조회 상한 초과는 완전한 결과로 처리하지 않습니다. HTTP 401/400/5xx와 빈 정상 응답을 구분합니다.\n\n저장된 HTML의 정책·스코어카드 응답은 **합성 계약 fixture**이며 DB 캡처가 아닙니다. LLM은 기존 고정 fixture입니다. 기존 11/07 API 호출 검증 기록은 당시 이력이며 현재 상태를 증명하지 않습니다.\n\n'+cadence+'\n'
-    full='# 원본 화면–위젯–API 전체 매핑\n\n'+stamp+'기준: '+json.dumps(c['baselines'],ensure_ascii=False)+'\n\n'
+    full='# 원본 화면–위젯–API 전체 매핑\n\n'+stamp+'회의에서는 [목업 → 기관 소스 → 글루시스 가공 → 온라인파워스 연결](SOURCE_PROCESSING_UI_MAP.md)을 먼저 확인합니다. 이 파일은 API·필드 개발 상세입니다.\n\n기준: '+json.dumps(c['baselines'],ensure_ascii=False)+'\n\n'
     full+=table(['ID·화면','원본 표시 항목','지표·이벤트','API·필드','표시·결정 사항'],[(w['id']+' '+','.join(w['screens']),w['title'],', '.join(w['metrics']+w.get('events',[])), '; '.join(w['api'])+' / '+w['response_fields'],w['meaning']+' '+('미확정 계약: '+','.join(w['pending_contracts']) if w.get('pending_contracts') else '')) for w in c['widgets']])
     full+='\n## 하위 영역·후속 제어 API(원본 표기, 구현 보증 아님)\n\n'+table(['위젯','하위 영역','후속 제어'],[(w['id'],'; '.join(w.get('subregions',[])),'; '.join(w.get('control_api_proposals',[]))) for w in c['widgets'] if w.get('subregions') or w.get('control_api_proposals')])+'\n'+table(['공통 결정 사항','계약'],list(c.get('cross_screen_contracts',{}).items()))+'\n원본 type 예시(공용 열거값 확정 아님): '+', '.join(c.get('source_workload_types',[]))+'\n'
     full+='\n## 원본 요소와 잔여 작업\n\n'+table(['화면','위젯','잔여 작업'],[(x['screen'],', '.join(x['widgets']),x['residual']) for x in c['screen_inventory']])
@@ -39,10 +39,28 @@ def generated(c):
     ])
     alignment+='\n카탈로그·이벤트 이름 존재는 실제 계측·발행·화면 표시 가능성의 증거가 아닙니다. 카탈로그 변경·J guard 변경·새 공용 proto/DB 스키마 변경은 이번 범위에 포함하지 않습니다.\n'
     scope='# 전역 범위·Period·Role 매핑\n\n'+stamp+table(['항목','현재 지원·책임·결정 사항'],[(k,v) for k,v in c.get('global_scope',{}).items() if k!='screens'])+'\n'+table(['화면','Period 적용 범위'],list(c.get('global_scope',{}).get('screens',{}).items()))
-    return {'GLOBAL_SCOPE_MAP.md':scope,'EXISTING_API_MAP.md':apis,'FULL_SCREEN_WIDGET_MAP.md':full,'KPI_ROW_MAP.md':kpis,'MAPPING_ALIGNMENT.md':alignment}
+    m=c['meeting_contract']
+    handoff='# 목업 기준 · 기관 소스 → 글루시스 가공 → 온라인파워스 화면 연결\n\n'+stamp
+    handoff+='\n\n'.join(m.values())+'\n\n'
+    handoff+='## 전역 범위 바\n\n'+table(['목업 항목','기관/원천','글루시스','온라인파워스','현재 상태'],[(g['name'],g['institution'],g['gluesys'],g['onlinepowers'],g['current']) for g in c['scope_handoffs']])+'\n'
+    for s in c['screen_inventory']:
+        handoff+='## '+s['screen']+' 화면\n\n'
+        for w in c['widgets']:
+            if s['screen'] not in w['screens']:continue
+            h=w['handoff']
+            handoff+='### '+w['id']+' '+w['title']+'\n\n'
+            handoff+=table(['목업에서 보여줄 것','기관이 제공할 소스','글루시스 가공·제공','온라인파워스 화면 연결'],[(h['mockup'],h['institution']['provider']+' / '+h['institution']['source'],h['gluesys']['process']+' / 제공 결과: '+h['gluesys']['output'],h['onlinepowers']['binding'])])
+            handoff+='\n- 현재 구현 근거: '+h['current']+'\n- 추가 필요·차이: '+h['gap']+'\n- 확정할 사항: '+h['decision']+'\n\n'
+    return {'SOURCE_PROCESSING_UI_MAP.md':handoff,'GLOBAL_SCOPE_MAP.md':scope,'EXISTING_API_MAP.md':apis,'FULL_SCREEN_WIDGET_MAP.md':full,'KPI_ROW_MAP.md':kpis,'MAPPING_ALIGNMENT.md':alignment}
+
+def handoff_csv(c):
+    return csv_text(['id','screens','mockup','provider','institution_source','gluesys_processing','gluesys_output','onlinepowers_binding','current','gap','decision'],[
+        [w['id'],'/'.join(w['screens']),w['handoff']['mockup'],w['handoff']['institution']['provider'],w['handoff']['institution']['source'],w['handoff']['gluesys']['process'],w['handoff']['gluesys']['output'],w['handoff']['onlinepowers']['binding'],w['handoff']['current'],w['handoff']['gap'],w['handoff']['decision']]
+        for w in c['widgets']])
 
 def outputs(c,dest):
     out={dest/'docs/handoff/2026-11-10'/name:text for name,text in generated(c).items()}
+    out[dest/'docs/handoff/2026-11-10/source-processing-ui.csv']=handoff_csv(c)
     # New latest matrix; the 11/07 meeting snapshot remains immutable.
     rows=[]
     for s in c['screen_inventory']:
@@ -63,6 +81,7 @@ def outputs(c,dest):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--handoff-root',type=Path);p.add_argument('--check',action='store_true');a=p.parse_args();root=Path(__file__).parent;c=json.loads((root/'review-contracts.json').read_text())
     out={root/'generated'/n:t for n,t in generated(c).items()}
+    out[root/'generated/source-processing-ui.csv']=handoff_csv(c)
     if a.handoff_root:out.update(outputs(c,a.handoff_root))
     for path,text in out.items():
         if a.check:

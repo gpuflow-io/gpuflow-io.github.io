@@ -25,7 +25,7 @@ jobs:
         run: >-
           python3 console/build_review_preview.py output/batch-review.html
           --snapshot console/samples/batch-observation.redacted.json
-          --workload sample-batch-delayed --screen overview
+          --workload sample-batch-delayed --screen overview --meeting
       - name: Upload standalone preview
         id: preview
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
