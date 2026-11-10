@@ -12,7 +12,7 @@
       "url": "https://github.com/gpuflow-io/gpuflow-kit/blob/main/catalog/metrics.yaml"
     }
   ],
-  "boundary": "제품 UI → 온라인파워스 백엔드 → VM 직접 PromQL / 글루시스 업무 API. 이 검토 화면은 설명·기록만 제공하며 실제 API를 호출하지 않습니다.",
+  "boundary": "제품 UI → 온라인파워스 백엔드 → VM 직접 PromQL / 글루시스 업무 API. 이 검토 콘솔의 J 테스트베드 보기는 내부 미리보기 중계가 기존 목록 API를 조회합니다. 공개 목업과 저장된 관측은 실시간 조회가 아닙니다.",
   "widgets": [
     {
       "id": "W01-01",
@@ -21,7 +21,7 @@
         "①"
       ],
       "title": "GPU 할당량",
-      "meaning": "할당 GPU 수 / 전체 GPU 수. GPU 사용률과 다른 값.",
+      "meaning": "등록 GPU와 유효한 작업–GPU 관측 관계를 분리한다. 스케줄러 예약·할당 수는 미확인이다.",
       "metrics": [],
       "api": [
         "GET /v1/workloads",
@@ -35,25 +35,23 @@
         "data_origin",
         "simulated"
       ],
-      "readiness": "부분 조회 가능 · 집계 계약 미정",
-      "limits": "placement 필드만으로 GPU 할당 수와 전체 인벤토리가 검증되지는 않음.",
+      "readiness": "J 실측 연결 가능 · 스케줄러 할당량 미확인",
+      "limits": "기존 API의 모든 페이지를 읽고 measured/false만 인벤토리·관계에 사용한다. relation lease와 source 품질을 재검증하며 종료·stale·unknown·conflict는 현재 관계 집계에서 제외한다. GPU UUID는 cluster 범위에서 중복 제거한다. 관측 관계는 예약/할당이 아니다.",
       "decisions": [
         "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
       ],
-      "query": "GET /v1/workloads?page_size=1",
-      "query_state": "기존 목록 호출 확인 · GPU 집계는 미검증",
+      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\n각 응답의 next_cursor를 끝까지 순회",
+      "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
       "sample": {
-        "kind": "검증 요약 · 원본 응답 아님",
-        "captured_at": "2026-11-07T09:17:17Z",
-        "http_status": 200,
-        "records": 1,
-        "data_origin": "unknown",
-        "more_available": true
+        "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
+        "measured_workloads": 3,
+        "simulation_workloads": 45,
+        "note": "실측 3건은 완료/종료된 검증 작업이다. 실시간 보기에서는 매번 기존 API를 조회한다."
       },
-      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "display": "실측 등록 GPU / 관측된 유효 GPU 관계 / 스케줄러 할당량 미확인을 분리. 시뮬레이션은 별도 이력 수로 표시.",
       "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
-      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리."
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\n추가: placement.cluster, nodes, active_gpu_uuids, registry(state, observed_at, valid_until), quality.registry_stale, binding_verified. inventory attrs.cluster/node/gpu_uuid와 연결. 종료·만료는 제외."
     },
     {
       "id": "W01-02",
@@ -308,7 +306,7 @@
         "②"
       ],
       "title": "워크로드 목록",
-      "meaning": "workload_id·type·tenant·namespace·pod·placement·storage·started_at/ended_at 표시.",
+      "meaning": "출처별 워크로드 목록과 시작/종료·관계 상태를 확인한다. 작업 선택 시 등록 GPU UUID와 실행 구간의 GPU 단위 메트릭을 조회한다.",
       "metrics": [],
       "api": [
         "GET /v1/workloads"
@@ -322,25 +320,21 @@
         "simulated",
         "workload_id — 귀속 근거 필요"
       ],
-      "readiness": "PG 목록 조회 가능 · 출처 unknown",
-      "limits": "현재 목록 API 중심. 임의 SQL·임의 filter·상세 endpoint를 가정하지 않음.",
+      "readiness": "J 실측 목록·상세 연결 · GPU 단위 시계열 검증 · 반복 DAOS/CUDA 배치의 실행 상태·단계별 계측 연결",
+      "limits": "실측/시뮬레이션 분리. 완료 작업은 이력이며 현재 할당 수가 아니다. GPU 사용률·메모리는 작업 독점 값이 아니며 GPU data wait로 대체하지 않는다. 강제 종료의 ended_at은 발견 시각일 수 있다. 반복 배치 계측은 검증 실행기 기준이며 입력 지연을 GPU data wait로 환산하지 않는다. 배치 결과 검증과 실행 전 구성원 연결 검증을 분리 표시하며 종료 시 구성원은 미확인.",
       "decisions": [
         "필수 필드·정렬·필터·상세 이동·활성 정의"
       ],
       "query": "GET /v1/workloads?page_size=1",
-      "query_state": "기존 호출 확인",
+      "query_state": "기존 목록 API 전체 페이지와 VM 고정 메트릭 조회 연결",
       "sample": {
-        "kind": "검증 요약 · 원본 응답 아님",
-        "captured_at": "2026-11-07T09:17:17Z",
-        "http_status": 200,
-        "records": 1,
-        "data_origin": "unknown",
-        "more_available": true
+        "kind": "검증 요약 · 현재값 아님",
+        "note": "W01 목록 → W02 상세 → 실제 GPU 사용률/메모리 그래프 연결. 원천 시계열은 GPU 단위이며 실행 구간과 연결한다."
       },
       "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
       "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
-      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리."
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\n추가: placement.gpu_uuids/active_gpu_uuids/registry, quality.registry_stale/binding_verified. GPU 그래프는 gpuflow_gpu_util_ratio 및 DCGM_FI_DEV_FB_USED의 cluster/node/pod/gpu/data_origin/simulated 조건으로 조회.\n내부 실증 확장: placement.progress의 batches/totals와 15초 registry lease. 작업별 request.start/end 이벤트로 원 계측값 조회."
     },
     {
       "id": "W02-02",
@@ -612,19 +606,18 @@
         "simulated",
         "workload_id — 귀속 근거 필요"
       ],
-      "readiness": "목록 조회 가능 · 실제 연결 미검증",
-      "limits": "workloads 출처 unknown, topology simulation 표본.",
+      "readiness": "단발 전달·반복 배치의 GPU/노드/DAOS 등록 연결 검증",
+      "limits": "반복 배치는 실행 전 구성원만 확인. 종료 시 구성원·현재 연결·스케줄러 예약·PVC는 미확인.",
       "decisions": [
         "공통 ID·노드/GPU 매핑·scope·갱신·삭제 처리"
       ],
       "query": "GET /v1/topology-nodes?page_size=1",
-      "query_state": "기존 호출 확인 · 실제 배치 아님",
+      "query_state": "기존 업무 API와 등록 토폴로지 교차 확인",
       "sample": {
-        "kind": "검증 요약 · 원본 응답 아님",
-        "captured_at": "2026-11-07T09:17:17Z",
-        "http_status": 200,
-        "records_per_resource": 1,
-        "data_origin": "simulation"
+        "kind": "실증 근거 요약",
+        "captured_at": "2026-11-09T01:33:04.465989Z",
+        "data_origin": "measured",
+        "note": "정상·지연·실패 배치 기록의 등록 식별자 연결. 현재 구성원 재검증은 아님."
       },
       "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
       "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
@@ -638,15 +631,12 @@
         "③"
       ],
       "title": "계층별 데이터 경로",
-      "meaning": "nodes/edges와 계층별 지표를 연결해 병목 후보를 표시. 서로 다른 지표의 %를 동일 의미로 취급하지 않음.",
-      "metrics": [
-        "gpuflow_gpu_util_ratio",
-        "gpuflow_storage_target_latency_seconds"
-      ],
+      "meaning": "완료 실증의 데이터 전달 근거와 인벤토리·토폴로지 연결을 표시한다. 시나리오 보기의 병목 예시와 구분한다.",
+      "metrics": [],
       "api": [
+        "GET /v1/workloads",
         "GET /v1/topology-nodes",
-        "GET /v1/topology-edges",
-        "VM PromQL"
+        "GET /v1/topology-edges"
       ],
       "labels": [
         "cluster",
@@ -657,24 +647,23 @@
         "simulated",
         "workload_id — 귀속 근거 필요"
       ],
-      "readiness": "topology simulation · GPU 일부 실측",
-      "limits": "app/gpu/host/cache/transport/fabric/storage/bench와 목업 cold 티어 매핑 필요. GPU utilization은 GPU 대기율이 아님.",
+      "readiness": "③ 배치별 읽기·호스트 준비·HtoD·CUDA 커널·DtoH/검증 합계 표시",
+      "limits": "성공 배치 합계. CLI 비용 포함, 커널 wall/event 중첩. 네트워크 별도 계측·GDS·GPU data wait·자동 병목 판정 없음.",
       "decisions": [
         "edge metric_ref·계층 단위/임계값·host/bench 위치·cold 의미"
       ],
-      "query": "gpuflow_gpu_util_ratio{data_origin=\"measured\",simulated=\"false\"}",
-      "query_state": "GPU 단일 지표 조회만 검증 · 경로 전체 검증 아님",
+      "query": "GET /v1/workloads?page_size=200",
+      "query_state": "기존 API에 저장된 placement.progress 계측 사용",
       "sample": {
-        "kind": "검증 요약 · 원본 응답 아님",
-        "captured_at": "2026-11-07T09:01:29Z",
-        "series": 1,
+        "kind": "실증 근거 요약",
+        "captured_at": "2026-11-09T01:33:04.465989Z",
         "data_origin": "measured",
-        "note": "GPU utilization 1시리즈. 실제 topology 연결·GPU wait 검증 아님."
+        "note": "8배치 256 MiB, DAOS 읽기 2.565초, CUDA event 52.15ms. 공유 pool 지표를 작업별로 귀속하지 않음."
       },
       "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
       "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
-      "response_fields": "/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n/v1/topology-edges → items[].data: from_id, to_id, link, capable, metric_ref, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+      "response_fields": "/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n/v1/topology-edges → items[].data: from_id, to_id, link, capable, metric_ref, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.\n내부 실증 확장: workloads.storage.binding.transfer의 path·bytes·GPU UUID·host/device checksum·관측 시각. 기관 공통 계약 확정은 후속.\n반복 배치: placement.progress.batches[]/totals, observed_at, execution_kind/status; storage.binding.scope/observed_before/io; GPU·Pool·Container·구성원 등록 토폴로지."
     },
     {
       "id": "W03-03",
@@ -719,6 +708,44 @@
       "cadence": "제안: 화면 2초 갱신. raw/1m/10m·조회 기간·step·캐시·수집 주기는 별도 합의.",
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/events → items[].data: event_key, event, severity, ts_ns, source, node, workload_id, labels, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요."
+    },
+    {
+      "id": "W04-01",
+      "key": "batch-comparison",
+      "screens": [
+        "④"
+      ],
+      "title": "실측 배치 조건 비교",
+      "meaning": "동일 GPU·노드·저장소·입력·커널·휴식 설정의 정상·지연·실패 실행을 성공 배치당 평균으로 비교.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes",
+        "GET /v1/topology-edges"
+      ],
+      "labels": [
+        "workload_id",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "J 기존 실측 기록 기반 · 정상 8/8, 지연 8/8, 실패 2/6",
+      "limits": "실패 부분 시간은 평균 제외. 현재 인과·병목 등급·GPU data wait·예측·권고 정책 미산출. 제한된 제어 실험이며 성능 벤치마크 아님.",
+      "decisions": [
+        "기관별 계측 규격·I/O stall과 GPU 할당시간 정의",
+        "실제 응용 워크로드의 비교 조건·통계 검증"
+      ],
+      "query": "GET /v1/workloads?page_size=200",
+      "query_state": "기존 업무 API 실측 progress JSON; 새 메트릭/API 없음",
+      "sample": {
+        "kind": "실증 근거 요약",
+        "captured_at": "2026-11-09T01:34:39.706837Z",
+        "data_origin": "measured",
+        "note": "입력 지연 차이 약 +1000.74 ms/성공 배치, 실패는 batch 3 daos_read_failed."
+      },
+      "display": "출처·관측 시각·조건·배치 수·원본 작업 링크 표시. 누락/불일치는 미확인.",
+      "cadence": "J 조회 5초 갱신; 완료 이력 비교.",
+      "owner": "글루시스 실증 구현 · 온라인파워스 화면 범위 협의 필요",
+      "response_fields": "workloads.placement.progress: batches[], totals, expected_batches, status, observed_at, input_delay_requested_seconds, failure_injection_batch, kernel, inter_batch_pause_seconds; provenance/quality와 topology 식별자 교차 확인."
     },
     {
       "id": "W11-01",
@@ -799,5 +826,6 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/events → items[].data: event_key, event, severity, ts_ns, source, node, workload_id, labels, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리."
     }
-  ]
+  ],
+  "evidence_revision": "2026-11-09.batch-path-analysis"
 }

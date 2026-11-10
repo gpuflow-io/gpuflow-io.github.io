@@ -1,4 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="stylesheet" href="review.css">
+<link rel="stylesheet" href="testbed.css">
 </head><body>
 <title>GPUFlow Console (concept)</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -876,7 +877,7 @@ function storHTML(R,bwSum,full){const on=k=>state.on[k]||{};
 const REB={on:false,node:3,p:0,imp:0};
 /* ① Overview */
 let HOVER='';
-function renderOverview(){const vw=visibleW();
+function renderOverview(){if(window.GPUFlowTestbed?.isEnabled()){window.GPUFlowTestbed.draw();return;}const vw=visibleW();
   const R={},F={};ORDER.forEach(k=>{R[k]=noisy(compute(k),k);F[k]=nodeFactors(k)});
   const sp=state.scope.pod?[PODS.findIndex(P=>P.id===state.scope.pod)]:PODS.map((_,i)=>i);
   // aggregate
@@ -1325,5 +1326,6 @@ window.addEventListener('gpuflow:review-context-request',()=>window.dispatchEven
 clk();syncScope();go('①');
 </script>
 
+<script src="testbed.js"></script>
 <script src="review.js"></script>
 </body></html>

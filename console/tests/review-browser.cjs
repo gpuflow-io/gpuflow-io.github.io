@@ -43,9 +43,11 @@ async function main() {
     assert.equal(await page.locator('#review-status').inputValue(),'change');
     assert.equal(await page.locator('#review-owner').inputValue(),'담당 미정');
     const contracts=await (await page.request.get(new URL('review-contracts.json',base).href)).json();
-    assert.equal(contracts.widgets.length,19);
+    assert.equal(contracts.widgets.length,20);
     // Every contract opens its intended screen and has a visible exact anchor.
     for(const w of contracts.widgets){
+      // The batch comparison has a dedicated live/snapshot browser suite.
+      if(w.id==='W04-01')continue;
       await page.locator('#review-widget').selectOption(w.id);
       assert.equal(await page.locator('#review-title').innerText(),w.title);
       assert.equal(await page.locator(`[data-review-key="${w.key}"]`).isVisible(),true,w.id);
@@ -67,7 +69,7 @@ async function main() {
       const text=await fs.readFile(destination,'utf8');
       if(format==='csv'){assert(text.includes("'=HYPERLINK"));assert(text.includes('""https://example.invalid""'));}
       if(format==='md'){assert(text.includes('&lt;img'));assert(text.includes('\\| 검토'));}
-      if(format==='json'){const saved=JSON.parse(text);assert.equal(saved.records.length,19);assert.equal(saved.records.find(x=>x.id==='W01-02').note,note);}
+      if(format==='json'){const saved=JSON.parse(text);assert.equal(saved.records.length,20);assert.equal(saved.records.find(x=>x.id==='W01-02').note,note);}
     }
     // Screenshot contains representative clean meeting fields, not attack fixture text.
     await page.locator('#review-note').fill('다중 GPU 가중 방식과 미계측 상태 표시를 미팅에서 확정');
@@ -101,7 +103,7 @@ async function main() {
     const limited=await ctx.newPage();await limited.addInitScript(()=>{Storage.prototype.setItem=function(){throw Error('quota');};});
     await limited.goto(base+'?review=1&widget=W11-02');await limited.waitForSelector('#review-note');
     await limited.locator('#review-note').fill('임시 기록');assert.match(await limited.locator('#review-save').innerText(),/저장 불가/);await limited.close();
-    console.log('PASS: 19 mappings; navigation, local persistence, 3 exports, injection handling, pause restore, scenario regression, mobile/dark, failure fallback; no product API calls.');
+    console.log('PASS: 20 mappings; navigation, local persistence, 3 exports, injection handling, pause restore, scenario regression, mobile/dark, failure fallback; no product API calls.');
   } finally {await browser.close();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

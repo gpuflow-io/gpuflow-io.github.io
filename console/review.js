@@ -79,7 +79,7 @@
     const record = records[widget.id] || {status:'unreviewed',note:'',owner:'',due:''};
     panel.innerHTML = `<header><span class="review-kicker">${esc(widget.screens.join(' · '))} · ${esc(widget.id)}</span><button type="button" id="review-close" aria-label="검토 모드 닫기">닫기</button>
       <h2 id="review-title" tabindex="-1">${esc(widget.title)}</h2><span class="review-state">${esc(widget.readiness)}</span></header>
-      <p class="review-warning">콘솔 숫자는 시나리오입니다. 아래는 연동 검토 초안이며 현재 화면에 연결된 실데이터가 아닙니다.</p>
+      <p class="review-warning">데이터 보기에서 출처를 확인하세요. 시나리오 값과 테스트베드 관측은 분리됩니다. 아래 계약은 검토 초안입니다.</p>
       <label class="review-field">위젯 바로가기<select id="review-widget">${catalog.widgets.map(w=>`<option value="${esc(w.id)}" ${w.id===widget.id?'selected':''}>${esc(w.id+' '+w.title)}</option>`).join('')}</select></label>
       <p id="review-context"></p>
       ${section('표시 의미·계산', '<p>'+esc(widget.meaning)+'</p>')}
@@ -115,7 +115,7 @@
       if (button) button.click();
     }
     show(widget,focus);
-    const el = document.querySelector(`[data-review-key="${widget.key}"]`);
+    const el = [...document.querySelectorAll(`[data-review-key="${widget.key}"]`)].find(el=>el.getClientRects().length);
     el?.scrollIntoView({behavior:'instant',block:'center'});
   }
   function toggle(on) {
@@ -127,12 +127,12 @@
     if (on) {
       autoPaused = pause.getAttribute('aria-pressed') !== 'true';
       if (autoPaused) pause.click();
-      notice('강조된 위젯을 클릭하세요 · 19개 계약 · 브라우저 임시 기록');
+      notice(`강조된 위젯을 클릭하세요 · ${catalog.widgets.length}개 계약 · 브라우저 임시 기록`);
       const preferred = catalog.widgets.find(w=>w.id===new URL(location.href).searchParams.get('widget'));
       navigate(preferred || catalog.widgets.find(w=>w.screens.includes(context.screen)) || catalog.widgets[0],true);
     } else {
       if (autoPaused && pause.getAttribute('aria-pressed') === 'true') pause.click();
-      autoPaused = false; notice('①·②·③·⑪ 주요 위젯의 메트릭·API를 화면에서 검토합니다.');
+      autoPaused = false; notice('①·②·③·④·⑪ 주요 위젯의 메트릭·API를 화면에서 검토합니다.');
       decorate(); setURL(); $('#review-toggle').focus({preventScroll:true});
     }
   }
@@ -168,9 +168,10 @@
     event.preventDefault();event.stopImmediatePropagation();show(widget,true);
   },true);
   document.addEventListener('keydown',event=>{if(enabled && event.key==='Escape'){event.preventDefault();toggle(false);}});
+  window.addEventListener('gpuflow:testbed-render',()=>{if(catalog)decorate();});
   window.addEventListener('gpuflow:render',event=>{
     const changed = context.screen !== event.detail.screen;
-    context = event.detail;
+    context = {...event.detail,workload:window.GPUFlowTestbed?.selectedWorkload?.()||event.detail.workload};
     if (!catalog) return;
     if (enabled && changed) {
       const widget = catalog.widgets.find(w=>w.screens.includes(context.screen));
@@ -188,7 +189,7 @@
     if(data.schema_version!==1 || !Array.isArray(data.widgets) || !data.widgets.length)throw Error('schema');
     catalog=data;storageKey='gpuflow-widget-review:'+catalog.revision;loadRecords();
     $('#review-toggle').disabled=false;
-    if (!$('#review-summary').textContent.includes('이전 기록')) notice('①·②·③·⑪ 주요 위젯의 메트릭·API를 화면에서 검토합니다.');
+    if (!$('#review-summary').textContent.includes('이전 기록')) notice('①·②·③·④·⑪ 주요 위젯의 메트릭·API를 화면에서 검토합니다.');
     if (new URL(location.href).searchParams.get('review')==='1') toggle(true);
   }).catch(()=>notice('검토 자료를 불러오지 못했습니다. HTTP 미리보기로 열고 새로고침하세요. 기존 목업은 사용할 수 있습니다.'));
 })();
