@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-10.5",
+  "revision": "2026-11-10.6",
   "status": "글루시스 검토 초안 · 최종 계약 아님",
   "sources": [
     {
@@ -283,7 +283,8 @@
       "id": "W01-07",
       "key": "storage-summary",
       "screens": [
-        "①"
+        "①",
+        "⑥"
       ],
       "title": "스토리지 요약",
       "meaning": "용량·상태·I/O를 구분해 표시. 기본 모니터링 범위.",
@@ -1833,7 +1834,7 @@
         "제공 범위·원천 필드·분모·단위",
         "담당·기한·제품 갱신/이력 범위"
       ],
-      "query": "GET /v1/events\nAck契約미정",
+      "query": "GET /v1/events\nAck 계약 미정",
       "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
       "sample": {
         "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
@@ -2375,7 +2376,9 @@
       ],
       "api": [
         "GET /v1/workloads",
-        "GET /v1/topology-nodes"
+        "GET /v1/topology-nodes",
+        "VM PromQL",
+        "GET /v1/topology-edges"
       ],
       "labels": [
         "cluster",
@@ -2390,7 +2393,7 @@
       "decisions": [
         "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
       ],
-      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\n각 응답의 next_cursor를 끝까지 순회",
+      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\nGET /v1/topology-edges?page_size=200\n목록은 next_cursor 끝까지 순회. 포트→POD 연결을 확인한 뒤 해당 포트의 RX/TX counter를 VM PromQL로 조회. Uplink 사용률은 링크 용량·방향·집계 구간 확인 후 산출.",
       "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
       "sample": {
         "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
@@ -2415,10 +2418,12 @@
       ],
       "title": "Top nodes by wait",
       "meaning": "Top8 순위의 기간·다중 GPU 가중·유효 표본·동률·노드→③ 이동 키(cluster/node/GPU UUID) 결정. wait 미계측이면 순위 미산출.",
-      "metrics": [],
+      "metrics": [
+        "gpuflow_derived_gpu_data_wait_ratio"
+      ],
       "api": [
         "GET /v1/topology-nodes",
-        "VM: gpuflow_derived_gpu_data_wait_ratio"
+        "VM PromQL"
       ],
       "labels": [
         "cluster",
@@ -2433,7 +2438,7 @@
       "decisions": [
         "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
       ],
-      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\n각 응답의 next_cursor를 끝까지 순회",
+      "query": "GET /v1/topology-nodes?page_size=200\ngpuflow_derived_gpu_data_wait_ratio{data_origin=\"measured\",simulated=\"false\"}\n노드별 가중·기간·유효 표본·동률 규칙 확정 후 Top8 집계. 미계측은 미산출.",
       "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
       "sample": {
         "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
@@ -2538,7 +2543,7 @@
       "control_api_proposals": []
     }
   ],
-  "evidence_revision": "2026-11-10.followup.3",
+  "evidence_revision": "2026-11-10.followup.6",
   "baselines": {
     "console": "5eba8dc7c11c2b94d2f35c853bc674ae0342406e",
     "gpuflow-kit": "e27f81fba387047d1e2546aef5d0f9a6ca10d0c8",
@@ -2958,6 +2963,7 @@
     {
       "screen": "⑥",
       "widgets": [
+        "W01-07",
         "W06-01",
         "W06-02",
         "W06-03",
@@ -3607,6 +3613,7 @@
     "status": "원본 UI 검토안 · 서버 권한 구현 아님"
   },
   "compatible_revisions": [
+    "2026-11-10.5",
     "2026-11-10.3",
     "2026-11-07.1"
   ],

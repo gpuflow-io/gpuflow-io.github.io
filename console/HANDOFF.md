@@ -58,4 +58,4 @@ node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 
 매핑 생성·검사: `python3 console/sync_mapping_docs.py --check`. HTTP 중계 회귀: `python3 -m unittest discover -s console/tests -p "test_mapping_gateway.py" -v`. 실제 J 데이터·접속은 별도 인수 대상입니다.
 
-추가 검수 보완판: revision 2026-11-10.5, W01-08/09/10·W10-04 추가. 13화면 공통 Period/Role/논리 범위의 지원 상태·책임을 표시합니다. 하위 영역·후속 제어 API는 구현이 아닌 계약 매핑이며 원본 표기와 실제 제공을 구분합니다.
+추가 검수 보완판: revision 2026-11-10.6, W01-08/09/10·W10-04 추가. 13화면 공통 Period/Role/논리 범위의 지원 상태·책임을 표시합니다. 하위 영역·후속 제어 API는 구현이 아닌 계약 매핑이며 원본 표기와 실제 제공을 구분합니다.
