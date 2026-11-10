@@ -36,4 +36,4 @@ node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 
 ## 검증 범위
 
-순수 판정 69개와 치환 샘플 6개 검증을 수행합니다. 로컬 브라우저 테스트는 Playwright와 Chromium이 있는 환경에서 `PUBLIC_PREVIEW_FILE`에 생성된 HTML 절대 경로를 지정해 `node console/tests/handoff-browser.cjs`로 실행합니다. 기존 시나리오 검토 회귀는 로컬 HTTP 서버와 `console/tests/review-browser.cjs`로 확인합니다. 이번 PR에는 CI 설정을 추가하지 않았습니다. 로컬 검증은 통과했고 자동화 설정은 workflow 권한 확보 후 별도 반영할 예정입니다. 실제 장비·담당자 접속·브라우저 인수와 구분합니다.
+순수 판정 69개와 치환 샘플 6개 검증을 수행합니다. 로컬 브라우저 테스트는 Playwright와 Chromium이 있는 환경에서 `PUBLIC_PREVIEW_FILE`에 생성된 HTML 절대 경로를 지정해 `node console/tests/handoff-browser.cjs`로 실행합니다. 기존 시나리오 검토 회귀는 로컬 HTTP 서버와 `console/tests/review-browser.cjs`로 확인합니다. CI는 PR과 main push에서 순수 판정·샘플 75개 검사와 standalone HTML 빌드를 수행합니다. 브라우저 검증은 로컬 별도 실행입니다. 실제 장비·담당자 접속·브라우저 인수와 구분합니다.

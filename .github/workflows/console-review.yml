@@ -1,0 +1,24 @@
+name: Console review contract
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Validate available Node runtime
+        run: node -e 'if (Number(process.versions.node.split(".")[0]) < 20) process.exit(1)'
+      - name: Verify aggregation, evidence and redacted samples
+        run: node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
+      - name: Build standalone review preview
+        run: >-
+          python3 console/build_review_preview.py output/batch-review.html
+          --snapshot console/samples/batch-observation.redacted.json
+          --workload sample-batch-delayed --screen analysis
