@@ -37,4 +37,6 @@
 | gpuflow_transport_bytes_total | 없음 · 동기화 검토 | toolkit e27f81f |
 | gpuflow_transport_kv_op_seconds | 없음 · 동기화 검토 | toolkit e27f81f |
 
-policy.recommend·gpuflow_host_prefetch_accuracy_ratio는 toolkit 기준에도 없어 추가 계약/기관 native 확인 대상입니다. 카탈로그에 존재하더라도 실제 발행·계측·화면 인수가 완료된 것은 아닙니다.
+역방향 차이: gpuflow_host_prefetch_accuracy_ratio는 telemetry-spec af28385에는 있고 toolkit e27f81f에는 없습니다. kit 등록/매핑 확인 대상입니다. policy.recommend는 별도 추가 계약 후보입니다. 카탈로그에 존재하더라도 실제 발행·계측·화면 인수가 완료된 것은 아닙니다.
+
+| gpuflow_host_prefetch_accuracy_ratio | spec af28385 존재 | kit e27f81f 없음 · 동기화 검토 |

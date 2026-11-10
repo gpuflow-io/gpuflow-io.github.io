@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-07.1",
+  "revision": "2026-11-10.5",
   "status": "글루시스 검토 초안 · 최종 계약 아님",
   "sources": [
     {
@@ -53,7 +53,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\n추가: placement.cluster, nodes, active_gpu_uuids, registry(state, observed_at, valid_until), quality.registry_stale, binding_verified. inventory attrs.cluster/node/gpu_uuid와 연결. 종료·만료는 제외.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W01-02",
@@ -95,7 +97,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W01-03",
@@ -139,7 +143,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W01-04",
@@ -179,7 +185,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W01-05",
@@ -221,7 +229,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W01-06",
@@ -265,7 +275,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W01-07",
@@ -311,7 +323,13 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "노드별 target 부하와 Container/tier 사용률: workload·pool·container·tier 귀속 필요. L4 S3는 표시 티어이며 8계층과 별도 매핑.",
+        "운영 이벤트 node.join·storage.rebalance/rebuild 및 학습 영향≤10%는 baseline 대비 성능·워크로드 귀속 필요.",
+        "DR 복제 지연: 원본 0.4s는 목업. kit에 복제 지연 지표 없음. dr.failover를 복제 lag로 대체하지 않음."
+      ],
+      "control_api_proposals": []
     },
     {
       "id": "W02-01",
@@ -350,7 +368,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\n추가: placement.gpu_uuids/active_gpu_uuids/registry, quality.registry_stale/binding_verified. GPU 그래프는 gpuflow_gpu_util_ratio 및 DCGM_FI_DEV_FB_USED의 cluster/node/pod/gpu/data_origin/simulated 조건으로 조회.\n내부 실증 확장: placement.progress의 batches/totals와 15초 registry lease. 작업별 request.start/end 이벤트로 원 계측값 조회.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W02-02",
@@ -395,7 +415,12 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "Timeline: 같은 workload/span의 GPU wait와 TTFT/step time을 각 단위·축·시각으로 표시.",
+        "policy.change 표식은 event 발생 시각·상태와 policy-history의 policy/span/workload를 연결. 브라우저 조작 시각을 실제 적용 시각으로 쓰지 않음."
+      ],
+      "control_api_proposals": []
     },
     {
       "id": "W02-03",
@@ -437,7 +462,11 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "TTFT/step time과 wait를 독립 축으로 표시. 정책 on/off 표식은 동일 범위·ns 시각·실제 적용 완료 상태 필요."
+      ],
+      "control_api_proposals": []
     },
     {
       "id": "W02-04",
@@ -484,7 +513,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W02-05",
@@ -527,7 +558,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W02-06",
@@ -569,7 +602,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W02-07",
@@ -610,7 +645,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W03-01",
@@ -652,7 +689,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W03-02",
@@ -695,7 +734,12 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n/v1/topology-edges → items[].data: from_id, to_id, link, capable, metric_ref, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.\n내부 실증 확장: workloads.storage.binding.transfer의 path·bytes·GPU UUID·host/device checksum·관측 시각. 기관 공통 계약 확정은 후속.\n반복 배치: placement.progress.batches[]/totals, observed_at, execution_kind/status; storage.binding.scope/observed_before/io; GPU·Pool·Container·구성원 등록 토폴로지.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "hops 지연값: 배치 계측 JSON은 성공 배치 합계/구간, VM 지연은 지표형식·집계 구간·백분위 확인. 서로 합산/대체 금지.",
+        "칩·rail(railc) 폭/애니메이션은 시각 표현. 병목 근거 없이 실제 병목 hop으로 좁히지 않음."
+      ],
+      "control_api_proposals": []
     },
     {
       "id": "W03-03",
@@ -741,7 +785,12 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/events → items[].data: event_key, event, severity, ts_ns, source, node, workload_id, labels, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "verdict/evidence 목록은 원천 지표·이벤트·관측/예측 시각·대상·출처·quality를 연결.",
+        "what-if는 실제 적용과 분리된 모사 서비스·모델/버전·입력·예상효과 계약 필요. 계산 주체는 글루시스/기관·화면 조합 온라인파워스 협의."
+      ],
+      "control_api_proposals": []
     },
     {
       "id": "W04-01",
@@ -781,7 +830,11 @@
       "owner": "글루시스 실증 구현 · 온라인파워스 화면 범위 협의 필요",
       "response_fields": "workloads.placement.progress: batches[], totals, expected_batches, status, observed_at, input_delay_requested_seconds, failure_injection_batch, kernel, inter_batch_pause_seconds; provenance/quality와 topology 식별자 교차 확인.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "배치 실험 비교와 verdict/evidence 기반 진단 분리. 권고 토글 영향 미리보기는 합성 what-if이며 관측값 불변·실효과 보증 안 함."
+      ],
+      "control_api_proposals": []
     },
     {
       "id": "W11-01",
@@ -823,7 +876,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/events → items[].data: event_key, event, severity, ts_ns, source, node, workload_id, labels, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W11-02",
@@ -864,7 +919,9 @@
       "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
       "response_fields": "/v1/events → items[].data: event_key, event, severity, ts_ns, source, node, workload_id, labels, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.",
       "events": [],
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W05-01",
@@ -910,7 +967,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W05-02",
@@ -955,7 +1014,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W05-03",
@@ -998,7 +1059,13 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "POST /policies/apply"
+      ]
     },
     {
       "id": "W06-01",
@@ -1041,7 +1108,11 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "Lustre 수집 원천: lctl get_param mdt.*.md_stats / obdfilter.*.stats. DAOS: daos_metrics의 dfs metadata ops. exporter 변환·단위·노드/rank/target 매핑 확인."
+      ],
+      "control_api_proposals": []
     },
     {
       "id": "W06-02",
@@ -1061,7 +1132,9 @@
       ],
       "events": [],
       "api": [
-        "VM"
+        "VM",
+        "GET /v1/topology-nodes",
+        "GET /v1/topology-edges"
       ],
       "labels": [
         "cluster",
@@ -1086,7 +1159,11 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "DPU 인벤토리 #dinv: topology-nodes의 kind/attrs와 topology-edges 연결. 호스트·모델·capabilities·포트 식별과 VM 처리량/온도 시리즈를 구분."
+      ],
+      "control_api_proposals": []
     },
     {
       "id": "W06-03",
@@ -1128,7 +1205,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W06-04",
@@ -1168,7 +1247,13 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "PUT /dpu/{id}/config"
+      ]
     },
     {
       "id": "W07-01",
@@ -1206,7 +1291,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "/v1/llm/explain → question_id, scenario, mock, response, evidence, request_id",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W07-02",
@@ -1244,7 +1331,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "/v1/llm/explain → question_id, scenario, mock, response, evidence, request_id",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W08-01",
@@ -1288,7 +1377,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W08-02",
@@ -1336,7 +1427,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W08-03",
@@ -1376,7 +1469,14 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "POST /nodes/{id}/maintenance",
+        "POST /nodes/{id}/drain"
+      ]
     },
     {
       "id": "W09-01",
@@ -1414,7 +1514,14 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "/v1/policies → policy, name, from_tier, to_tier, rule, owner, workload_id, active, updated_at, updated_ns",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "기본 POL/ksPolicy: KV 경로·L3 청크 배치·checkpoint·대용량 전송·데이터셋·예측 프리페치. owner·mode·base 여부는 현재 API 필드와 attrs/확장 계약 확인. active를 base/실적용으로 추정하지 않음.",
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "POST /policies/apply"
+      ]
     },
     {
       "id": "W09-02",
@@ -1458,7 +1565,9 @@
       "response_fields": "/v1/policy-history → id, event_key, policy, ts, ts_ns, active, actor, role, reason, span_id, attrs",
       "pending_contracts": [
         "policy.recommend"
-      ]
+      ],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W09-03",
@@ -1467,7 +1576,7 @@
         "⑨"
       ],
       "title": "KETI 프로파일·예측·프리페치",
-      "meaning": "KETI 제공 후보. AWSM 메타데이터·정책 도출·HCI·30분 열화 예측은 기관 API 구현 확인 대기. gpuflow_host_prefetch_accuracy_ratio는 미등록 후보.",
+      "meaning": "KETI 제공 후보. AWSM 메타데이터·정책 도출·HCI·30분 열화 예측은 기관 API 구현 확인 대기. 프리페치 정확도 지표는 spec에는 있고 kit에는 없는 차이로 kit 연동 확인 대기.",
       "metrics": [
         "gpuflow_predict_util_ratio",
         "gpuflow_predict_accuracy_ratio"
@@ -1506,6 +1615,16 @@
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
       "pending_contracts": [
         "gpuflow_host_prefetch_accuracy_ratio"
+      ],
+      "subregions": [
+        "AWSM→policy: I/O priority·redundancy 사용자 입력·대상 스토리지·적용 상태 포함. 메타데이터 저장 주체/쓰기 경로·버전·권한·감사는 KETI/글루시스 협의 미정.",
+        "gpuflow_host_prefetch_accuracy_ratio: telemetry-spec af28385에는 존재, kit e27f81f에는 없음. 양방향 차이이며 kit 등록 전 표준 계측 가능으로 표시하지 않음.",
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "GET /awsm/profiles",
+        "PUT /hci/profiles",
+        "PUT /prefetch/{workload}"
       ]
     },
     {
@@ -1547,7 +1666,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W10-01",
@@ -1588,7 +1709,13 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "PUT /tenants/{id}/qos"
+      ]
     },
     {
       "id": "W10-02",
@@ -1627,7 +1754,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W10-03",
@@ -1669,7 +1798,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W11-03",
@@ -1686,7 +1817,7 @@
       ],
       "api": [
         "GET /v1/events",
-        "Ack契約미정"
+        "Ack 계약 미정"
       ],
       "labels": [
         "cluster",
@@ -1711,7 +1842,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W12-01",
@@ -1751,7 +1884,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W12-02",
@@ -1792,7 +1927,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
       "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W13-01",
@@ -1833,7 +1970,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "검증 주체 후보: TTA·글루시스·시험 수행기관 / 미팅에서 확정",
       "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W13-02",
@@ -1874,7 +2013,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "검증 주체 후보: TTA·글루시스·스토리지 시험기관 / 미팅에서 확정",
       "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W13-03",
@@ -1915,7 +2056,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "검증 주체 후보: TTA·글루시스·스토리지 시험기관 / 미팅에서 확정",
       "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W13-04",
@@ -1956,7 +2099,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "검증 주체 후보: TTA·글루시스·워크로드 시험기관 / 미팅에서 확정",
       "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W13-05",
@@ -1997,7 +2142,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "검증 주체 후보: TTA·글루시스·워크로드 시험기관 / 미팅에서 확정",
       "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W13-06",
@@ -2039,7 +2186,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "검증 주체 후보: 글루시스·KETI·TTA / 미팅에서 확정",
       "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W13-07",
@@ -2080,7 +2229,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "검증 주체 후보: 글루시스·망고부스트·KETI·TTA / 미팅에서 확정",
       "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W13-08",
@@ -2121,7 +2272,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "검증 주체 후보: 글루시스·TTA·복구 시험기관 / 미팅에서 확정",
       "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W13-09",
@@ -2160,7 +2313,9 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "검증 주체 후보: 글루시스·관련 기관·TTA / 미팅에서 확정",
       "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     },
     {
       "id": "W13-10",
@@ -2201,10 +2356,189 @@
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
       "owner": "검증 주체 후보: KETI·글루시스·TTA / 미팅에서 확정",
       "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
-      "pending_contracts": []
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
+    },
+    {
+      "id": "W01-08",
+      "key": "pod-summary",
+      "screens": [
+        "①"
+      ],
+      "title": "POD별 요약",
+      "meaning": "물리 POD별 등록 노드·GPU·Max wait·할당·Alerts·Uplink. Alerts는 원본의 wait≥15% GPU 수이며 전체 경보 수와 구분. 미계측·미연동은 0이 아님.",
+      "metrics": [
+        "gpuflow_derived_gpu_data_wait_ratio",
+        "gpuflow_fabric_port_tx_bytes_total",
+        "gpuflow_fabric_port_rx_bytes_total"
+      ],
+      "api": [
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "등록 GPU 요약 표시 · Max wait/Alerts 미계측·할당/Uplink 미연동",
+      "limits": "기존 API의 모든 페이지를 읽고 measured/false만 인벤토리·관계에 사용한다. relation lease와 source 품질을 재검증하며 종료·stale·unknown·conflict는 현재 관계 집계에서 제외한다. GPU UUID는 cluster 범위에서 중복 제거한다. 관측 관계는 예약/할당이 아니다. 저장된 관측은 captured_at 기준으로 관계 유효성을 판정하며 현재 상태를 뜻하지 않는다. GPU/rack/node 필터는 관계 검증 후 적용한다. 랙 미등록을 추정값으로 채우지 않는다.",
+      "decisions": [
+        "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
+      ],
+      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\n각 응답의 next_cursor를 끝까지 순회",
+      "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
+      "sample": {
+        "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
+        "measured_workloads": 3,
+        "simulation_workloads": 45,
+        "note": "실측 3건은 완료/종료된 검증 작업이다. 실시간 보기에서는 매번 기존 API를 조회한다."
+      },
+      "display": "실측 등록 GPU / 관측된 유효 GPU 관계 / 스케줄러 할당량 미확인을 분리. 시뮬레이션은 별도 이력 수로 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\n추가: placement.cluster, nodes, active_gpu_uuids, registry(state, observed_at, valid_until), quality.registry_stale, binding_verified. inventory attrs.cluster/node/gpu_uuid와 연결. 종료·만료는 제외.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
+    },
+    {
+      "id": "W01-09",
+      "key": "top-wait",
+      "screens": [
+        "①"
+      ],
+      "title": "Top nodes by wait",
+      "meaning": "Top8 순위의 기간·다중 GPU 가중·유효 표본·동률·노드→③ 이동 키(cluster/node/GPU UUID) 결정. wait 미계측이면 순위 미산출.",
+      "metrics": [],
+      "api": [
+        "GET /v1/topology-nodes",
+        "VM: gpuflow_derived_gpu_data_wait_ratio"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "원본 표시 계약 매핑 · 수치/기관 실연동 별도",
+      "limits": "Top8 순위의 기간·다중 GPU 가중·유효 표본·동률·노드→③ 이동 키(cluster/node/GPU UUID) 결정. wait 미계측이면 순위 미산출.",
+      "decisions": [
+        "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
+      ],
+      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\n각 응답의 next_cursor를 끝까지 순회",
+      "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
+      "sample": {
+        "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
+        "measured_workloads": 3,
+        "simulation_workloads": 45,
+        "note": "실측 3건은 완료/종료된 검증 작업이다. 실시간 보기에서는 매번 기존 API를 조회한다."
+      },
+      "display": "Top8 순위의 기간·다중 GPU 가중·유효 표본·동률·노드→③ 이동 키(cluster/node/GPU UUID) 결정. wait 미계측이면 순위 미산출.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "Top8 순위의 기간·다중 GPU 가중·유효 표본·동률·노드→③ 이동 키(cluster/node/GPU UUID) 결정. wait 미계측이면 순위 미산출.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
+    },
+    {
+      "id": "W01-10",
+      "key": "type-occupancy",
+      "screens": [
+        "①"
+      ],
+      "title": "워크로드 유형별 GPU 점유",
+      "meaning": "Inference/Training/Data/Other batch/Idle 범주·유형 그룹 등록·공유 GPU 배분·할당시간 분모 결정. 미관측 GPU를 Idle로 분류하지 않음.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads",
+        "스케줄러 할당 원천 확인 필요"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "원본 표시 계약 매핑 · 수치/기관 실연동 별도",
+      "limits": "Inference/Training/Data/Other batch/Idle 범주·유형 그룹 등록·공유 GPU 배분·할당시간 분모 결정. 미관측 GPU를 Idle로 분류하지 않음.",
+      "decisions": [
+        "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
+      ],
+      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\n각 응답의 next_cursor를 끝까지 순회",
+      "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
+      "sample": {
+        "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
+        "measured_workloads": 3,
+        "simulation_workloads": 45,
+        "note": "실측 3건은 완료/종료된 검증 작업이다. 실시간 보기에서는 매번 기존 API를 조회한다."
+      },
+      "display": "Inference/Training/Data/Other batch/Idle 범주·유형 그룹 등록·공유 GPU 배분·할당시간 분모 결정. 미관측 GPU를 Idle로 분류하지 않음.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "Inference/Training/Data/Other batch/Idle 범주·유형 그룹 등록·공유 GPU 배분·할당시간 분모 결정. 미관측 GPU를 Idle로 분류하지 않음.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
+    },
+    {
+      "id": "W10-04",
+      "key": "orchestrators",
+      "screens": [
+        "⑩"
+      ],
+      "title": "스케줄러·오케스트레이터 연동",
+      "meaning": "Kubernetes: namespace/Pod/PVC·할당 GPU·동기화 시각(KETI K8s/CSI 후보). Slurm: partition·running/pending·할당 GPU(글루시스 registry 후보). 원본 버전·건수는 목업. provider·관측 시각·상태·registry 연결·권한/폴링 계약을 기관 미팅에서 확정.",
+      "metrics": [],
+      "api": [
+        "기관 Kubernetes/Slurm 어댑터 미정",
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "원본 표시 계약 매핑 · 수치/기관 실연동 별도",
+      "limits": "Kubernetes: namespace/Pod/PVC·할당 GPU·동기화 시각(KETI K8s/CSI 후보). Slurm: partition·running/pending·할당 GPU(글루시스 registry 후보). 원본 버전·건수는 목업. provider·관측 시각·상태·registry 연결·권한/폴링 계약을 기관 미팅에서 확정.",
+      "decisions": [
+        "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
+      ],
+      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\n각 응답의 next_cursor를 끝까지 순회",
+      "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
+      "sample": {
+        "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
+        "measured_workloads": 3,
+        "simulation_workloads": 45,
+        "note": "실측 3건은 완료/종료된 검증 작업이다. 실시간 보기에서는 매번 기존 API를 조회한다."
+      },
+      "display": "Kubernetes: namespace/Pod/PVC·할당 GPU·동기화 시각(KETI K8s/CSI 후보). Slurm: partition·running/pending·할당 GPU(글루시스 registry 후보). 원본 버전·건수는 목업. provider·관측 시각·상태·registry 연결·권한/폴링 계약을 기관 미팅에서 확정.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "Kubernetes: namespace/Pod/PVC·할당 GPU·동기화 시각(KETI K8s/CSI 후보). Slurm: partition·running/pending·할당 GPU(글루시스 registry 후보). 원본 버전·건수는 목업. provider·관측 시각·상태·registry 연결·권한/폴링 계약을 기관 미팅에서 확정.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": []
     }
   ],
-  "evidence_revision": "2026-11-10.mapping.2",
+  "evidence_revision": "2026-11-10.followup.3",
   "baselines": {
     "console": "5eba8dc7c11c2b94d2f35c853bc674ae0342406e",
     "gpuflow-kit": "e27f81fba387047d1e2546aef5d0f9a6ca10d0c8",
@@ -2571,7 +2905,10 @@
         "W01-04",
         "W01-05",
         "W01-06",
-        "W01-07"
+        "W01-07",
+        "W01-08",
+        "W01-09",
+        "W01-10"
       ],
       "residual": "POD 타일 Max wait·Alerts·Uplink, Top nodes·유형별 점유의 수치 미산출, tenant/namespace 필터 미연동"
     },
@@ -2660,7 +2997,8 @@
       "widgets": [
         "W10-01",
         "W10-02",
-        "W10-03"
+        "W10-03",
+        "W10-04"
       ],
       "residual": "전용 tenant/volume/qos API 없음; 1차 노출 여부 미정"
     },
@@ -3267,5 +3605,74 @@
       }
     ],
     "status": "원본 UI 검토안 · 서버 권한 구현 아님"
-  }
+  },
+  "compatible_revisions": [
+    "2026-11-10.3",
+    "2026-11-07.1"
+  ],
+  "global_scope": {
+    "physical": "cluster/POD/rack/node: 토폴로지 레지스트리. 현재 필터는 ① 컴퓨트 영역만 지원. ②~⑬ 전역 적용은 미연동이며 스토리지 전체 범위와 구분.",
+    "period": "저장 관측: captured_at 고정. API 보기: 조회 시각. 원본 Live 2s/1h·1m/12h·10m는 query_range 기간·step·recording rule·raw 보존 계약이며 UI 5초 polling과 별개. 현재 1m/10m 선택 조회 미제공.",
+    "logical": "tenant/namespace 등록 주체: 스케줄러 연동·업무 레지스트리 제공 기관(후보). 글루시스 정규화/API, 온라인파워스 화면 필터. 원본 필드 미포함과 서버 강제 필터 미지원 상태를 구분. 이름을 추정하지 않음.",
+    "role": "현재 실권한은 testbed_all Bearer 범위. UI Role로 실제 사용자 권한을 바꾸지 않음. 제품 역할/tenant 강제: 온라인파워스 백엔드의 사용자 인증·화면 조합, 글루시스 API의 위임 신원·데이터 범위 검사 공동 계약 필요(미정). VM 직접 조회도 같은 범위 강제 주체 결정 필요.",
+    "audit": "Role 전환/접근/변경의 audit.access/change 발행·actor/request_id·보존·조회 권한: 온라인파워스/글루시스 공동 미팅 결정. 원본 User→team-infer 고정은 목업 예시이며 실제 테넌트로 복제하지 않음.",
+    "modes": "현재 시나리오/저장 관측/API 조회 제공. Replay는 출처 라벨과 구분되는 과거 시간축 재생 기능으로 제품 제공 여부 미정. 저장 관측은 재생 아님. 시계·Pause의 의미와 Period 적용을 함께 결정.",
+    "screens": {
+      "①": "raw 지표·진단/경로 시계열 조회 범위·집계 미정",
+      "②": "실행 시작~종료 구간 GPU 시계열만 지원; Trend Live/1m/10m 전환 미제공",
+      "③": "raw 지표·진단/경로 시계열 조회 범위·집계 미정",
+      "④": "raw 지표·진단/경로 시계열 조회 범위·집계 미정",
+      "⑤": "raw 지표·진단/경로 시계열 조회 범위·집계 미정",
+      "⑥": "raw 지표·진단/경로 시계열 조회 범위·집계 미정",
+      "⑦": "사용자 선택 호출; 자동 주기 없음",
+      "⑧": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원",
+      "⑨": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원",
+      "⑩": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원",
+      "⑪": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원",
+      "⑫": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원",
+      "⑬": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원"
+    }
+  },
+  "cross_screen_contracts": {
+    "유형": "WSPEC은 원본 예시 워크로드 목록. type 열거값·Inference/Training·data·dev 2그룹·점유 5범주 분류표/등록 주체는 기관·레지스트리 미팅 결정. benchmark를 무조건 training 또는 idle로 바꾸지 않음.",
+    "임계값": "원본 제안: wait≥10% 경고/≥15% 위험, 예측 병목85%, 부하60/85%, PFC1.7k/min, CPU목표≤5%. 정의 주체·단위·기간·분모·변경 이력·룰 버전은 공동 확정. 히트맵/POD Alerts/⑪은 같은 룰 사용. 계측 없는 색·경보 미생성.",
+    "이동": "히트맵/Top nodes→③: cluster/node/GPU UUID와 관측 시각. workload 연결이 유일하지 않으면 임의 선택 금지. 경보/KPI data-go는 대상 screen과 event/run/workload 키 보존. 현재 GPU 셀 자동 이동 미지원, 계약 매핑만 제공.",
+    "모드": "Live/Replay/Scenario·시계·Pause는 전역 Period와 연계. Replay 제공 여부·재생 시각/관측 시각 구분·재생 속도·Pause 범위 미정. 저장 관측을 재생으로 간주하지 않음."
+  },
+  "source_workload_types": [
+    "Benchmark · IO500",
+    "Benchmark · MLPerf checkpoint",
+    "Data · dedup",
+    "Data · images",
+    "Data · ingest",
+    "Data · shard repack",
+    "Data · tokenize",
+    "Dev · DAOS perf test",
+    "Dev · GDS regression",
+    "Dev · KV cache prototype",
+    "Dev · RL",
+    "Dev · notebook",
+    "Eval · benchmark",
+    "Eval · long context",
+    "Eval · safety",
+    "Inference · MoE",
+    "Inference · RAG",
+    "Inference · batch",
+    "Inference · batch summarize",
+    "Inference · batch translate",
+    "Inference · chatbot",
+    "Inference · code",
+    "Inference · embedding",
+    "Inference · multimodal",
+    "Inference · reranker",
+    "Inference · synthetic data",
+    "Training · DPO",
+    "Training · Korean fine-tune",
+    "Training · LoRA",
+    "Training · MoE pretraining",
+    "Training · SFT",
+    "Training · checkpoint restore",
+    "Training · speech",
+    "Training · vision"
+  ]
 }

@@ -21,10 +21,11 @@
   const notice = text => { $('#review-summary').textContent = text; };
   function loadRecords() {
     try {
-      const raw = localStorage.getItem(storageKey);
+      const accepted=[catalog.revision,...(catalog.compatible_revisions||[])];
+      const raw = accepted.map(v=>localStorage.getItem('gpuflow-widget-review:'+v)).find(Boolean);
       if (!raw) return;
       const saved = JSON.parse(raw);
-      if (saved.revision !== catalog.revision || !Array.isArray(saved.records)) throw Error('version');
+      if (!accepted.includes(saved.revision) || !Array.isArray(saved.records)) throw Error('version');
       for (const row of saved.records) {
         if (!catalog.widgets.some(w => w.id === row.id) || !Object.hasOwn(statuses, row.status)) continue;
         records[row.id] = {status:row.status};
@@ -35,7 +36,7 @@
   function payload() {
     return {schema_version:1, revision:catalog.revision, exported_at:new Date().toISOString(),
       status:'브라우저 회의 기록 · 공식 계약 승인 아님', records:catalog.widgets.map(w => ({
-        id:w.id, screen:w.screens.join('/'), title:w.title, readiness:w.readiness,
+        revision:catalog.revision, id:w.id, screen:w.screens.join('/'), title:w.title, readiness:w.readiness,
         status:'unreviewed', note:'', owner:'', due:'', updated_at:'', ...records[w.id]
       }))};
   }
@@ -90,6 +91,7 @@
       ${section('응답·실측 근거','<p class="review-muted">검증 요약은 원본 응답 payload가 아닙니다. 현재값·화면 인수를 뜻하지 않습니다.</p><pre>'+esc(JSON.stringify(widget.sample,null,2))+'</pre>')}
       ${section('현재 제한','<p>'+esc(widget.limits)+'</p>')}
       ${section('갱신·출처·오류 표시','<p>'+esc(widget.cadence)+'</p><p>'+esc(widget.display)+'</p>')}
+      ${section('하위 영역·후속 제어 API(원본 표기)',list(widget.subregions||[])+list(widget.control_api_proposals||[]))}
       ${section('이번 미팅에서 결정',list(widget.decisions)+'<p class="review-muted">'+esc(widget.owner)+'</p>')}
       <section class="review-section review-record"><h3>회의 기록</h3><p>이 브라우저에만 저장됩니다. 계정·토큰·접속 주소는 적지 마세요. 내보낸 파일은 GitHub PR에서 검토 후 반영합니다.</p>
       <label class="review-field">검토 결과<select id="review-status">${Object.entries(statuses).map(([k,v])=>`<option value="${k}" ${record.status===k?'selected':''}>${v}</option>`).join('')}</select></label>
@@ -133,7 +135,7 @@
       navigate(preferred || catalog.widgets.find(w=>w.screens.includes(context.screen)) || catalog.widgets[0],true);
     } else {
       if (autoPaused && pause.getAttribute('aria-pressed') === 'true') pause.click();
-      autoPaused = false; notice('①·②·③·④·⑪ 주요 위젯의 메트릭·API를 화면에서 검토합니다.');
+      autoPaused = false; notice('①~⑬ 전체 화면의 메트릭·API를 검토합니다.');
       decorate(); setURL(); $('#review-toggle').focus({preventScroll:true});
     }
   }
@@ -146,7 +148,7 @@
   const mdCell = value => String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/[\\|`*_[\]#]/g,'\\$&').replace(/\r?\n/g,'<br>');
   function download(format) {
     const data = payload();
-    const cols = ['id','screen','title','readiness','status','note','owner','due','updated_at'];
+    const cols = ['revision','id','screen','title','readiness','status','note','owner','due','updated_at'];
     let text, type;
     if (format === 'json') { text=JSON.stringify(data,null,2);type='application/json'; }
     else if (format === 'csv') {
@@ -191,7 +193,7 @@
     if(data.schema_version!==1 || !Array.isArray(data.widgets) || !data.widgets.length)throw Error('schema');
     catalog=data;storageKey='gpuflow-widget-review:'+catalog.revision;loadRecords();
     $('#review-toggle').disabled=false;
-    if (!$('#review-summary').textContent.includes('이전 기록')) notice('①·②·③·④·⑪ 주요 위젯의 메트릭·API를 화면에서 검토합니다.');
+    if (!$('#review-summary').textContent.includes('이전 기록')) notice('①~⑬ 전체 화면의 메트릭·API를 검토합니다.');
     if (new URL(location.href).searchParams.get('review')==='1') toggle(true);
   }).catch(()=>notice('검토 자료를 불러오지 못했습니다. HTTP 미리보기로 열고 새로고침하세요. 기존 목업은 사용할 수 있습니다.'));
 })();

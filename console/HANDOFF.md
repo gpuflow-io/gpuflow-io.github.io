@@ -23,7 +23,7 @@ node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 
 ## 최신 매핑 보완판
 
-검토 위젯은 기존 ID를 유지하여 52개로 확장했습니다. ⑤~⑬ 위젯과 ⑬ KPI 10행을 항목별로 검토할 수 있습니다.
+검토 위젯은 기존 ID를 유지하여 56개로 확장했습니다. ⑤~⑬ 위젯과 ⑬ KPI 10행을 항목별로 검토할 수 있습니다.
 
 - [전체 화면–위젯 매핑·잔여 항목](generated/FULL_SCREEN_WIDGET_MAP.md)
 - [기존 API 4개 필드 매핑](generated/EXISTING_API_MAP.md)
@@ -54,6 +54,8 @@ node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 
 순수 판정·매핑 85개와 치환 샘플 6개 검증을 수행합니다. 로컬 브라우저 테스트는 Playwright와 Chromium이 있는 환경에서 `PUBLIC_PREVIEW_FILE`에 생성된 HTML 절대 경로를 지정해 `node console/tests/handoff-browser.cjs`로 실행합니다. 기존 시나리오 검토 회귀는 로컬 HTTP 서버와 `console/tests/review-browser.cjs`로 확인합니다. CI는 PR과 main push에서 순수 판정·샘플 91개 검사와 standalone HTML 빌드를 수행합니다. 브라우저 검증은 로컬 별도 실행입니다. 실제 장비·담당자 접속·브라우저 인수와 구분합니다.
 
-전체 페이지 회귀는 같은 환경에서 `node console/tests/all-pages-browser.cjs`로 실행합니다. 13개 화면 × 관측/시나리오 × 데스크톱/모바일, 52개 위젯의 관측 모드 검토 연결·LLM 9개 상태·KPI 10행과 오프라인 실패 표시를 검사합니다. [페이지별 검수 결과](ALL_PAGES_REVIEW.md)를 함께 확인하세요.
+전체 페이지 회귀는 같은 환경에서 `node console/tests/all-pages-browser.cjs`로 실행합니다. 13개 화면 × 관측/시나리오 × 데스크톱/모바일, 56개 위젯의 관측 모드 검토 연결·LLM 9개 상태·KPI 10행과 오프라인 실패 표시를 검사합니다. [페이지별 검수 결과](ALL_PAGES_REVIEW.md)를 함께 확인하세요.
 
 매핑 생성·검사: `python3 console/sync_mapping_docs.py --check`. HTTP 중계 회귀: `python3 -m unittest discover -s console/tests -p "test_mapping_gateway.py" -v`. 실제 J 데이터·접속은 별도 인수 대상입니다.
+
+추가 검수 보완판: revision 2026-11-10.5, W01-08/09/10·W10-04 추가. 13화면 공통 Period/Role/논리 범위의 지원 상태·책임을 표시합니다. 하위 영역·후속 제어 API는 구현이 아닌 계약 매핑이며 원본 표기와 실제 제공을 구분합니다.

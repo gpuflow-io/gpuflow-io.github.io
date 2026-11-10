@@ -43,7 +43,7 @@ async function main() {
     assert.equal(await page.locator('#review-status').inputValue(),'change');
     assert.equal(await page.locator('#review-owner').inputValue(),'담당 미정');
     const contracts=await (await page.request.get(new URL('review-contracts.json',base).href)).json();
-    assert.equal(contracts.widgets.length,52);
+    assert.equal(contracts.widgets.length,56);
     // Every contract opens its intended screen and has a visible exact anchor.
     for(const w of contracts.widgets){
       // The batch comparison has a dedicated live/snapshot browser suite.
@@ -70,7 +70,7 @@ async function main() {
       const text=await fs.readFile(destination,'utf8');
       if(format==='csv'){assert(text.includes("'=HYPERLINK"));assert(text.includes('""https://example.invalid""'));}
       if(format==='md'){assert(text.includes('&lt;img'));assert(text.includes('\\| 검토'));}
-      if(format==='json'){const saved=JSON.parse(text);assert.equal(saved.records.length,52);assert.equal(saved.records.find(x=>x.id==='W01-02').note,note);}
+      if(format==='json'){const saved=JSON.parse(text);assert.equal(saved.records.length,56);assert.equal(saved.records.find(x=>x.id==='W01-02').note,note);}
     }
     // Screenshot contains representative clean meeting fields, not attack fixture text.
     await page.locator('#review-note').fill('다중 GPU 가중 방식과 미계측 상태 표시를 미팅에서 확정');

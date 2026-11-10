@@ -13,12 +13,13 @@ def csv_text(headers,rows):
     output=io.StringIO(newline='');writer=csv.writer(output);writer.writerow(headers);writer.writerows(rows);return output.getvalue().replace("\r\n","\n")
 
 def generated(c):
-    stamp='2026-11-10 · 매핑 보완판 2 · 검토 초안. 담당·제품 주기·평가 조건은 미팅 확정.\n\n'
+    stamp='2026-11-10 · 매핑 보완판 3 · revision 2026-11-10.5 · 검토 초안. 담당·제품 주기·평가 조건은 미팅 확정.\n\n'
     cadence=c['widgets'][0]['cadence']
     apis='# 기존 API 4개 화면 매핑\n\n'+stamp+table(['화면','요청','필드','응답·표시 상태'],[(a['screen'],a['method']+' '+a['path'],', '.join(a['fields']),'LLM: 고정 mock, 정상/근거 없음/HTTP504. 목록: items[].data/provenance/quality, next_cursor, backend. API 존재·UI 연결·실측 검증은 별도.') for a in c['review_apis'].values()])
     apis+='\n정책 주키는 `policy`이며 스코어카드 연결 필드는 `indicator`입니다. workload_id를 키로 한 새 상세 API를 가정하지 않습니다. 목록은 같은 page_size/조건으로 cursor 끝까지 읽고 반복 cursor·중간 오류·조회 상한 초과는 완전한 결과로 처리하지 않습니다. HTTP 401/400/5xx와 빈 정상 응답을 구분합니다.\n\n저장된 HTML의 정책·스코어카드 응답은 **합성 계약 fixture**이며 DB 캡처가 아닙니다. LLM은 기존 고정 fixture입니다. 기존 11/07 API 호출 검증 기록은 당시 이력이며 현재 상태를 증명하지 않습니다.\n\n'+cadence+'\n'
     full='# 원본 화면–위젯–API 전체 매핑\n\n'+stamp+'기준: '+json.dumps(c['baselines'],ensure_ascii=False)+'\n\n'
     full+=table(['ID·화면','원본 표시 항목','지표·이벤트','API·필드','표시·결정 사항'],[(w['id']+' '+','.join(w['screens']),w['title'],', '.join(w['metrics']+w.get('events',[])), '; '.join(w['api'])+' / '+w['response_fields'],w['meaning']+' '+('미확정 계약: '+','.join(w['pending_contracts']) if w.get('pending_contracts') else '')) for w in c['widgets']])
+    full+='\n## 하위 영역·후속 제어 API(원본 표기, 구현 보증 아님)\n\n'+table(['위젯','하위 영역','후속 제어'],[(w['id'],'; '.join(w.get('subregions',[])),'; '.join(w.get('control_api_proposals',[]))) for w in c['widgets'] if w.get('subregions') or w.get('control_api_proposals')])+'\n'+table(['공통 결정 사항','계약'],list(c.get('cross_screen_contracts',{}).items()))+'\n원본 type 예시(공용 열거값 확정 아님): '+', '.join(c.get('source_workload_types',[]))+'\n'
     full+='\n## 원본 요소와 잔여 작업\n\n'+table(['화면','위젯','잔여 작업'],[(x['screen'],', '.join(x['widgets']),x['residual']) for x in c['screen_inventory']])
     if c.get('role_matrix'):
         full+='\n## 원본 역할별 화면 권한 제안\n\n'+table(['화면']+c['role_matrix']['roles'],[[r['screen']]+r['permissions'] for r in c['role_matrix']['rows']])+'\nF 전체 / S 자기 범위 / R 조회 / X 숨김. 서버 권한 구현·확정 계약이 아닌 원본 검토안입니다.\n'
@@ -28,7 +29,7 @@ def generated(c):
     alignment='# 문서 정합성·적용 상태\n\n'+stamp
     alignment+=table(['항목','정리 기준'],[
         ('갱신',cadence),('카탈로그','gpuflow-kit e27f81f의 내장 catalog를 이번 매핑의 검수 기준으로 고정. telemetry-spec af28385와의 차이는 별도 동기화 검토.'),
-        ('신규 후보','policy.recommend, gpuflow_host_prefetch_accuracy_ratio는 지정 카탈로그에 없음. 기관 native 또는 추가 RFC로 확인하며 확정 심볼로 등록하지 않음.'),
+        ('신규 후보','policy.recommend는 kit 미등록 후보. gpuflow_host_prefetch_accuracy_ratio는 spec af28385에는 있고 kit e27f81f에는 없음. 기관 native 또는 추가 RFC로 확인하며 확정 심볼로 등록하지 않음.'),
         ('지연 지표 이름','원본 콘솔 문구의 gpuflow_storage_target_read_seconds를 등록된 gpuflow_storage_target_latency_seconds로 정정. 읽기 전용 해석은 op 라벨·원본 의미 확인 필요.'),
         ('원본 요소 누락','① Max wait/Alerts/Uplink는 POD 타일 내부 항목. 수치·필터 미구현을 잔여 작업에 기록. Top nodes·유형별 점유는 미산출 카드 표시.'),
         ('등록 CSV','13행 api-screens는 사전 작성 초안. metrics/mappings는 확인된 표준 카탈로그 참조만 포함하며 기관 구현 완료·승인으로 간주하지 않음.'),
@@ -37,7 +38,8 @@ def generated(c):
         ('중계','로컬 reference adapter는 목록·LLM UI 연결 시험용. 기존 J 중계 교체·운영 배포 없음. GPU 시계열 endpoint는 reference에서 미구성으로 명시.'),
     ])
     alignment+='\n카탈로그·이벤트 이름 존재는 실제 계측·발행·화면 표시 가능성의 증거가 아닙니다. 카탈로그 변경·J guard 변경·새 공용 proto/DB 스키마 변경은 이번 범위에 포함하지 않습니다.\n'
-    return {'EXISTING_API_MAP.md':apis,'FULL_SCREEN_WIDGET_MAP.md':full,'KPI_ROW_MAP.md':kpis,'MAPPING_ALIGNMENT.md':alignment}
+    scope='# 전역 범위·Period·Role 매핑\n\n'+stamp+table(['항목','현재 지원·책임·결정 사항'],[(k,v) for k,v in c.get('global_scope',{}).items() if k!='screens'])+'\n'+table(['화면','Period 적용 범위'],list(c.get('global_scope',{}).get('screens',{}).items()))
+    return {'GLOBAL_SCOPE_MAP.md':scope,'EXISTING_API_MAP.md':apis,'FULL_SCREEN_WIDGET_MAP.md':full,'KPI_ROW_MAP.md':kpis,'MAPPING_ALIGNMENT.md':alignment}
 
 def outputs(c,dest):
     out={dest/'docs/handoff/2026-11-10'/name:text for name,text in generated(c).items()}
