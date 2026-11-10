@@ -6,6 +6,8 @@
 
 ## 접속 없이 미리보기
 
+GitHub Actions에서 **Console review contract → 성공한 실행 → Summary → Artifacts → gpuflow-console-preview**를 클릭하면 ZIP을 받을 수 있습니다. 실행 요약의 미리보기 다운로드 링크도 사용할 수 있습니다. GitHub 로그인 후 ZIP을 풀고 `batch-review.html`을 브라우저로 엽니다. Artifact 보관 기간은 30일입니다. 이 업로드 단계가 추가되기 전 실행에는 Artifact가 없습니다.
+
 Python 3과 Node.js 20 이상을 사용합니다. 저장소 루트에서 실행합니다.
 
 ```bash
