@@ -1,4 +1,6 @@
-<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="stylesheet" href="review.css">
+<link rel="stylesheet" href="testbed.css">
+</head><body>
 <title>GPUFlow Console (concept)</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -401,28 +403,28 @@ footer{font-size:12px;color:var(--muted)}
       <button type="button" data-r="m10" aria-pressed="false">10 min <small>10-min avg · 12 h</small></button></div>
     <span class="rhint">Hover over a chart to see the value at that time</span></div>
   <section class="kpis" aria-label="Key metrics">
-    <div class="panel kpi north"><span class="eyebrow">GPU data-wait ratio · workload</span><span class="v num" id="k-wait"></span><span class="d" id="k-wait-d"></span><span class="spr num" data-m="wait"></span><div class="spk" data-m="wait" aria-hidden="true"></div></div>
-    <div class="panel kpi"><span class="eyebrow" id="k2-l"></span><span class="v num" id="k-p2"></span><span class="d" id="k-p2-d"></span><span class="spr num" data-m="p2"></span><div class="spk" data-m="p2" aria-hidden="true"></div></div>
-    <div class="panel kpi"><span class="eyebrow">Delivered bandwidth · workload</span><span class="v num" id="k-bw"></span><span class="d">L3 → GPU total · IOPS <b class="num" id="k-iops"></b></span><span class="spr num" data-m="bw"></span><div class="spk" data-m="bw" aria-hidden="true"></div></div>
-    <div class="panel kpi"><span class="eyebrow">Zero-copy path ratio</span><span class="v num" id="k-zc"></span><span class="d">GDS + GDR bytes ÷ total</span><span class="spr num" data-m="zc"></span><div class="spk" data-m="zc" aria-hidden="true"></div></div>
-    <div class="panel kpi"><span class="eyebrow">Cache/tier hit ratio</span><span class="v num" id="k-hit"></span><span class="d" id="k-hit-d">Lookups at L1 and below</span><span class="spr num" data-m="hit"></span><div class="spk" data-m="hit" aria-hidden="true"></div></div>
-    <div class="panel kpi"><span class="eyebrow">Host CPU · node average</span><span class="v num" id="k-cpu"></span><span class="d">KPI 7 · target ≤ 5%</span><span class="spr num" data-m="cpu"></span><div class="spk" data-m="cpu" aria-hidden="true"></div></div>
+    <div class="panel kpi north" data-review-key="workload-wait"><span class="eyebrow">GPU data-wait ratio · workload</span><span class="v num" id="k-wait"></span><span class="d" id="k-wait-d"></span><span class="spr num" data-m="wait"></span><div class="spk" data-m="wait" aria-hidden="true"></div></div>
+    <div class="panel kpi" data-review-key="workload-performance"><span class="eyebrow" id="k2-l"></span><span class="v num" id="k-p2"></span><span class="d" id="k-p2-d"></span><span class="spr num" data-m="p2"></span><div class="spk" data-m="p2" aria-hidden="true"></div></div>
+    <div class="panel kpi" data-review-key="workload-bandwidth"><span class="eyebrow">Delivered bandwidth · workload</span><span class="v num" id="k-bw"></span><span class="d">L3 → GPU total · IOPS <b class="num" id="k-iops"></b></span><span class="spr num" data-m="bw"></span><div class="spk" data-m="bw" aria-hidden="true"></div></div>
+    <div class="panel kpi" data-review-key="zero-copy"><span class="eyebrow">Zero-copy path ratio</span><span class="v num" id="k-zc"></span><span class="d">GDS + GDR bytes ÷ total</span><span class="spr num" data-m="zc"></span><div class="spk" data-m="zc" aria-hidden="true"></div></div>
+    <div class="panel kpi" data-review-key="cache-hit"><span class="eyebrow">Cache/tier hit ratio</span><span class="v num" id="k-hit"></span><span class="d" id="k-hit-d">Lookups at L1 and below</span><span class="spr num" data-m="hit"></span><div class="spk" data-m="hit" aria-hidden="true"></div></div>
+    <div class="panel kpi" data-review-key="host-cpu"><span class="eyebrow">Host CPU · node average</span><span class="v num" id="k-cpu"></span><span class="d">KPI 7 · target ≤ 5%</span><span class="spr num" data-m="cpu"></span><div class="spk" data-m="cpu" aria-hidden="true"></div></div>
   </section>
 
   <div class="main">
-    <nav class="panel" aria-label="Workloads">
+    <nav class="panel" aria-label="Workloads" data-review-key="workload-list">
       <div class="ph"><h2>Workloads</h2><small>By type · highest wait first</small></div>
       <ul class="wl" id="wl"></ul>
     </nav>
 
     <section class="panel" aria-label="Data path">
       <div class="ph"><h2 id="path-title">Data path</h2><small id="path-scope">GPU → storage, selected workload</small></div>
-      <div class="topo" id="topo"></div>
+      <div class="topo" id="topo" data-review-key="placement"></div>
       <div class="path">
         <div class="rail" aria-hidden="true"><canvas id="railc"></canvas></div>
-        <div class="hops" id="hops"></div>
+        <div class="hops" id="hops" data-review-key="path"></div>
       </div>
-      <div class="fc" aria-label="Forecast flow"><div class="fch"><div><h2>Forecast flow · by layer</h2><small class="kscap" style="font-family:var(--f-ui)">Storage layer = KETI (eBPF + Informer) · other layers = Gluesys ·<span id="fc-acc"></span></small></div>
+      <div class="fc" aria-label="Forecast flow" data-review-key="forecast"><div class="fch"><div><h2>Forecast flow · by layer</h2><small class="kscap" style="font-family:var(--f-ui)">Storage layer = KETI (eBPF + Informer) · other layers = Gluesys ·<span id="fc-acc"></span></small></div>
         <label class="sc"><span>Horizon</span><select id="fc-h"><option value="30">+30 s</option><option value="60" selected>+60 s</option><option value="120">+120 s</option></select></label><span class="yb">KETI · Gluesys · Y1 model · Y2 integration</span></div>
         <div id="fcsvg" class="fcsvg"></div><div class="eyebrow" style="padding:0 2px">Forecast bottlenecks · proactive actions</div><ul class="fcl" id="fclist"></ul></div>
     </section>
@@ -446,7 +448,7 @@ footer{font-size:12px;color:var(--muted)}
       <div class="ph"><h2>GPU wait and <span id="ch-l2"></span>, last 2 min</h2><small>Dashed line = policy change</small></div>
       <div class="chart" id="chart"></div>
     </section>
-    <section class="panel" aria-label="Bottleneck diagnosis">
+    <section class="panel" aria-label="Bottleneck diagnosis" data-review-key="batch-comparison">
       <div class="ph"><h2>Bottleneck diagnosis</h2><small id="diag-sub"></small></div>
       <div class="diag">
         <div class="verdict" id="verdict"></div>
@@ -777,7 +779,7 @@ function drawChart(k,r){
 
 /* Agent: fixed scenario answers */
 const QA={
- infer:[['Why did TTFT rise?',()=>{const r=compute('infer');return r.hot?`Sessions grew to 40 and L1 DRAM (80 GiB) filled to 92%, pushing the KV miss rate to 42%. Chunks that are needed again must be read from DAOS, but they sit on 3 targets, so p99 latency is 18 ms. As a result GPUs spend ${r.wait}% of their time waiting for KV restores.\nRecommended: enable the L2 CXL tier → round-robin target placement → server-side prefetch, in that order.`:`The applied policies brought wait down to ${r.wait}%. What remains is mostly the server-DRAM hop on the L3 read path.`},'gpuflow_cache_lookup_total{tier}, gpuflow_storage_target_read_seconds, kv.load events'],
+ infer:[['Why did TTFT rise?',()=>{const r=compute('infer');return r.hot?`Sessions grew to 40 and L1 DRAM (80 GiB) filled to 92%, pushing the KV miss rate to 42%. Chunks that are needed again must be read from DAOS, but they sit on 3 targets, so p99 latency is 18 ms. As a result GPUs spend ${r.wait}% of their time waiting for KV restores.\nRecommended: enable the L2 CXL tier → round-robin target placement → server-side prefetch, in that order.`:`The applied policies brought wait down to ${r.wait}%. What remains is mostly the server-DRAM hop on the L3 read path.`},'gpuflow_cache_lookup_total{tier}, gpuflow_storage_target_latency_seconds, kv.load events'],
   ['Which tier serves most KV?',()=>{const r=compute('infer');return `L0 HBM ${r.hits.l0}%, L1 DRAM ${r.hits.l1}%, L2 CXL ${r.hits.l2}%, L3 DAOS ${r.hits.l3}%, miss ${r.hits.miss}%. Misses lead to prefill recomputation.`},'gpuflow_cache_lookup_total{result="hit"} by tier']],
  train:[['Why are checkpoint saves slow?',()=>`During write bursts, switch PFC pauses rise and one rank writes to its targets more slowly than the others. As in MLPerf Storage rules, the slowest rank sets the save time, so even striping and congestion-control tuning come first.`,'ckpt.write.start/end events, gpuflow_fabric_pfc_pause_total']],
  ingest:[['Is anything wrong with this job?',()=>`It is within normal range. I/O stalls rise briefly only during the shuffle at epoch boundaries. This workload is a target for Y2 intelligent prefetching.`,'gpuflow_host_io_stall_seconds_total (KETI eBPF)']]
@@ -875,7 +877,7 @@ function storHTML(R,bwSum,full){const on=k=>state.on[k]||{};
 const REB={on:false,node:3,p:0,imp:0};
 /* ① Overview */
 let HOVER='';
-function renderOverview(){const vw=visibleW();
+function renderOverview(){if(window.GPUFlowTestbed?.isEnabled()){window.GPUFlowTestbed.draw();return;}const vw=visibleW();
   const R={},F={};ORDER.forEach(k=>{R[k]=noisy(compute(k),k);F[k]=nodeFactors(k)});
   const sp=state.scope.pod?[PODS.findIndex(P=>P.id===state.scope.pod)]:PODS.map((_,i)=>i);
   // aggregate
@@ -884,13 +886,13 @@ function renderOverview(){const vw=visibleW();
     const ws=cs.filter(c=>c.w!=null).map(c=>c.w);if(ws.length)mx.push({p,n,v:ws.reduce((a,b)=>a+b,0)/ws.length,k:cs[0].k})}});
   const wavg=wsum/Math.max(1,used),bwSum=ORDER.reduce((a,k)=>a+R[k].bw,0),capUsed=STOR.cap.reduce((a,c)=>a+c,0)/STOR.n;
   const nHot=ORDER.filter(k=>compute(k).wait>=15).length;
-  const kpi=(e,v,u,d,north)=>`<div class="panel kpi${north?' north':''}"><span class="eyebrow">${e}</span><span class="v num">${v}<u>${u}</u></span><span class="d">${d}</span></div>`;
+  const kpi=(key,e,v,u,d,north)=>`<div data-review-key="${key}" class="panel kpi${north?' north':''}"><span class="eyebrow">${e}</span><span class="v num">${v}<u>${u}</u></span><span class="d">${d}</span></div>`;
   let h=`<section class="ovk" aria-label="Cluster metrics">`+
-   kpi('GPU allocation · cluster',`${used}<u>/ ${tot}</u>`,'',`${PODS.length} PODs · ${PODS.reduce((a,P)=>a+P.nodes,0)} nodes · H100`)+
-   kpi('GPU data wait · cluster',wavg.toFixed(1),'%',`Weighted by allocated GPUs · <b style="color:var(--accent)">target ≤ 5%</b>`,true)+
-   kpi('Storage delivered bandwidth · cluster',bwSum.toFixed(1),'GB/s','Sum of L3 → GPU per workload (separate from KPI 2)')+
-   kpi('L3 capacity used',Math.round(capUsed),'%',`Average of ${STOR.n} storage nodes`)+
-   kpi('Active workloads',ORDER.length,'',`Inference ${GROUPS[0].keys.length} · training/data/dev ${GROUPS[1].keys.length} · <span style="color:var(--crit)">bottleneck ${nHot}</span>`)+`</section>`;
+   kpi('allocation','GPU allocation · cluster',`${used}<u>/ ${tot}</u>`,'',`${PODS.length} PODs · ${PODS.reduce((a,P)=>a+P.nodes,0)} nodes · H100`)+
+   kpi('cluster-wait','GPU data wait · cluster',wavg.toFixed(1),'%',`Weighted by allocated GPUs · <b style="color:var(--accent)">target ≤ 5%</b>`,true)+
+   kpi('cluster-bandwidth','Storage delivered bandwidth · cluster',bwSum.toFixed(1),'GB/s','Sum of L3 → GPU per workload (separate from KPI 2)')+
+   kpi('capacity','L3 capacity used',Math.round(capUsed),'%',`Average of ${STOR.n} storage nodes`)+
+   kpi('active-workloads','Active workloads',ORDER.length,'',`Inference ${GROUPS[0].keys.length} · training/data/dev ${GROUPS[1].keys.length} · <span style="color:var(--crit)">bottleneck ${nHot}</span>`)+`</section>`;
   // POD tiles
   const up=p=>{const ks=ORDER.filter(k=>podOf(k)===p);const hot=ks.some(k=>compute(k).hot==='fabric');const u=ks.length?Math.max(...ks.map(k=>R[k].hops.fabric[0])):clamp(Math.round(25+rnd()*5),2,99);return {u,hot}};
   h+=`<div class="podtiles">${PODS.map((P,p)=>{const m=mx.filter(x=>x.p===p),worst=m.length?Math.max(...m.map(x=>x.v)):0,al=m.filter(x=>x.v>=15).length,u=up(p),sel=state.scope.pod===P.id;
@@ -901,7 +903,7 @@ function renderOverview(){const vw=visibleW();
   // heatmap + top N + occupancy
   const top=mx.slice().sort((a,b)=>b.v-a.v).slice(0,8);
   const occT=tot,occBar=[['infer','Inference',WCOL.infer],['train','Training',WCOL.train],['ingest','Data',WCOL.ingest],['bg','Other batch','var(--muted)'],['idle','Idle','var(--idle)'],['mnt','Maintenance','var(--warn)']];
-  h+=`<div class="ovgrid"><section class="panel" aria-label="GPU heatmap"><div class="ph"><h2>GPU heatmap · ${state.scope.pod||'Whole cluster'}</h2><small>Column = node · cell = GPU · color = data wait · underline = workload · Canvas</small></div>
+  h+=`<div class="ovgrid"><section class="panel" aria-label="GPU heatmap" data-review-key="heatmap"><div class="ph"><h2>GPU heatmap · ${state.scope.pod||'Whole cluster'}</h2><small>Column = node · cell = GPU · color = data wait · underline = workload · Canvas</small></div>
     <div class="hmwrap"><canvas id="hm" role="img" aria-label="GPU wait heatmap"></canvas></div><div class="hmtip num" id="hmtip">${HOVER||'Hover a cell to see node, GPU, workload and wait. Click to drill into that scope.'}</div>
     <div class="ovlg"><span>Underline:</span><span><i style="background:var(--wl1)"></i>Inference</span><span><i style="background:var(--wl2)"></i>Training</span><span><i style="background:var(--wl3)"></i>Data · eval · dev</span><span>Cell:</span><span><i style="background:var(--idle)"></i>Idle</span><span><i style="background:var(--warn);opacity:.5"></i>Maintenance</span><span><i class="c-good" style="display:inline-block"></i>&lt; 10%</span><span><i class="c-warn" style="display:inline-block"></i>10–15%</span><span><i class="c-crit" style="display:inline-block"></i>≥ 15%</span></div><div style="height:12px"></div></section>
    <aside class="kside"><section class="panel" aria-label="Top nodes by wait"><div class="ph"><h2>Top nodes by wait</h2><small>Top 8 · click for detail</small></div><ol class="topn">${top.map(x=>`<li><button type="button" data-node="${x.p}:${x.n}"><span class="num">${nodeName(x.p,x.n)}</span><span>${x.k&&x.k!=='bg'?W[x.k].id:'Batch job'}</span><b class="num" style="color:${lvlCol(x.v)}">${x.v.toFixed(0)}%</b></button></li>`).join('')}</ol></section>
@@ -909,7 +911,7 @@ function renderOverview(){const vw=visibleW();
      <div class="legend">${occBar.map(([k,nm,c])=>`<span><i style="background:${c}"></i>${nm} <span class="num">${occ[k]}</span></span>`).join('')}</div>
      <div class="eyebrow">Top workloads by wait · all ${vw.length} in ② Workload Lens</div><div class="wchips">${vw.slice().sort((a,b)=>R[b].wait-R[a].wait).slice(0,8).map(k=>`<button type="button" class="wchip" data-k="${k}"><i style="background:${WCOL[k]}"></i>${W[k].id}<span class="num" style="color:${lvlCol(R[k].wait)}">${R[k].wait}%</span> detail →</button>`).join('')}</div></div></section></aside></div>`;
   // storage summary
-  h+=`<section class="panel" aria-label="Storage cluster"><div class="ph"><h2>Storage cluster summary</h2><small>ExaStor / DAOS · ${STOR.n} nodes · details in ⑥ Storage Fabric</small></div><div class="stor stor3">${storHTML(R,bwSum)}</div></section>`;
+  h+=`<section class="panel" aria-label="Storage cluster" data-review-key="storage-summary"><div class="ph"><h2>Storage cluster summary</h2><small>ExaStor / DAOS · ${STOR.n} nodes · details in ⑥ Storage Fabric</small></div><div class="stor stor3">${storHTML(R,bwSum)}</div></section>`;
   $('#ov').innerHTML=h;drawHM(R,F,sp);
   document.querySelectorAll('#ov [data-k]').forEach(el=>el.onclick=()=>{const k=el.dataset.k;state.w=k;state.node[k]=null;go('②')});
   document.querySelectorAll('#ov [data-pod]').forEach(el=>el.onclick=()=>{state.scope.pod=state.scope.pod===el.dataset.pod?'':el.dataset.pod;state.scope.rack='';state.scope.node='';syncScope();render()});
@@ -1216,8 +1218,8 @@ function alerts(){const A=[];ORDER.forEach(k=>{const r=compute(k);if(r.wait>=15)
   Object.entries(NODEST).forEach(([n,s])=>A.push({id:'n-'+n,sev:'info',src:'Node',tg:n,m:s,go:'⑧'}));
   A.forEach(a=>{if(!FIRST[a.id])FIRST[a.id]=nowT()});return A}
 function renderAlr(){const A=alerts();const S={crit:'Critical',warn:'Warning',info:'Info'};
-  $('#alr').innerHTML=`<div class="ngrid2"><section class="panel" aria-label="Alerts"><div class="ph"><h2>${A.filter(a=>!ACK[a.id]).length} unacknowledged alerts</h2><small>Threshold rules · alert.fire / resolve</small></div><ul class="alist">${A.map(a=>`<li class="${a.sev}${ACK[a.id]?' ack':''}"><span class="pill ${a.sev==='info'?'good':a.sev}">${S[a.sev]}</span><span class="am"><b>${a.tg}</b> ${a.m}<span class="kscap">${a.src} · first ${FIRST[a.id]}</span></span><span class="aa"><button type="button" class="btn ghost" data-go="${a.go}">View ${a.go}</button>${ACK[a.id]?'<span class="kscap">Acknowledged</span>':`<button type="button" class="btn ghost" data-ack="${a.id}">Acknowledge</button>`}</span></li>`).join('')||'<li class="kscap">No alerts.</li>'}</ul></section>
-   <section class="panel" aria-label="Event log"><div class="ph"><h2>Event log</h2><small>Policy, node, QoS, volume and DPU changes; system events</small></div><ul class="klog">${LOG.slice(0,20).map(e=>`<li><span class="num">${e.t}</span><span class="pill ${e.kind==='alert'?'crit':e.kind==='audit'?'warn':'good'}">${e.src}</span>${e.txt}</li>`).join('')||'<li class="kscap">No events yet. Changing policies or nodes on other screens adds entries here.</li>'}</ul></section></div>`;
+  $('#alr').innerHTML=`<div class="ngrid2"><section class="panel" aria-label="Alerts" data-review-key="alerts"><div class="ph"><h2>${A.filter(a=>!ACK[a.id]).length} unacknowledged alerts</h2><small>Threshold rules · alert.fire / resolve</small></div><ul class="alist">${A.map(a=>`<li class="${a.sev}${ACK[a.id]?' ack':''}"><span class="pill ${a.sev==='info'?'good':a.sev}">${S[a.sev]}</span><span class="am"><b>${a.tg}</b> ${a.m}<span class="kscap">${a.src} · first ${FIRST[a.id]}</span></span><span class="aa"><button type="button" class="btn ghost" data-go="${a.go}">View ${a.go}</button>${ACK[a.id]?'<span class="kscap">Acknowledged</span>':`<button type="button" class="btn ghost" data-ack="${a.id}">Acknowledge</button>`}</span></li>`).join('')||'<li class="kscap">No alerts.</li>'}</ul></section>
+   <section class="panel" aria-label="Event log" data-review-key="events"><div class="ph"><h2>Event log</h2><small>Policy, node, QoS, volume and DPU changes; system events</small></div><ul class="klog">${LOG.slice(0,20).map(e=>`<li><span class="num">${e.t}</span><span class="pill ${e.kind==='alert'?'crit':e.kind==='audit'?'warn':'good'}">${e.src}</span>${e.txt}</li>`).join('')||'<li class="kscap">No events yet. Changing policies or nodes on other screens adds entries here.</li>'}</ul></section></div>`;
   document.querySelectorAll('#alr [data-ack]').forEach(b=>b.onclick=()=>{ACK[b.dataset.ack]=1;addLog('Alert',`${b.dataset.ack} acknowledged`,'audit');render()});
   document.querySelectorAll('#alr [data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go))}
 /* ⑫ Access & audit */
@@ -1239,8 +1241,8 @@ function renderSc(){const pc=LOG.filter(e=>e.src==='Policy').length,prov=LOG.fil
    ['10. Provisioning automation','Supported',prov?`${prov} demo run(s)`:'—',prov?'Scenario':'Not measured','csi.provision events','⑩']];
   const ok=(t,v)=>v==='—'?'none':t.includes('≤')?parseFloat(v)<=parseFloat(t.replace('≤','')):t.includes('≥')?parseFloat(v)>=parseFloat(t.replace('≥','')):v!=='—';
   $('#sc').innerHTML=`<div class="ksban"><b>Y1 results · complete in Y3</b> Measured values will be filled in from TTA tests, IO500 and MLPerf results. 'Scenario' marks mockup example values.</div>
-  <section class="panel" aria-label="Scorecard"><div class="ph"><h2>10 quantitative KPIs</h2><small>Target · current · source</small></div><div class="tw"><table class="dtab"><thead><tr><th>KPI</th><th>Target</th><th>Current</th><th>Status</th><th>Source</th><th>Basis / note</th><th>Screen</th></tr></thead><tbody>${S.map(([n,t,v,src,note,scr])=>{const o=ok(t,v);
-    return `<tr><td><b>${n}</b></td><td class="num">${t}</td><td class="num">${v}</td><td><span class="pill ${o==='none'?'warn':o?'good':'crit'}">${o==='none'?'Not measured':o?'Met':'Not met'}</span></td><td><span class="src s-${src==='Scenario'?'sim':src==='Measured'?'live':'none'}">${src}</span></td><td class="kscap" style="font-family:var(--f-ui)">${note}</td><td><button type="button" class="btn ghost" data-go="${scr}">${scr}</button></td></tr>`}).join('')}</tbody></table></div></section>`;
+  <section class="panel" aria-label="Scorecard"><div class="ph"><h2>10 quantitative KPIs</h2><small>Target · current · source</small></div><div class="tw"><table class="dtab"><thead><tr><th>KPI</th><th>Target</th><th>Current</th><th>Status</th><th>Source</th><th>Basis / note</th><th>Screen</th></tr></thead><tbody>${S.map(([n,t,v,src,note,scr],index)=>{const o=src==='Scenario'?'scenario':ok(t,v);
+    return `<tr data-review-key="scorecard-${index+1}"><td><b>${n}</b></td><td class="num">${t}</td><td class="num">${v}</td><td><span class="pill ${o==='none'||o==='scenario'?'warn':o?'good':'crit'}">${o==='scenario'?'Example · not evaluated':o==='none'?'Not measured':o?'Met':'Not met'}</span></td><td><span class="src s-${src==='Scenario'?'sim':src==='Measured'?'live':'none'}">${src}</span></td><td class="kscap" style="font-family:var(--f-ui)">${note}</td><td><button type="button" class="btn ghost" data-go="${scr}">${scr}</button></td></tr>`}).join('')}</tbody></table></div></section>`;
   document.querySelectorAll('#sc [data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go))}
 
 /* ── Forecast (KETI eBPF + Informer): future utilization per layer. Each workload type has periodic bursts;
@@ -1309,7 +1311,8 @@ const _render=render;render=function(l){_render(l);const v=state.view;
   if(v==='fab'){renderFab();if(state.fabTab==='net')renderNET(l)}
   if(v==='pol'){if(!l)renderPol();renderKS(l)}
   if(v==='node')renderNode();if(v==='ten'&&!l)renderTen();if(v==='alr')renderAlr();if(v==='aud'&&!l)renderAud();if(v==='sc'&&!l)renderSc();
-  if(v==='dt'){renderFC();Rail.layout()}}
+  if(v==='dt'){renderFC();Rail.layout()}
+  window.dispatchEvent(new CustomEvent('gpuflow:render',{detail:{screen:state.scr,workload:W[state.w].id,range:state.range}}));}
 let paused=false,down=false;
 addEventListener('pointerdown',()=>down=true,true);addEventListener('pointerup',()=>setTimeout(()=>down=false,50),true);
 const clk=()=>{$('#clock').textContent=new Date().toLocaleTimeString('en-GB',{hour12:false,timeZone:'Asia/Seoul'})+' KST · 2 s refresh'};
@@ -1319,7 +1322,11 @@ setInterval(()=>{if(paused)return;rebal=Math.min(100,rebal+0.6);ksTick();nzStep(
 const reTheme=()=>{const b=$('#net');if(b)b.dataset.built='';render()};
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',reTheme);
 new MutationObserver(reTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class','style']});
+window.addEventListener('gpuflow:review-context-request',()=>window.dispatchEvent(new CustomEvent('gpuflow:render',{detail:{screen:state.scr,workload:W[state.w].id,range:state.range}})));
 clk();syncScope();go('①');
 </script>
 
+<script src="mapping.js"></script>
+<script src="testbed.js"></script>
+<script src="review.js"></script>
 </body></html>

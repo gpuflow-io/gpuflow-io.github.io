@@ -1,0 +1,7 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {batchExecution,batchPathEvidence,batchComparison}=require('../testbed.js');
+const fixture=()=>JSON.parse(fs.readFileSync(path.join(__dirname,'../samples/batch-observation.redacted.json')));
+test('redaction notice and exactly three historical cases',()=>{const d=fixture();assert.equal(d.redacted,true);assert(d.sample_notice);assert.equal(d.workloads.length,3);assert(d.workloads.every(w=>w.data.ended_at));});
+for(const [id,count,bytes] of [['sample-batch-normal',8,268435456],['sample-batch-delayed',8,268435456],['sample-batch-failed',2,67108864]])test(id,()=>{const d=fixture(),w=d.workloads.find(w=>w.data.workload_id===id),e=batchExecution(w);assert(e.verified);assert.equal(e.completed,count);assert.equal(e.bytes,bytes);assert(batchPathEvidence(d,w).verified);});
+test('compatible comparison and failure evidence preserved',()=>{const c=batchComparison(fixture(),'sample-batch-delayed');assert(c.verified);assert.equal(c.cases.baseline.workload.workload_id,'sample-batch-normal');assert.equal(c.cases.failed.failed[0].batch,3);assert.equal(c.cases.failed.failed[0].error,'daos_read_failed');});
+test('storage ID conflict invalidates path without erasing verified batch execution',()=>{const d=fixture(),w=d.workloads[0];d.edges=[];assert(batchExecution(w).verified);assert.equal(batchPathEvidence(d,w).verified,false);});

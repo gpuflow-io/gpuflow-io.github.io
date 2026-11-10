@@ -1,0 +1,4848 @@
+{
+  "schema_version": 1,
+  "revision": "2026-11-10.7",
+  "status": "글루시스 검토 초안 · 최종 계약 아님",
+  "sources": [
+    {
+      "title": "화면–데이터 매핑표 · 검토 PR #3",
+      "url": "https://github.com/gpuflow-io/onlinepowers-integration/pull/3"
+    },
+    {
+      "title": "toolkit 카탈로그 · 검수 기준 e27f81f",
+      "url": "https://github.com/gpuflow-io/gpuflow-kit/blob/e27f81fba387047d1e2546aef5d0f9a6ca10d0c8/src/gpuflow_kit/data/catalog.yaml"
+    }
+  ],
+  "boundary": "제품 UI → 온라인파워스 백엔드 → VM 직접 PromQL / 글루시스 업무 API. 이 검토 콘솔의 J 테스트베드 보기는 내부 미리보기 중계가 기존 목록 API를 조회합니다. 공개 목업과 저장된 관측은 실시간 조회가 아닙니다.",
+  "widgets": [
+    {
+      "id": "W01-01",
+      "key": "allocation",
+      "screens": [
+        "①"
+      ],
+      "title": "GPU 할당량",
+      "meaning": "등록 GPU와 유효한 작업–GPU 관측 관계를 분리한다. 스케줄러 예약·할당 수는 미확인이다.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "J 실측 연결 가능 · 스케줄러 할당량 미확인",
+      "limits": "기존 API의 모든 페이지를 읽고 measured/false만 인벤토리·관계에 사용한다. relation lease와 source 품질을 재검증하며 종료·stale·unknown·conflict는 현재 관계 집계에서 제외한다. GPU UUID는 cluster 범위에서 중복 제거한다. 관측 관계는 예약/할당이 아니다. 저장된 관측은 captured_at 기준으로 관계 유효성을 판정하며 현재 상태를 뜻하지 않는다. GPU/rack/node 필터는 관계 검증 후 적용한다. 랙 미등록을 추정값으로 채우지 않는다.",
+      "decisions": [
+        "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
+      ],
+      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\n각 응답의 next_cursor를 끝까지 순회",
+      "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
+      "sample": {
+        "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
+        "measured_workloads": 3,
+        "simulation_workloads": 45,
+        "note": "실측 3건은 완료/종료된 검증 작업이다. 실시간 보기에서는 매번 기존 API를 조회한다."
+      },
+      "display": "실측 등록 GPU / 관측된 유효 GPU 관계 / 스케줄러 할당량 미확인을 분리. 시뮬레이션은 별도 이력 수로 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\n추가: placement.cluster, nodes, active_gpu_uuids, registry(state, observed_at, valid_until), quality.registry_stale, binding_verified. inventory attrs.cluster/node/gpu_uuid와 연결. 종료·만료는 제외.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "선택한 클러스터·물리 POD의 GPU 할당 수 / 전체 수와 할당률",
+        "institution": {
+          "provider": "스케줄러 운영기관·KETI(후보), 글루시스 테스트베드",
+          "source": "GPU UUID·노드·물리 POD 인벤토리와 스케줄러의 예약/실행 할당·공유 비율·관측 시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "GPU 식별자 중복 제거, 스케줄러 할당과 인벤토리 연결, 같은 시각·범위의 분모 확정",
+          "output": "현재 workloads/topology-nodes 목록. 제품용 할당 수·전체 수·커버리지 결과는 추가 계약 필요",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "카드 분자=할당 GPU, 분모=등록 GPU. 현재 관측 관계 수는 별도 보조값으로 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "J 실측 연결 가능 · 스케줄러 할당량 미확인",
+        "gap": "DCGM 프로세스 관측만으로 예약/할당/가용을 판정할 수 없음. 할당 원천 담당·MIG/공유 기준 확정 필요",
+        "decision": "미정 — 스케줄러 운영기관·KETI(후보), 글루시스 테스트베드·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W01-02",
+      "key": "cluster-wait",
+      "screens": [
+        "①"
+      ],
+      "title": "클러스터 GPU 데이터 대기율",
+      "meaning": "I/O stall 시간 ÷ GPU 할당 시간의 클러스터 집계. 단순 GPU idle 비율이 아님.",
+      "metrics": [
+        "gpuflow_derived_gpu_data_wait_ratio",
+        "gpuflow_host_io_stall_seconds_total",
+        "gpuflow_gpu_allocated_seconds_total"
+      ],
+      "api": [
+        "VM PromQL · raw / 집계 저장소"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "계약 후보 · 실측 미확인",
+      "limits": "호스트 I/O stall을 모든 GPU에 복제하면 중복 집계됨. 다중 GPU 귀속·시간 정렬 검증 필요.",
+      "decisions": [
+        "GPU별 시간 가중·분모 0·미계측 GPU 처리·측정 주체"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "선택 클러스터의 GPU data wait(%)와 목표 대비 상태",
+        "institution": {
+          "provider": "I/O stall 계측기관·스케줄러 운영기관(미정), 글루시스 파생 계산",
+          "source": "동일 GPU·workload·기간의 I/O 대기 누적시간과 GPU 할당 누적시간; 다중 GPU 연결키",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "계측 범위 일치 검증 후 대기시간 합 / 할당시간 합. 중복·미계측·분모 0 처리와 가중 기준 합의",
+          "output": "VM의 gpuflow_derived_gpu_data_wait_ratio 후보. 입력 실측·계산 규칙 확인 전 값 제공 불가",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "합의된 ratio×100을 카드와 추이에 표시; 출처·커버리지·오래됨 함께 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "계약 후보 · 실측 미확인",
+        "gap": "GPU idle 또는 1-utilization으로 대체 금지. 누가 stall과 할당시간을 제공할지 미정",
+        "decision": "미정 — I/O stall 계측기관·스케줄러 운영기관(미정), 글루시스 파생 계산·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W01-03",
+      "key": "cluster-bandwidth",
+      "screens": [
+        "①"
+      ],
+      "title": "스토리지 전달 대역폭",
+      "meaning": "워크로드에 전달된 bytes/s를 합산해 GB/s로 표시. 누적 bytes 자체가 아님.",
+      "metrics": [
+        "gpuflow_storage_target_read_bytes_total",
+        "gpuflow_storage_target_write_bytes_total"
+      ],
+      "api": [
+        "VM PromQL · raw"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "관련 DAOS 실측 있음 · 전달량 귀속 미확인",
+      "limits": "DAOS target counter를 L3→GPU 전달량으로 바로 해석하거나 read+write를 중복 합산하지 않음.",
+      "decisions": [
+        "counter reset·rate 구간·단위·중복 제거·워크로드 귀속"
+      ],
+      "query": "gpuflow_storage_target_read_bytes_total{data_origin=\"measured\",simulated=\"false\"}",
+      "query_state": "검증된 관련 counter 조회 · 위젯 완성 쿼리 아님",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:01:29Z",
+        "series": 4,
+        "data_origin": "measured",
+        "note": "DAOS 누적 read/write counter 각각 4시리즈. 워크로드 대역폭 표본이 아님."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "L3 스토리지에서 GPU 작업으로 전달되는 대역폭(GB/s)",
+        "institution": {
+          "provider": "글루시스(DAOS), 실제 전달 경로 계측기관(미정)",
+          "source": "DAOS target read/write 누적 bytes, workload/Pool 연결, 실제 전달 경로의 bytes와 시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "counter reset 처리 후 rate, 동일 데이터의 중복 경로 제거, workload에 귀속 가능한 전달량만 합산",
+          "output": "VM read/write counter는 관련 원천. Delivered bandwidth의 확정 조회식/파생 결과는 추가 확인",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "합의된 bytes/s를 1e9로 나눠 GB/s 표시. 원시 스토리지 I/O는 별도 이름 사용",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "관련 DAOS 실측 있음 · 전달량 귀속 미확인",
+        "gap": "DAOS I/O 일부 실측은 있음. target 처리량=GPU 전달량이라는 보장은 없음",
+        "decision": "미정 — 글루시스(DAOS), 실제 전달 경로 계측기관(미정)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W01-04",
+      "key": "capacity",
+      "screens": [
+        "①"
+      ],
+      "title": "L3 용량 사용률",
+      "meaning": "사용 용량 / 전체 용량. 노드 비율의 단순 평균과 용량 가중 평균을 구분.",
+      "metrics": [
+        "gpuflow_storage_capacity_used_ratio"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "계약 이름 있음 · 실측 미확인",
+      "limits": "실측 GPU/DAOS I/O 통과가 용량 계측까지 보장하지 않음.",
+      "decisions": [
+        "L3 대상·용량 분모·집계 단위·노드 제외 조건"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "L3 스토리지 전체 사용 용량 비율",
+        "institution": {
+          "provider": "글루시스(DAOS/스토리지 관리 원천)",
+          "source": "같은 저장소 범위의 used/total bytes, pool/target 계층·중복 포함 관계",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "중복 계층 제거 후 sum(used)/sum(total); 비율만 있을 경우 가중 근거 확인",
+          "output": "VM gpuflow_storage_capacity_used_ratio와 범위별 집계 규칙(실측 확인 필요)",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "ratio×100을 카드/막대에 연결, 분모·수집 시각 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "계약 이름 있음 · 실측 미확인",
+        "gap": "노드 비율 단순 평균 금지. 용량 분모와 표준 지표 실측 제공 확인 필요",
+        "decision": "미정 — 글루시스(DAOS/스토리지 관리 원천)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W01-05",
+      "key": "active-workloads",
+      "screens": [
+        "①"
+      ],
+      "title": "활성 워크로드 수",
+      "meaning": "선택 범위에서 실행 중인 활성 워크로드 수와 유형별 수·병목 수. 현재 데모의 GPU 연결 확인 작업 수와 구분.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "데모 GPU 연결 작업 수 표시 · 스케줄러 전체 활성 수 계약·원천 미확인",
+      "limits": "검증 표본 provenance는 unknown. 페이지 전체 조회와 started_at/ended_at의 의미 합의 필요.",
+      "decisions": [
+        "활성 기준·기간·중복·페이지·tenant 필터"
+      ],
+      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\n같은 조건으로 next_cursor 끝까지 순회. 현재 데모의 유효 GPU 관계 검증과 제품용 스케줄러 활성 판정은 별도.",
+      "query_state": "기존 목록 조회 예시. page_size=1 또는 목록 건수만으로 활성 수를 계산하지 않음.",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:17:17Z",
+        "http_status": 200,
+        "records": 1,
+        "data_origin": "unknown",
+        "more_available": true
+      },
+      "display": "유효한 GPU 관계가 확인된 작업 수와 종료 이력을 구분한다. 전체 스케줄러 활성 작업 수로 해석하지 않는다.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\n현재 데모 관계 검증: placement.cluster/nodes/active_gpu_uuids/registry(state,observed_at,valid_until), quality.binding_verified/registry_stale; topology attrs.cluster/node/gpu_uuid와 연결. 종료·만료·충돌 제외. 제품 스케줄러 상태/활성 집계 계약은 추가 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "선택 범위에서 실행 중인 활성 워크로드 수와 유형별 수·병목 수",
+        "institution": {
+          "provider": "Kubernetes/Slurm 운영기관(미정); KETI·글루시스 연동 후보",
+          "source": "스케줄러 job/Pod ID, 실행 상태, 시작·종료, tenant/namespace, 노드/GPU 배치, 갱신 시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "원천 ID/상태 정규화, 노드→cluster/물리 POD 연결, 종료·중복·오래된 레코드 처리. 유형 분류·병목 판정 별도 근거 연결",
+          "output": "현재 /v1/workloads + /v1/topology-nodes 목록. 제품용 활성 수·유형별 수·커버리지의 확정 계약은 미제공",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "전체 활성 수는 글루시스의 합의된 판정 결과에 연결. 목록 행은 workload_id/type 등 사용. 병목 수는 wait 근거가 있을 때만 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "데모 GPU 연결 작업 수 표시 · 스케줄러 전체 활성 수 계약·원천 미확인",
+        "gap": "현재 데모는 GPU 연결이 확인된 실행 작업 수만 센다. 스케줄러 전체 활성 수와 다르며 목록 건수/next_cursor로 계산할 수 없음",
+        "decision": "미정 — Kubernetes/Slurm 운영기관(미정); KETI·글루시스 연동 후보·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W01-06",
+      "key": "heatmap",
+      "screens": [
+        "①"
+      ],
+      "title": "GPU 대기율 히트맵",
+      "meaning": "노드×GPU별 대기율과 워크로드 할당을 조합. GPU utilization 색상으로 대체하지 않음.",
+      "metrics": [
+        "gpuflow_derived_gpu_data_wait_ratio",
+        "gpuflow_host_io_stall_seconds_total",
+        "gpuflow_gpu_allocated_seconds_total"
+      ],
+      "api": [
+        "VM PromQL",
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "귀속·실측 미확인",
+      "limits": "목업 H100 다수 셀은 실제 테스트베드 인벤토리 아님.",
+      "decisions": [
+        "GPU ID 연결·공유 할당·결측 셀·임계값·클릭 필터"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "실측 GPU 인벤토리로 셀을 배치한다. 현재 표본에는 wait 시계열이 없어 회색·미계측으로 표시한다. 낮은 대기율/정상을 뜻하지 않는다.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "노드×GPU 히트맵: wait 색상, 할당 작업과 상태",
+        "institution": {
+          "provider": "GPU·스케줄러·I/O 계측 제공기관(미정), 글루시스 레지스트리",
+          "source": "GPU UUID/슬롯·노드/POD/랙, 할당 관계, GPU별 wait 분자·분모·관측 시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "인벤토리와 유효 할당·wait를 동일 GPU/시각으로 연결; 공통 임계값 규칙 적용",
+          "output": "topology-nodes/workloads + VM wait. GPU 슬롯/공유 배분·등급 규칙은 합의 필요",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "셀 위치=인벤토리, 색=wait, 작업 표식=할당. 미계측은 중립색; 클릭에 cluster/node/GPU 키 보존",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "귀속·실측 미확인",
+        "gap": "현재는 등록 GPU 표시만 가능. 미관측을 Idle/Unallocated로 채우지 않음",
+        "decision": "미정 — GPU·스케줄러·I/O 계측 제공기관(미정), 글루시스 레지스트리·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W01-07",
+      "key": "storage-summary",
+      "screens": [
+        "①",
+        "⑥"
+      ],
+      "title": "스토리지 요약",
+      "meaning": "용량·상태·I/O를 구분해 표시. 기본 모니터링 범위.",
+      "metrics": [
+        "gpuflow_storage_target_read_bytes_total",
+        "gpuflow_storage_target_write_bytes_total",
+        "gpuflow_storage_capacity_used_ratio"
+      ],
+      "api": [
+        "VM PromQL",
+        "GET /v1/topology-nodes",
+        "GET /v1/topology-edges",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "DAOS I/O 일부 실측 · 관리 조회 미완",
+      "limits": "DAOS 실측과 Lustre/DPU/리빌드 상태를 하나의 검증 결과로 취급하지 않음.",
+      "decisions": [
+        "1차 모니터링 항목·DAOS/Lustre 구분·관리 조회 책임"
+      ],
+      "query": "gpuflow_storage_target_write_bytes_total{data_origin=\"measured\",simulated=\"false\"}",
+      "query_state": "검증된 관련 counter 조회 · 상태 API 아님",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:01:29Z",
+        "series": 4,
+        "data_origin": "measured",
+        "note": "DAOS 누적 read/write counter 각각 4시리즈. 워크로드 대역폭 표본이 아님."
+      },
+      "display": "표본에 있는 Pool·Container·등록 rank 레코드 수를 표시한다. rank 수는 물리 target/engine 총수가 아니다. 컴퓨트 POD/랙/노드 필터와 스토리지 전체 범위를 구분한다. 용량·부하가 없으면 표본 미포함으로 표시한다.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [
+        "노드별 target 부하와 Container/tier 사용률: workload·pool·container·tier 귀속 필요. L4 S3는 표시 티어이며 8계층과 별도 매핑.",
+        "운영 이벤트 node.join·storage.rebalance/rebuild 및 학습 영향≤10%는 baseline 대비 성능·워크로드 귀속 필요.",
+        "DR 복제 지연: 원본 0.4s는 목업. kit에 복제 지연 지표 없음. dr.failover를 복제 lag로 대체하지 않음."
+      ],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "스토리지 노드/target 부하·용량, Container/티어, 운영 이벤트 요약",
+        "institution": {
+          "provider": "글루시스(DAOS/ExaStor), 복제·재분배 원천 담당(미정)",
+          "source": "노드/rank/target/Pool/Container 구성, I/O·용량, rebuild/rebalance/복제 상태·시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "스토리지 ID 정규화와 구성 연결, 부하 정의·집계, 이벤트의 현재 상태 구성",
+          "output": "topology-nodes/edges + VM + events; 부하·복제 지연·전체 운영 상태는 원천 확인 필요",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "노드 타일=토폴로지, 부하/용량 막대=합의 지표, 운영 행=상태 이벤트. 미제공 상태를 Normal로 표시하지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "DAOS I/O 일부 실측 · 관리 조회 미완",
+        "gap": "현재 표본의 Pool/Container/rank 연결과 실제 부하·건강 상태를 구분",
+        "decision": "미정 — 글루시스(DAOS/ExaStor), 복제·재분배 원천 담당(미정)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W02-01",
+      "key": "workload-list",
+      "screens": [
+        "②"
+      ],
+      "title": "워크로드 목록",
+      "meaning": "출처별 워크로드 목록과 시작/종료·관계 상태를 확인한다. 작업 선택 시 등록 GPU UUID와 실행 구간의 GPU 단위 메트릭을 조회한다.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "J 실측 목록·상세 연결 · GPU 단위 시계열 검증 · 반복 DAOS/CUDA 배치의 실행 상태·단계별 계측 연결",
+      "limits": "실측/시뮬레이션 분리. 완료 작업은 이력이며 현재 할당 수가 아니다. GPU 사용률·메모리는 작업 독점 값이 아니며 GPU data wait로 대체하지 않는다. 강제 종료의 ended_at은 발견 시각일 수 있다. 반복 배치 계측은 검증 실행기 기준이며 입력 지연을 GPU data wait로 환산하지 않는다. 배치 결과 검증과 실행 전 구성원 연결 검증을 분리 표시하며 종료 시 구성원은 미확인.",
+      "decisions": [
+        "필수 필드·정렬·필터·상세 이동·활성 정의"
+      ],
+      "query": "GET /v1/workloads?page_size=1",
+      "query_state": "기존 목록 API 전체 페이지와 VM 고정 메트릭 조회 연결",
+      "sample": {
+        "kind": "검증 요약 · 현재값 아님",
+        "note": "W01 목록 → W02 상세 → 실제 GPU 사용률/메모리 그래프 연결. 원천 시계열은 GPU 단위이며 실행 구간과 연결한다."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\n추가: placement.gpu_uuids/active_gpu_uuids/registry, quality.registry_stale/binding_verified. GPU 그래프는 gpuflow_gpu_util_ratio 및 DCGM_FI_DEV_FB_USED의 cluster/node/pod/gpu/data_origin/simulated 조건으로 조회.\n내부 실증 확장: placement.progress의 batches/totals와 15초 registry lease. 작업별 request.start/end 이벤트로 원 계측값 조회.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "유형별 워크로드 목록·선택·배치·실행 상태",
+        "institution": {
+          "provider": "Kubernetes/Slurm 운영기관(미정), 글루시스 테스트 작업 등록",
+          "source": "작업 ID/유형/tenant/namespace/시작·종료, 실행 상태, GPU·노드·스토리지 연결",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "ID·유형·상태 정규화와 관계 최신성 검증, scheduler 데이터와 관측 근거 구분",
+          "output": "/v1/workloads items[].data와 provenance/quality; 필요한 인벤토리는 topology-nodes",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "행 이름=workload_id, 분류=type, 소속=tenant/namespace, 배치=placement, 저장소=storage. 같은 ID로 상세·경로 이동",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "J 실측 목록·상세 연결 · GPU 단위 시계열 검증 · 반복 DAOS/CUDA 배치의 실행 상태·단계별 계측 연결",
+        "gap": "현재는 테스트 작업 실측 목록. 모든 기관/스케줄러 작업의 포괄 범위와 type 분류표 미정",
+        "decision": "미정 — Kubernetes/Slurm 운영기관(미정), 글루시스 테스트 작업 등록·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W02-02",
+      "key": "workload-wait",
+      "screens": [
+        "②",
+        "③",
+        "④"
+      ],
+      "title": "워크로드 GPU 데이터 대기율",
+      "meaning": "선택 워크로드의 I/O stall / GPU 할당 시간. % 표시와 ratio 저장을 구분.",
+      "metrics": [
+        "gpuflow_derived_gpu_data_wait_ratio",
+        "gpuflow_host_io_stall_seconds_total",
+        "gpuflow_gpu_allocated_seconds_total"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "실측 미확인",
+      "limits": "DAOS pool/rank/target 데이터를 임의 workload_id로 귀속하지 않음.",
+      "decisions": [
+        "분모·다중 GPU 가중·관측 구간·0/결측·제공 시점"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [
+        "Timeline: 같은 workload/span의 GPU wait와 TTFT/step time을 각 단위·축·시각으로 표시.",
+        "policy.change 표식은 event 발생 시각·상태와 policy-history의 policy/span/workload를 연결. 브라우저 조작 시각을 실제 적용 시각으로 쓰지 않음."
+      ],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "선택 워크로드의 GPU 대기율·추이·정책 전후 변화",
+        "institution": {
+          "provider": "I/O stall 계측기관·스케줄러 운영기관(미정)",
+          "source": "workload와 GPU에 귀속된 I/O stall/할당시간, 실행 구간, 공유 관계",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "동일 범위 분자/분모로 wait 산출; 다중 GPU 가중·전후 비교 구간 합의",
+          "output": "VM gpuflow_derived_gpu_data_wait_ratio 후보. 실제 계측과 workload 귀속 미확인",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "ratio×100, 실행 기간 추이와 같은 조건의 전후 차이 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "실측 미확인",
+        "gap": "배치 실험의 주입 지연·host wall time이나 GPU 사용률을 wait로 치환하지 않음",
+        "decision": "미정 — I/O stall 계측기관·스케줄러 운영기관(미정)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W02-03",
+      "key": "workload-performance",
+      "screens": [
+        "②"
+      ],
+      "title": "워크로드 주요 성능",
+      "meaning": "목업에서 workload 유형에 따라 TTFT·학습 처리량 등이 바뀌는 카드. 지표/단위도 함께 전환.",
+      "metrics": [
+        "gpuflow_app_request_ttft_seconds",
+        "gpuflow_app_train_steps_total"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "계약 후보 · 실측 미확인",
+      "limits": "TTFT histogram 여부·quantile·학습 step당 샘플 수 미확인. 하나의 고정 쿼리로 표현하지 않음.",
+      "decisions": [
+        "유형별 metric·단위·평균/p95·window·학습 처리량 변환"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [
+        "TTFT/step time과 wait를 독립 축으로 표시. 정책 on/off 표식은 동일 범위·ns 시각·실제 적용 완료 상태 필요."
+      ],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "작업 유형에 맞는 TTFT·학습 처리량 등 주요 성능",
+        "institution": {
+          "provider": "앱/학습 서빙 운영기관(미정); 서울대·서강대·KETI 협의 후보",
+          "source": "요청 TTFT 분포 또는 학습 step counter, workload ID·유형·관측 구간",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "유형별 지표 선택표, histogram 집계 또는 step rate 계산·단위 표준화",
+          "output": "VM app_request_ttft_seconds / app_train_steps_total. 유형별 제공 범위·조회식은 확인 필요",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "제목·수치·단위를 함께 전환. TTFT는 합의 백분위/평균, 학습은 steps/s로 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "계약 후보 · 실측 미확인",
+        "gap": "모든 작업에 같은 성능 지표를 사용하지 않음. histogram 형식·앱 원천 담당 미정",
+        "decision": "미정 — 앱/학습 서빙 운영기관(미정); 서울대·서강대·KETI 협의 후보·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W02-04",
+      "key": "workload-bandwidth",
+      "screens": [
+        "②",
+        "③"
+      ],
+      "title": "워크로드 전달 대역폭",
+      "meaning": "선택 workload의 전달 bytes/s와 IOPS. 서로 다른 단위·계측.",
+      "metrics": [
+        "gpuflow_storage_target_read_bytes_total",
+        "gpuflow_storage_target_write_bytes_total",
+        "gpuflow_storage_target_ops_total"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "DAOS I/O 관련 실측 · workload 귀속 미확인",
+      "limits": "target counter만으로 선택 workload 대역폭/IOPS를 산출할 수 없음.",
+      "decisions": [
+        "workload 연결 키·read/write·중복·rate window"
+      ],
+      "query": "gpuflow_storage_target_read_bytes_total{data_origin=\"measured\",simulated=\"false\"}",
+      "query_state": "관련 원천 조회만 검증",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:01:29Z",
+        "series": 4,
+        "data_origin": "measured",
+        "note": "DAOS 누적 read/write counter 각각 4시리즈. 워크로드 대역폭 표본이 아님."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "선택 workload로 전달된 대역폭과 IOPS",
+        "institution": {
+          "provider": "글루시스(DAOS), 앱/전달 경로 제공기관(미정)",
+          "source": "target read/write bytes·ops, workload→Pool/Container 관계, 공유 저장소 귀속 근거",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "bytes/s와 ops/s를 각각 계산하고 workload에 귀속; 공유 Pool 임의 배분 금지",
+          "output": "VM storage counter + 레지스트리 연결. workload별 delivered 의미는 추가 확인",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "대역폭 카드와 IOPS 보조값을 별도 단위로 연결; 경로 화면도 같은 결과 사용",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "DAOS I/O 관련 실측 · workload 귀속 미확인",
+        "gap": "현재 DAOS 관련 실측만으로 특정 workload의 전체 전달량을 확정할 수 없음",
+        "decision": "미정 — 글루시스(DAOS), 앱/전달 경로 제공기관(미정)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W02-05",
+      "key": "zero-copy",
+      "screens": [
+        "②",
+        "③"
+      ],
+      "title": "Zero-copy 경로 비율",
+      "meaning": "GDS/GDR 전송량 / 동일 범위 전체 전송량. 중복·다른 경로 분모 구분.",
+      "metrics": [
+        "gpuflow_derived_path_zerocopy_ratio",
+        "gpuflow_transport_bytes_total"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "계약 후보 · 실측 미확인",
+      "limits": "기능 활성화 플래그만으로 실제 byte 비율을 계산하지 않음.",
+      "decisions": [
+        "GDS/GDR 중복·분모·경로 라벨·측정 주체"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "전체 전송량 중 GDS/GDR Zero-copy 경로 비율",
+        "institution": {
+          "provider": "전송/캐시 계측기관·망고부스트·글루시스(후보)",
+          "source": "경로별 전송 bytes, GDS/GDR/host-bounce 구분, workload·시각·중복 구간",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "동일 범위 Zero-copy bytes/total bytes, 경로 중복 제거 및 미지원 처리",
+          "output": "VM transport_bytes_total → derived_path_zerocopy_ratio 후보",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "ratio×100과 경로별 근거 표시. host-bounce 검증을 GDS 검증으로 표시하지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "계약 후보 · 실측 미확인",
+        "gap": "현재 배치 실증은 host-bounce. 실제 GDS/GDR 계측·분모 미확인",
+        "decision": "미정 — 전송/캐시 계측기관·망고부스트·글루시스(후보)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W02-06",
+      "key": "cache-hit",
+      "screens": [
+        "②"
+      ],
+      "title": "캐시 적중률",
+      "meaning": "캐시 조회 중 적중 비율. tier별 분모와 miss 의미 합의 필요.",
+      "metrics": [
+        "gpuflow_derived_tier_hit_ratio",
+        "gpuflow_cache_lookup_total"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "계약 후보 · 실측 미확인",
+      "limits": "기관 원본 샘플 확인 필요. 추가 통합 규격은 후속 RFC 예정.",
+      "decisions": [
+        "기존 공통 계약 기준 제공 가능 지표·분자/분모·1차 표시 범위"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "워크로드의 캐시 적중률 및 miss",
+        "institution": {
+          "provider": "서울대·서강대 캐시/LMCache 개발기관(후보)",
+          "source": "workload·tier별 hit/miss lookup counter, 요청 단위/중복 경로·주기",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "합의한 tier 범위에서 hit/(hit+miss), miss 정의와 분모 0 처리",
+          "output": "VM cache_lookup_total → derived_tier_hit_ratio 후보",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "적중률·miss를 같은 기간/분모로 표시, L1 이하 범위 명시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "계약 후보 · 실측 미확인",
+        "gap": "원본 exporter 이름·tier 의미·실측 샘플 기관 확인 필요",
+        "decision": "미정 — 서울대·서강대 캐시/LMCache 개발기관(후보)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W02-07",
+      "key": "host-cpu",
+      "screens": [
+        "②"
+      ],
+      "title": "호스트 CPU 사용률",
+      "meaning": "노드 CPU 사용률의 평균. workload CPU 사용량과 구분.",
+      "metrics": [
+        "gpuflow_host_cpu_util_ratio"
+      ],
+      "api": [
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "계약 후보 · 해당 표준 지표 실측 미확인",
+      "limits": "host 메모리 실측 조회 성공이 CPU 계측 검증은 아님.",
+      "decisions": [
+        "idle/iowait 정의·노드 평균 가중·workload 귀속 여부"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "VM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "워크로드 배치 노드의 평균 CPU 사용률",
+        "institution": {
+          "provider": "KETI 호스트 계측(후보), 글루시스 node exporter 실측",
+          "source": "노드 CPU 상태별 시간/사용률과 CPU 개수·관측 구간, workload placement",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "CPU 정규화·시간 가중, workload 배치 노드 집합 연결; 노드 전체 부하와 작업 부하 구분",
+          "output": "VM gpuflow_host_cpu_util_ratio 후보 + workloads placement",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "노드 평균 ratio×100, 대상 노드·기간 표시. workload 단독 CPU로 표기하지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "계약 후보 · 해당 표준 지표 실측 미확인",
+        "gap": "native 호스트 계측과 표준 지표 연결 확인 필요; CPU 평균 가중 기준 미정",
+        "decision": "미정 — KETI 호스트 계측(후보), 글루시스 node exporter 실측·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W03-01",
+      "key": "placement",
+      "screens": [
+        "③"
+      ],
+      "title": "배치·GPU 연결",
+      "meaning": "워크로드 placement와 노드/GPU 인벤토리의 연결.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes",
+        "GET /v1/topology-edges"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "단발 전달·반복 배치의 GPU/노드/DAOS 등록 연결 검증",
+      "limits": "반복 배치는 실행 전 구성원만 확인. 종료 시 구성원·현재 연결·스케줄러 예약·PVC는 미확인.",
+      "decisions": [
+        "공통 ID·노드/GPU 매핑·scope·갱신·삭제 처리"
+      ],
+      "query": "GET /v1/topology-nodes?page_size=1",
+      "query_state": "기존 업무 API와 등록 토폴로지 교차 확인",
+      "sample": {
+        "kind": "실증 근거 요약",
+        "captured_at": "2026-11-09T01:33:04.465989Z",
+        "data_origin": "measured",
+        "note": "정상·지연·실패 배치 기록의 등록 식별자 연결. 현재 구성원 재검증은 아님."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "선택 작업의 GPU·호스트·스토리지 배치도",
+        "institution": {
+          "provider": "글루시스 레지스트리, 스케줄러/장비 운영기관(후보)",
+          "source": "workload→GPU/노드, Pool→Container/target 연결과 관계 관측 시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "ID 정규화·토폴로지 연결, 충돌/만료/실행 전후의 관계 근거 분리",
+          "output": "workloads placement/storage + topology-nodes/edges",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "노드/선은 등록된 연결로 그리기; 구성 연결과 실제 데이터 전달 증거를 구분",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "단발 전달·반복 배치의 GPU/노드/DAOS 등록 연결 검증",
+        "gap": "현재 DAOS/GPU 배치 근거는 있음. NIC·랙·기관 전반 연결 원천은 추가 필요",
+        "decision": "미정 — 글루시스 레지스트리, 스케줄러/장비 운영기관(후보)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W03-02",
+      "key": "path",
+      "screens": [
+        "③"
+      ],
+      "title": "계층별 데이터 경로",
+      "meaning": "완료 실증의 데이터 전달 근거와 인벤토리·토폴로지 연결을 표시한다. 시나리오 보기의 병목 예시와 구분한다.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes",
+        "GET /v1/topology-edges"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "③ 배치별 읽기·호스트 준비·HtoD·CUDA 커널·DtoH/검증 합계 표시",
+      "limits": "성공 배치 합계. CLI 비용 포함, 커널 wall/event 중첩. 네트워크 별도 계측·GDS·GPU data wait·자동 병목 판정 없음. rail(railc)은 같은 계층 경로의 화면 표현이며 추가 계층·별도 실측 지표가 아니다.",
+      "decisions": [
+        "edge metric_ref·계층 단위/임계값·host/bench 위치·cold 의미"
+      ],
+      "query": "GET /v1/workloads?page_size=200",
+      "query_state": "기존 API에 저장된 placement.progress 계측 사용",
+      "sample": {
+        "kind": "실증 근거 요약",
+        "captured_at": "2026-11-09T01:33:04.465989Z",
+        "data_origin": "measured",
+        "note": "8배치 256 MiB, DAOS 읽기 2.565초, CUDA event 52.15ms. 공유 pool 지표를 작업별로 귀속하지 않음."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n/v1/topology-edges → items[].data: from_id, to_id, link, capable, metric_ref, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.\n내부 실증 확장: workloads.storage.binding.transfer의 path·bytes·GPU UUID·host/device checksum·관측 시각. 기관 공통 계약 확정은 후속.\n반복 배치: placement.progress.batches[]/totals, observed_at, execution_kind/status; storage.binding.scope/observed_before/io; GPU·Pool·Container·구성원 등록 토폴로지.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [
+        "hops 지연값: 배치 계측 JSON은 성공 배치 합계/구간, VM 지연은 지표형식·집계 구간·백분위 확인. 서로 합산/대체 금지.",
+        "칩·rail(railc) 폭/애니메이션은 시각 표현. 병목 근거 없이 실제 병목 hop으로 좁히지 않음."
+      ],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "app→gpu→cache→transport→fabric→storage→cold 경로와 계층별 상태",
+        "institution": {
+          "provider": "각 계층 제공기관; 글루시스 토폴로지·시험 계측",
+          "source": "계층별 측정값·단위·임계값, 연결 ID, 실제 경로/단계별 시간·출처",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "8개 지표 layer와 목업 경로 매핑; host 연결, cold의 L4 의미 구분; 동일 시각으로 조합",
+          "output": "토폴로지 API + 합의 VM 지표; 현재 배치 시간은 workloads placement.progress 내부 확장",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "rail 값/색은 해당 계층의 근거로 채우고 없는 계층은 미계측. 배치 시간은 보조 근거로 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "③ 배치별 읽기·호스트 준비·HtoD·CUDA 커널·DtoH/검증 합계 표시",
+        "gap": "현재 단계별 성공 배치 합계는 경로 병목 등급을 자동 증명하지 않음",
+        "decision": "미정 — 각 계층 제공기관; 글루시스 토폴로지·시험 계측·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W03-03",
+      "key": "forecast",
+      "screens": [
+        "③",
+        "④"
+      ],
+      "title": "계층별 예측·권고",
+      "meaning": "관측 시각·예측 생성 시각·대상 시각을 분리해 예측과 권고 표시.",
+      "metrics": [
+        "gpuflow_predict_util_ratio",
+        "gpuflow_predict_util_lower",
+        "gpuflow_predict_util_upper",
+        "gpuflow_predict_accuracy_ratio"
+      ],
+      "api": [
+        "VM PromQL",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated",
+        "workload_id — 귀속 근거 필요"
+      ],
+      "readiness": "계약 후보 · 실제 예측 검증 전",
+      "limits": "목업 confidence/accuracy 숫자는 시나리오. 실제 정책 실행은 별도이며 이번 화면 검토에서 호출하지 않음.",
+      "decisions": [
+        "+30/+60/+120초·예측 대상 단위·정확도·predict.bottleneck→policy.change 연결"
+      ],
+      "query": "",
+      "query_state": "미정 — 글루시스·온라인파워스 / 미팅에서 확정",
+      "sample": {
+        "kind": "미확인",
+        "note": "검증된 응답 표본 없음. 콘솔 숫자는 시나리오."
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/events → items[].data: event_key, event, severity, ts_ns, source, node, workload_id, labels, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\nVM: status, data.resultType, data.result[].metric, value=[시각, 문자열 값] 또는 values[]. 메트릭별 라벨·단위 확인 필요.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [
+        "verdict/evidence 목록은 원천 지표·이벤트·관측/예측 시각·대상·출처·quality를 연결.",
+        "what-if는 실제 적용과 분리된 모사 서비스·모델/버전·입력·예상효과 계약 필요. 계산 주체는 글루시스/기관·화면 조합 온라인파워스 협의."
+      ],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "계층별 +30/+60/+120초 예측·신뢰구간·병목 권고",
+        "institution": {
+          "provider": "KETI(스토리지 예측), 글루시스(기타 계층 예측) 제공 방향",
+          "source": "예측값/상하한·단위·대상, 관측/생성/예측대상 시각, 모델 버전·정확도·권고 이벤트",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "예측 시간축·대상 ID 정규화, 병목 이벤트와 권고 연결, 실측과 비교할 정확도 규칙 합의",
+          "output": "VM predict 지표 + events predict.bottleneck. 실제 예측 샘플·정확도 규격 미확정",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "예측선/밴드/권고를 실제 관측과 시각적으로 구분; horizon·생성 시각·출처 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "계약 후보 · 실제 예측 검증 전",
+        "gap": "목업 예측은 합성. 예측 단위·정확도 산식·각 기관 제공일 필요",
+        "decision": "미정 — KETI(스토리지 예측), 글루시스(기타 계층 예측) 제공 방향·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W04-01",
+      "key": "batch-comparison",
+      "screens": [
+        "④"
+      ],
+      "title": "실측 배치 조건 비교",
+      "meaning": "동일 GPU·노드·저장소·입력·커널·휴식 설정의 정상·지연·실패 실행을 성공 배치당 평균으로 비교.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes",
+        "GET /v1/topology-edges"
+      ],
+      "labels": [
+        "workload_id",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "J 기존 실측 기록 기반 · 정상 8/8, 지연 8/8, 실패 2/6",
+      "limits": "실패 부분 시간은 평균 제외. 현재 인과·병목 등급·GPU data wait·예측·권고 정책 미산출. 제한된 제어 실험이며 성능 벤치마크 아님.",
+      "decisions": [
+        "기관별 계측 규격·I/O stall과 GPU 할당시간 정의",
+        "실제 응용 워크로드의 비교 조건·통계 검증"
+      ],
+      "query": "GET /v1/workloads?page_size=200",
+      "query_state": "기존 업무 API 실측 progress JSON; 새 메트릭/API 없음",
+      "sample": {
+        "kind": "실증 근거 요약",
+        "captured_at": "2026-11-09T01:34:39.706837Z",
+        "data_origin": "measured",
+        "note": "입력 지연 차이 약 +1000.74 ms/성공 배치, 실패는 batch 3 daos_read_failed."
+      },
+      "display": "출처·관측 시각·조건·배치 수·원본 작업 링크 표시. 누락/불일치는 미확인.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "글루시스 실증 구현 · 온라인파워스 화면 범위 협의 필요",
+      "response_fields": "workloads.placement.progress: batches[], totals, expected_batches, status, observed_at, input_delay_requested_seconds, failure_injection_batch, kernel, inter_batch_pause_seconds; provenance/quality와 topology 식별자 교차 확인.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [
+        "배치 실험 비교와 verdict/evidence 기반 진단 분리. 권고 토글 영향 미리보기는 합성 what-if이며 관측값 불변·실효과 보증 안 함."
+      ],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "④ 진단 결론·근거·정책 전후 효과; 현재 비교 실험은 보조 검증 화면",
+        "institution": {
+          "provider": "각 계층 계측/예측기관, 글루시스 DAOS/CUDA 실험",
+          "source": "동일 조건의 전후 시계열·관련 이벤트·진단 근거. 테스트는 배치 조건·시간·성공/실패·검증 로그",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "동일 조건 비교·실패 분리·성공 배치당 평균. 자동 진단/인과 판단은 별도 근거와 규칙 합의",
+          "output": "현재 workloads placement.progress로 비교. 제품 진단 결론·근거/효과 계약은 추가 필요",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "제품 진단 영역에는 합의된 결론·근거·권고 연결. 현재 정상/지연/실패 실험은 별도 검증 결과로 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "J 기존 실측 기록 기반 · 정상 8/8, 지연 8/8, 실패 2/6",
+        "gap": "실험 지연 차이를 GPU wait 또는 실정책 효과로 간주하지 않음",
+        "decision": "미정 — 각 계층 계측/예측기관, 글루시스 DAOS/CUDA 실험·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W11-01",
+      "key": "alerts",
+      "screens": [
+        "⑪"
+      ],
+      "title": "활성 경보·확인(ack)",
+      "meaning": "alert.fire/resolve로 현재 상태를 만들고 ack를 별도 기록.",
+      "metrics": [],
+      "api": [
+        "GET /v1/events",
+        "활성 경보/ack 전용 API — 미정"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "이벤트 목록 가능 · 상태/ack API 미정",
+      "limits": "이벤트 목록 조회는 활성 경보 상태·ack 영속화 API를 대신하지 않음. 목업 ack는 브라우저 시나리오.",
+      "decisions": [
+        "발생/해제 연결·중복·ack 저장 주체·권한·1차 포함"
+      ],
+      "query": "GET /v1/events?page_size=1",
+      "query_state": "이벤트 목록 호출만 확인",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:17:17Z",
+        "http_status": 200,
+        "records": 1,
+        "data_origin": "simulation"
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/events → items[].data: event_key, event, severity, ts_ns, source, node, workload_id, labels, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "현재 경보 목록·미확인 수·Ack",
+        "institution": {
+          "provider": "각 계측/경보 발생기관, 글루시스 경보 상태 처리(제안)",
+          "source": "alert.fire/resolve, 경보 식별키·대상·심각도·발화/해소 시각, ack 주체/시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "경보 ID별 현재 상태 재구성·중복/지연 이벤트 처리, ack 별도 영속화 계약",
+          "output": "/v1/events 조회 존재. 활성 경보 결과/ack 변경 API는 미정",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "활성 상태와 미Ack 수를 구분, 목록/상태/실패 표시. 이벤트 건수를 경보 수로 사용하지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "이벤트 목록 가능 · 상태/ack API 미정",
+        "gap": "Ack 저장 주체·권한·목록 갱신 계약 미정",
+        "decision": "미정 — 각 계측/경보 발생기관, 글루시스 경보 상태 처리(제안)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W11-02",
+      "key": "events",
+      "screens": [
+        "⑪"
+      ],
+      "title": "이벤트 목록",
+      "meaning": "event_key·event·severity·ts_ns·source·workload_id·labels·attrs 표시.",
+      "metrics": [],
+      "api": [
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "PG 목록 조회 가능 · simulation 표본",
+      "limits": "기본 최근 1시간/요청 구간 최대 24시간. page_size 1~200, cursor 조건 유지. ns 정밀도 보존.",
+      "decisions": [
+        "기간·severity/workload 필터·페이지 갱신·출처/시각·텍스트 처리"
+      ],
+      "query": "GET /v1/events?page_size=1",
+      "query_state": "기존 호출 확인",
+      "sample": {
+        "kind": "검증 요약 · 원본 응답 아님",
+        "captured_at": "2026-11-07T09:17:17Z",
+        "http_status": 200,
+        "records": 1,
+        "data_origin": "simulation"
+      },
+      "display": "0·결측·지연·미지원·조회 실패를 구분. measured/simulation/replay/unknown 출처와 관측 시각 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/events → items[].data: event_key, event, severity, ts_ns, source, node, workload_id, labels, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "정책·노드·스토리지·경보 이벤트 이력",
+        "institution": {
+          "provider": "각 기관 이벤트 발행자, 글루시스 수집/저장",
+          "source": "event_key·event·severity·ts_ns·source·workload_id·labels·attrs",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "중복 키·출처·정밀 시각 검증, workload/span 연결; 기관 attrs는 데이터로 처리",
+          "output": "/v1/events items[].data + provenance/quality, cursor 페이지",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "유형/시각/주체/대상/상세를 필드에 연결, 기간·출처·조회 실패 구분",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "PG 목록 조회 가능 · simulation 표본",
+        "gap": "현재 합성 표본과 실발행 이벤트 구분. 기관별 이벤트 샘플·필드 확인 필요",
+        "decision": "미정 — 각 기관 이벤트 발행자, 글루시스 수집/저장·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W05-01",
+      "key": "tier-hit",
+      "screens": [
+        "⑤"
+      ],
+      "title": "티어별 캐시 적중률",
+      "meaning": "tier별 hit/miss를 구분. 동일 대상·기간의 hit/lookup이며 분모 0은 결측.",
+      "metrics": [
+        "gpuflow_cache_lookup_total",
+        "gpuflow_derived_tier_hit_ratio"
+      ],
+      "events": [
+        "kv.lookup",
+        "kv.load",
+        "kv.store",
+        "kv.evict"
+      ],
+      "api": [
+        "VM"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "tier별 hit/miss를 구분. 동일 대상·기간의 hit/lookup이며 분모 0은 결측.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "VM",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "tier별 hit/miss를 구분. 동일 대상·기간의 hit/lookup이며 분모 0은 결측.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "티어별 hit/miss와 적중률",
+        "institution": {
+          "provider": "서울대·서강대 캐시 개발기관(후보)",
+          "source": "tier/workload별 hit/miss 누적 횟수·lookup 정의·관측 시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "tier ID 통일, 동일 범위 lookup 분모와 중복 제거, hit ratio 계산",
+          "output": "VM cache_lookup_total / derived_tier_hit_ratio 후보",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "각 tier 카드/막대에 같은 기간 ratio와 요청수 연결; 분모 0은 미산출",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "L0~L4 지원 범위·원천 exporter 이름·실측 제공 여부 확인 필요",
+        "decision": "미정 — 서울대·서강대 캐시 개발기관(후보)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W05-02",
+      "key": "tier-capacity",
+      "screens": [
+        "⑤"
+      ],
+      "title": "티어 용량·evict·이동",
+      "meaning": "용량 bytes·evict counter·이동 이벤트를 분리. 용량 상한은 기관 원본 확인.",
+      "metrics": [
+        "gpuflow_cache_used_bytes",
+        "gpuflow_cache_evict_total"
+      ],
+      "events": [
+        "tier.promote",
+        "tier.demote"
+      ],
+      "api": [
+        "VM",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "용량 bytes·evict counter·이동 이벤트를 분리. 용량 상한은 기관 원본 확인.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "VM\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "용량 bytes·evict counter·이동 이벤트를 분리. 용량 상한은 기관 원본 확인.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "티어별 사용 용량·eviction·데이터 이동",
+        "institution": {
+          "provider": "서울대·서강대 캐시기관, 글루시스 스토리지(후보)",
+          "source": "used/total bytes, evict counter, 이동 이벤트·workload/tier·시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "bytes 정규화, evict rate와 이동 이벤트 구분, tier/작업 연결",
+          "output": "VM cache_used_bytes/cache_evict_total + events. 용량 상한 원천은 별도 확인",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "용량 게이지·evict 추이·이동 이력에 각각 연결. 추가 통합 규격은 후속 RFC 예정",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "상한 없는 사용량을 사용률로 그리지 않음; 기관별 지원 tier 확인 필요",
+        "decision": "미정 — 서울대·서강대 캐시기관, 글루시스 스토리지(후보)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W05-03",
+      "key": "tier-policy",
+      "screens": [
+        "⑤"
+      ],
+      "title": "티어 정책·효과",
+      "meaning": "같은 조건의 전후 비교 필요. 추가 통합 규격은 후속 RFC 예정.",
+      "metrics": [
+        "gpuflow_policy_active"
+      ],
+      "events": [
+        "policy.change"
+      ],
+      "api": [
+        "GET /v1/policies",
+        "GET /v1/policy-history"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "같은 조건의 전후 비교 필요. 추가 통합 규격은 후속 RFC 예정.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/policies\nGET /v1/policy-history",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "같은 조건의 전후 비교 필요. 추가 통합 규격은 후속 RFC 예정.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "POST /policies/apply"
+      ],
+      "handoff": {
+        "mockup": "티어 관련 정책 상태와 전후 효과",
+        "institution": {
+          "provider": "정책 소유기관(미정), 글루시스 정책 레지스트리",
+          "source": "정책 이름/소유자/활성 상태, 변경 이벤트, 비교 기간의 계측 근거",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "정책 키와 변경 이력 연결, simulated/actual 분리, 같은 조건 비교만 제공",
+          "output": "/v1/policies, /v1/policy-history + 관련 VM 지표",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "policy/name/active를 목록에 연결; 효과 값은 검증된 전후 비교가 있을 때 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 정책 표본은 합성. active는 장비 적용 완료의 증거가 아님; 후속 RFC 예정",
+        "decision": "미정 — 정책 소유기관(미정), 글루시스 정책 레지스트리·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W06-01",
+      "key": "storage-load",
+      "screens": [
+        "⑥"
+      ],
+      "title": "스토리지·메타데이터 부하",
+      "meaning": "backend별 DAOS rank/target과 Lustre MDT/OST 구분. counter rate·지연 histogram 형식 확인.",
+      "metrics": [
+        "gpuflow_storage_target_ops_total",
+        "gpuflow_storage_target_latency_seconds",
+        "gpuflow_storage_mdt_ops_total"
+      ],
+      "events": [],
+      "api": [
+        "VM",
+        "GET /v1/topology-nodes"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "backend별 DAOS rank/target과 Lustre MDT/OST 구분. counter rate·지연 histogram 형식 확인.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "VM\nGET /v1/topology-nodes",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "backend별 DAOS rank/target과 Lustre MDT/OST 구분. counter rate·지연 histogram 형식 확인.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [
+        "Lustre 수집 원천: lctl get_param mdt.*.md_stats / obdfilter.*.stats. DAOS: daos_metrics의 dfs metadata ops. exporter 변환·단위·노드/rank/target 매핑 확인."
+      ],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "DAOS rank/target, Lustre MDT/OST의 IOPS·지연·부하",
+        "institution": {
+          "provider": "글루시스 DAOS/ExaStor, 실측 장비 운영기관",
+          "source": "backend별 target/MDT ID, ops counter·지연 분포, Pool/노드 연결",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "backend 의미를 유지해 정규화, ops rate·histogram 집계, target skew 계산 규칙 합의",
+          "output": "VM storage_target_ops_total/latency_seconds/mdt_ops_total + topology-nodes",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "IOPS·지연·skew·메타데이터 표를 각각 대응 원천으로 채움; KV 지연으로 대체하지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "DAOS 일부 실측과 Lustre 미확인 범위 분리. 읽기 전용 지연·histogram 형식 확인 필요",
+        "decision": "미정 — 글루시스 DAOS/ExaStor, 실측 장비 운영기관·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W06-02",
+      "key": "dpu-stats",
+      "screens": [
+        "⑥"
+      ],
+      "title": "DPU 통계·오프로드",
+      "meaning": "QP·NVMe-oF IOPS/p99·온도는 기관 원본 확인. KV 지연과 NVMe-oF 지연을 혼동하지 않음.",
+      "metrics": [
+        "gpuflow_fabric_cnp_total",
+        "gpuflow_fabric_ecn_mark_total",
+        "gpuflow_fabric_pfc_pause_total",
+        "gpuflow_fabric_retrans_total",
+        "gpuflow_fabric_dpu_offload_ratio",
+        "gpuflow_transport_kv_op_seconds"
+      ],
+      "events": [],
+      "api": [
+        "VM",
+        "GET /v1/topology-nodes",
+        "GET /v1/topology-edges"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "QP·NVMe-oF IOPS/p99·온도는 기관 원본 확인. KV 지연과 NVMe-oF 지연을 혼동하지 않음.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "VM",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "QP·NVMe-oF IOPS/p99·온도는 기관 원본 확인. KV 지연과 NVMe-oF 지연을 혼동하지 않음.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [
+        "DPU 인벤토리 #dinv: topology-nodes의 kind/attrs와 topology-edges 연결. 호스트·모델·capabilities·포트 식별과 VM 처리량/온도 시리즈를 구분."
+      ],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "DPU/NVMe-oF·QP·오프로드·온도 및 혼잡 통계",
+        "institution": {
+          "provider": "망고부스트 DPU, 패브릭/장비 계측기관(후보)",
+          "source": "DPU별 오프로드 분모·분자, QP·온도·NVMe-oF IOPS/지연, ECN/PFC/CNP/retrans",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "DPU→노드/포트 연결, 단위·rate·백분위 정규화, 제공하지 않는 기능 표시",
+          "output": "VM 등록 fabric 지표 + 토폴로지. QP/온도/NVMe-oF 원천·계약은 기관 확인",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "각 통계 칸을 같은 의미의 DPU 지표로 연결; 지원 범위와 최근 관측 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "등록된 transport KV 지연은 NVMe-oF p99의 대체값이 아님",
+        "decision": "미정 — 망고부스트 DPU, 패브릭/장비 계측기관(후보)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W06-03",
+      "key": "switch-ports",
+      "screens": [
+        "⑥"
+      ],
+      "title": "스위치 포트·대역폭",
+      "meaning": "포트·방향 구분. bytes counter rate×8로 bit/s 변환. SN4700 연결·capability 제공 확인.",
+      "metrics": [
+        "gpuflow_fabric_port_rx_bytes_total",
+        "gpuflow_fabric_port_tx_bytes_total"
+      ],
+      "events": [],
+      "api": [
+        "VM",
+        "GET /v1/topology-edges"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "포트·방향 구분. bytes counter rate×8로 bit/s 변환. SN4700 연결·capability 제공 확인.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "VM\nGET /v1/topology-edges",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "포트·방향 구분. bytes counter rate×8로 bit/s 변환. SN4700 연결·capability 제공 확인.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "스위치 포트 RX/TX 대역폭·사용률·연결",
+        "institution": {
+          "provider": "스위치 운영/수집기관(미정); TTA는 장비·검증 협의",
+          "source": "포트별 RX/TX bytes counter, 링크속도·방향, node/POD 연결 정보",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "counter rate×8, 링크 용량으로 사용률, 중복 업링크/방향 집계 규칙",
+          "output": "VM fabric_port_rx/tx_bytes_total + topology-edges. 용량/연결 실측은 확인 필요",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "포트 행·RX/TX 그래프·사용률 바·POD 연결에 각각 대응",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "SN4700 제공 기능과 접근 담당 미정. TTA에 exporter 개발을 요구하는 항목은 아님",
+        "decision": "미정 — 스위치 운영/수집기관(미정); TTA는 장비·검증 협의·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W06-04",
+      "key": "dpu-config",
+      "screens": [
+        "⑥"
+      ],
+      "title": "DPU 설정·변경 이력",
+      "meaning": "CC 프로파일·ECN·QP 한도·MTU·PFC·NVMe-oF 오프로드 6종. 전후값 schema 미정. 실적용 후속.",
+      "metrics": [],
+      "events": [
+        "audit.change"
+      ],
+      "api": [
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "CC 프로파일·ECN·QP 한도·MTU·PFC·NVMe-oF 오프로드 6종. 전후값 schema 미정. 실적용 후속.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "CC 프로파일·ECN·QP 한도·MTU·PFC·NVMe-oF 오프로드 6종. 전후값 schema 미정. 실적용 후속.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "PUT /dpu/{id}/config"
+      ],
+      "handoff": {
+        "mockup": "DPU 설정 현황 및 변경 이력",
+        "institution": {
+          "provider": "망고부스트 DPU 제어/설정 소유기관(후보)",
+          "source": "CC 프로파일·ECN·QP 한도·MTU·PFC·NVMe-oF 설정값과 변경 전후·주체·시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "설정 의미 유지, 장비 ID와 이벤트 연결, actual/demo 구분",
+          "output": "events 조회는 존재. 설정 조회/전후값 schema와 실제 제공 API는 미정",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "6종 설정을 읽기 상태로 표시. 변경 버튼은 계약/권한 확인 전 실행하지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "1차 실장비 Apply/Rollback은 후속; 목업에 쓰인 제어 경로는 제공 보증 아님",
+        "decision": "미정 — 망고부스트 DPU 제어/설정 소유기관(후보)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W07-01",
+      "key": "agent-questions",
+      "screens": [
+        "⑦"
+      ],
+      "title": "고정 질문·입력 근거",
+      "meaning": "Q01~Q03, normal/no_evidence/timeout 지원. 현재 고정 mock. 원본 질문 후보와 구현된 3문항 구분.",
+      "metrics": [],
+      "events": [],
+      "api": [
+        "POST /v1/llm/explain"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "Q01~Q03, normal/no_evidence/timeout 지원. 현재 고정 mock. 원본 질문 후보와 구현된 3문항 구분.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "POST /v1/llm/explain",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "Q01~Q03, normal/no_evidence/timeout 지원. 현재 고정 mock. 원본 질문 후보와 구현된 3문항 구분.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "/v1/llm/explain → question_id, scenario, mock, response, evidence, request_id",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "고정 질문 선택과 근거 범위 확인",
+        "institution": {
+          "provider": "글루시스 LLM 서비스, 각 기관은 질문에 필요한 계측 근거",
+          "source": "허용 질문 ID, 선택 대상/기간, 같은 권한으로 조회 가능한 메트릭·이벤트·레지스트리",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "고정 조회 템플릿으로 근거 수집·품질/출처 표시 후 응답 생성; 임의 쿼리 실행 제외",
+          "output": "POST /v1/llm/explain 현재 Q01~Q03 고정 mock; 실모델·근거 조회 미연동",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "질문 버튼→question_id, 대상/기간은 계약 확정 후 전달. 사용자 선택 시에만 호출",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "목업 질문 후보 전체가 구현된 것은 아님. 추가 질문·자원·제공일 미정",
+        "decision": "미정 — 글루시스 LLM 서비스, 각 기관은 질문에 필요한 계측 근거·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W07-02",
+      "key": "agent-response",
+      "screens": [
+        "⑦"
+      ],
+      "title": "응답·출처·실패 처리",
+      "meaning": "mock/response.status/answer/findings/evidence_ids/quality/관측·생성 시각. timeout은 HTTP504 DEADLINE_EXCEEDED.",
+      "metrics": [],
+      "events": [],
+      "api": [
+        "POST /v1/llm/explain"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "mock/response.status/answer/findings/evidence_ids/quality/관측·생성 시각. timeout은 HTTP504 DEADLINE_EXCEEDED.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "POST /v1/llm/explain",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "mock/response.status/answer/findings/evidence_ids/quality/관측·생성 시각. timeout은 HTTP504 DEADLINE_EXCEEDED.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "/v1/llm/explain → question_id, scenario, mock, response, evidence, request_id",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "근거가 연결된 설명과 출처·로딩·실패 표시",
+        "institution": {
+          "provider": "글루시스 LLM 서비스",
+          "source": "설명/주장별 근거·관측/생성 시각·품질·모델/프롬프트 버전, 실패 상태",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "근거 없는 주장/새 수치 생성 제한, 권한 범위 보존, partial/no_evidence와 조회 실패 구분",
+          "output": "llm/explain의 response.answer/findings/evidence_ids/quality 및 mock 표시; timeout은 HTTP504",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "문단=answer, 근거 링크=findings/evidence_ids. timeout/no_evidence UI를 구분하고 합성 응답 명시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 fixture 검토만 가능. 스트리밍·실모델 응답시간·재시도/보존 계약 미정",
+        "decision": "미정 — 글루시스 LLM 서비스·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W08-01",
+      "key": "node-inventory",
+      "screens": [
+        "⑧"
+      ],
+      "title": "노드·GPU/NIC 연결",
+      "meaning": "health·heartbeat가 없으면 정상으로 표시하지 않음. 물리 POD와 K8s Pod 분리.",
+      "metrics": [],
+      "events": [
+        "node.join",
+        "node.leave",
+        "node.maintenance"
+      ],
+      "api": [
+        "GET /v1/topology-nodes",
+        "GET /v1/topology-edges",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "health·heartbeat가 없으면 정상으로 표시하지 않음. 물리 POD와 K8s Pod 분리.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/topology-nodes\nGET /v1/topology-edges\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "health·heartbeat가 없으면 정상으로 표시하지 않음. 물리 POD와 K8s Pod 분리.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "노드 목록·상태·GPU/NIC/스토리지 연결",
+        "institution": {
+          "provider": "노드/장비 운영기관·KETI(후보), 글루시스 인벤토리",
+          "source": "node/cluster/물리 POD/rack, GPU/NIC/스토리지 ID, heartbeat·건강 상태·시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "구성 정규화와 관계 연결; 인벤토리 존재와 현재 건강 상태 구분",
+          "output": "topology-nodes/edges + events. heartbeat/health 필드는 원천 계약 확인 필요",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "등록 목록과 연결도 표시; 상태 근거 없으면 미확인, 랙 미등록은 그대로 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "물리 POD와 Kubernetes Pod 분리. 현재 표본 목록만으로 정상/할당 가능 판정 불가",
+        "decision": "미정 — 노드/장비 운영기관·KETI(후보), 글루시스 인벤토리·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W08-02",
+      "key": "rebuild-progress",
+      "screens": [
+        "⑧"
+      ],
+      "title": "Rebuild·Rebalance 진행·영향",
+      "meaning": "진행 조회는 1차 후보. 영향≤10%는 동일 조건 baseline 대비 성능 저하율. 영향 workload·ETA 원천 없으면 미제공.",
+      "metrics": [
+        "gpuflow_storage_rebuild_progress_ratio",
+        "gpuflow_app_train_steps_total"
+      ],
+      "events": [
+        "storage.rebuild.start",
+        "storage.rebuild.progress",
+        "storage.rebuild.end",
+        "storage.rebalance.start",
+        "storage.rebalance.end"
+      ],
+      "api": [
+        "GET /v1/events",
+        "VM"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "진행 조회는 1차 후보. 영향≤10%는 동일 조건 baseline 대비 성능 저하율. 영향 workload·ETA 원천 없으면 미제공.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/events\nVM",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "진행 조회는 1차 후보. 영향≤10%는 동일 조건 baseline 대비 성능 저하율. 영향 workload·ETA 원천 없으면 미제공.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "Rebuild/Rebalance 진행률·영향·ETA",
+        "institution": {
+          "provider": "글루시스 스토리지 운영·작업 성능 계측기관(후보)",
+          "source": "작업 ID·상태·진행률·시작/갱신 시각, 영향 workload와 기준/시험 성능",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "진행 상태 연결, 동일 조건 baseline 대비 저하율. ETA는 근거/산식이 있을 때만 제공",
+          "output": "VM rebuild_progress_ratio + events; rebalance/ETA 원천은 추가 확인",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "진행률·영향률·ETA 각각 연결, 영향≤10% 목표와 실측 분리",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "실행 제어와 진행 조회는 별개. 현재 실제 진행/영향 샘플 미제공",
+        "decision": "미정 — 글루시스 스토리지 운영·작업 성능 계측기관(후보)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W08-03",
+      "key": "node-controls",
+      "screens": [
+        "⑧"
+      ],
+      "title": "노드 관리 실행 범위",
+      "meaning": "Maintenance/Drain/추가/장애 주입은 제안. 실행 API·권한·감사·복구 계약은 후속.",
+      "metrics": [],
+      "events": [
+        "node.maintenance"
+      ],
+      "api": [
+        "미정"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "Maintenance/Drain/추가/장애 주입은 제안. 실행 API·권한·감사·복구 계약은 후속.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "미정",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "Maintenance/Drain/추가/장애 주입은 제안. 실행 API·권한·감사·복구 계약은 후속.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "POST /nodes/{id}/maintenance",
+        "POST /nodes/{id}/drain"
+      ],
+      "handoff": {
+        "mockup": "Maintenance/Drain·노드 추가·장애 주입 조작",
+        "institution": {
+          "provider": "노드/스토리지 제어 소유기관(미정)",
+          "source": "기능 설명·대상·허용 상태·권한·결과/복구 이벤트",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "1차는 지원 기능/후속 범위를 문서화; 실장비 어댑터·멱등/복구 계약은 후속 RFC",
+          "output": "제품 실행 API 미제공. 기능 설명만 검토 대상",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "미제공 조작 비활성/후속 표시; 목업 동작을 실제 장비 명령에 연결하지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "1차 조회 범위를 넘어선 제어의 연차·담당·안전한 실패/복구 조건 미정",
+        "decision": "미정 — 노드/스토리지 제어 소유기관(미정)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W09-01",
+      "key": "policy-list",
+      "screens": [
+        "⑨"
+      ],
+      "title": "정책 목록",
+      "meaning": "주키는 policy. active는 저장 상태이며 장비 적용의 증거가 아님.",
+      "metrics": [],
+      "events": [],
+      "api": [
+        "GET /v1/policies"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "주키는 policy. active는 저장 상태이며 장비 적용의 증거가 아님.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/policies",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "주키는 policy. active는 저장 상태이며 장비 적용의 증거가 아님.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "/v1/policies → policy, name, from_tier, to_tier, rule, owner, workload_id, active, updated_at, updated_ns",
+      "pending_contracts": [],
+      "subregions": [
+        "기본 POL/ksPolicy: KV 경로·L3 청크 배치·checkpoint·대용량 전송·데이터셋·예측 프리페치. owner·mode·base 여부는 현재 API 필드와 attrs/확장 계약 확인. active를 base/실적용으로 추정하지 않음.",
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "POST /policies/apply"
+      ],
+      "handoff": {
+        "mockup": "정책 목록·이름·소유자·활성 상태",
+        "institution": {
+          "provider": "각 정책 소유기관, 글루시스 레지스트리",
+          "source": "정책 키/이름/소유자/규칙/대상, 지원 모드와 현재 등록 상태",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "정책 레지스트리 등록과 출처 구분; 등록 활성과 실제 적용 상태 분리",
+          "output": "/v1/policies items[].data(policy,name,owner,rule,workload_id,active)",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "목록 키=policy, 표시=name/owner/rule, 등록 상태=active. simulated 배지 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 합성 목록 fixture. 기관 소유 정책 목록·mode 확장 계약 확인 필요",
+        "decision": "미정 — 각 정책 소유기관, 글루시스 레지스트리·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W09-02",
+      "key": "policy-history",
+      "screens": [
+        "⑨"
+      ],
+      "title": "정책 이력·권고 연결",
+      "meaning": "policy·span_id·workload·시각으로 연결. policy.recommend는 지정 카탈로그에 없어 추가 계약 후보.",
+      "metrics": [],
+      "events": [
+        "policy.change",
+        "predict.bottleneck"
+      ],
+      "api": [
+        "GET /v1/policy-history",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "policy·span_id·workload·시각으로 연결. policy.recommend는 지정 카탈로그에 없어 추가 계약 후보.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/policy-history\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "policy·span_id·workload·시각으로 연결. policy.recommend는 지정 카탈로그에 없어 추가 계약 후보.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "/v1/policy-history → id, event_key, policy, ts, ts_ns, active, actor, role, reason, span_id, attrs",
+      "pending_contracts": [
+        "policy.recommend"
+      ],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "정책 변경 이력과 예측/권고 근거 연결",
+        "institution": {
+          "provider": "정책 실행기관·예측기관, 글루시스 이력 저장",
+          "source": "policy.change·predict.bottleneck의 span_id, policy/workload, 시각·상태·주체",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "span/policy/workload 연결, 사건 순서·정밀 시각 보존, 권고와 실행 완료 구분",
+          "output": "/v1/policy-history + /v1/events; policy.recommend는 추가 계약 후보",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "이력 행=policy/actor/reason/시각, 상세=attrs와 연결 이벤트. 결과 없는 권고를 적용 완료로 표시하지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 이력은 합성. 실제 상태값·권고 이벤트 계약 미정",
+        "decision": "미정 — 정책 실행기관·예측기관, 글루시스 이력 저장·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W09-03",
+      "key": "keti-profiles",
+      "screens": [
+        "⑨"
+      ],
+      "title": "KETI 프로파일·예측·프리페치",
+      "meaning": "KETI 제공 후보. AWSM 메타데이터·정책 도출·HCI·30분 열화 예측은 기관 API 구현 확인 대기. 프리페치 정확도 지표는 spec에는 있고 kit에는 없는 차이로 kit 연동 확인 대기.",
+      "metrics": [
+        "gpuflow_predict_util_ratio",
+        "gpuflow_predict_accuracy_ratio"
+      ],
+      "events": [
+        "prefetch.issue",
+        "prefetch.ready",
+        "predict.bottleneck"
+      ],
+      "api": [
+        "기관 확인: GET /awsm/profiles",
+        "PUT /hci/profiles"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "KETI 제공 후보. AWSM 메타데이터·정책 도출·HCI·30분 열화 예측은 기관 API 구현 확인 대기. gpuflow_host_prefetch_accuracy_ratio는 미등록 후보.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "기관 확인: GET /awsm/profiles\nPUT /hci/profiles",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "KETI 제공 후보. AWSM 메타데이터·정책 도출·HCI·30분 열화 예측은 기관 API 구현 확인 대기. gpuflow_host_prefetch_accuracy_ratio는 미등록 후보.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [
+        "gpuflow_host_prefetch_accuracy_ratio"
+      ],
+      "subregions": [
+        "AWSM→policy: I/O priority·redundancy 사용자 입력·대상 스토리지·적용 상태 포함. 메타데이터 저장 주체/쓰기 경로·버전·권한·감사는 KETI/글루시스 협의 미정.",
+        "gpuflow_host_prefetch_accuracy_ratio: telemetry-spec af28385에는 존재, kit e27f81f에는 없음. 양방향 차이이며 kit 등록 전 표준 계측 가능으로 표시하지 않음.",
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "GET /awsm/profiles",
+        "PUT /hci/profiles",
+        "PUT /prefetch/{workload}"
+      ],
+      "handoff": {
+        "mockup": "KETI 프로파일·정책 도출·예측·프리페치 정확도",
+        "institution": {
+          "provider": "KETI(목업 제공 후보)",
+          "source": "AWSM 프로파일·HCI 연계 정보, 예측 대상/시각/정확도, 프리페치 분자·분모",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "제공 API/지표 확인 후 레지스트리·예측과 연결; 미등록 규격은 RFC로 확인",
+          "output": "기존 predict 지표 후보. AWSM/HCI 경로는 원본 제안이며 실제 구현 미확인",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "기관이 확인한 프로파일·예측 결과로 채움; 미확인 경로는 호출하지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "프리페치 지표가 spec에는 있고 pinned kit에는 없음. 제공 버전·필드·샘플 필요",
+        "decision": "미정 — KETI(목업 제공 후보)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W09-04",
+      "key": "policy-demo",
+      "screens": [
+        "⑨"
+      ],
+      "title": "데모 세션·실행 상태",
+      "meaning": "기존 mock API 제공. 이번 UI는 실행하지 않고 계약만 매핑. simulated=true·memory_until_restart·실효과 미계산.",
+      "metrics": [],
+      "events": [
+        "policy.change"
+      ],
+      "api": [
+        "POST /v1/policy-demo-sessions",
+        "GET /v1/policy-demo-sessions/{session_id}"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "기존 mock API 제공. 이번 UI는 실행하지 않고 계약만 매핑. simulated=true·memory_until_restart·실효과 미계산.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "POST /v1/policy-demo-sessions\nGET /v1/policy-demo-sessions/{session_id}",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "기존 mock API 제공. 이번 UI는 실행하지 않고 계약만 매핑. simulated=true·memory_until_restart·실효과 미계산.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "정책 토글의 데모 실행·진행·결과",
+        "institution": {
+          "provider": "글루시스 데모 서비스; 기관은 제어 기능 설명 제공",
+          "source": "정책·대상·데모 action·세션 상태, simulated 표시와 오류",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "실장비와 분리한 세션 상태 관리. 실제 관측값 변경/장비 자격증명 사용 제외",
+          "output": "policy-demo-sessions POST/GET 기존 mock; 재시작 시 메모리 세션 소멸",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "제품 연결 시 세션 상태로 로딩/완료/실패 표시. 현재 미리보기는 계약 표시만 하고 실행하지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "예상 효과는 실제 측정 효과가 아님; 실제 적용·취소/복구 어댑터는 후속",
+        "decision": "미정 — 글루시스 데모 서비스; 기관은 제어 기능 설명 제공·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W10-01",
+      "key": "tenant-qos",
+      "screens": [
+        "⑩"
+      ],
+      "title": "테넌트·쿼터·QoS",
+      "meaning": "tenant/namespace 귀속 레지스트리 필요. quota·실사용량 분리.",
+      "metrics": [],
+      "events": [
+        "qos.limit.change"
+      ],
+      "api": [
+        "GET /v1/events",
+        "전용 API 미제공"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "tenant/namespace 귀속 레지스트리 필요. quota·실사용량 분리.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/events\n전용 API 미제공",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "tenant/namespace 귀속 레지스트리 필요. quota·실사용량 분리.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [
+        "후속 제어 API는 원본 목업 표기이며 현재 제공·인증·구현 완료를 보증하지 않음. 읽기 조회와 분리하고 이 미리보기에서 호출하지 않음."
+      ],
+      "control_api_proposals": [
+        "PUT /tenants/{id}/qos"
+      ],
+      "handoff": {
+        "mockup": "테넌트·네임스페이스별 쿼터·실사용·QoS",
+        "institution": {
+          "provider": "스케줄러/테넌트 운영기관·스토리지 운영기관(미정)",
+          "source": "tenant/namespace ID, quota·실사용량·QoS 설정·단위·적용 범위",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "논리 소속과 workload/volume 연결, quota와 실사용 분리, 권한 범위 정규화",
+          "output": "전용 tenant/quota/qos 조회 API 미제공; events만으로 현재 상태를 대체하지 않음",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "쿼터/사용량/정책 상태를 별도 칸에 연결. 1차 표시 범위부터 합의",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "값·담당·전용 조회 계약 모두 확인 필요. 목업 tenant 이름을 실제 계정으로 복제하지 않음",
+        "decision": "미정 — 스케줄러/테넌트 운영기관·스토리지 운영기관(미정)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W10-02",
+      "key": "top-talkers",
+      "screens": [
+        "⑩"
+      ],
+      "title": "Top talkers",
+      "meaning": "동일 기간 workload/tenant별 전송량 rate로 순위. 공유 pool 임의 배분 금지.",
+      "metrics": [],
+      "events": [],
+      "api": [
+        "전용 API 미제공",
+        "VM후보"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "동일 기간 workload/tenant별 전송량 rate로 순위. 공유 pool 임의 배분 금지.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "전용 API 미제공\nVM후보",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "동일 기간 workload/tenant별 전송량 rate로 순위. 공유 pool 임의 배분 금지.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "같은 기간의 tenant/workload별 Top talkers",
+        "institution": {
+          "provider": "전송 계측기관·스케줄러/테넌트 레지스트리 운영기관(미정)",
+          "source": "소유 tenant/workload가 확인된 전송량 counter·기간·방향",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "전송량 rate와 소유 관계 연결, 중복/공유분 처리 후 정렬 가능한 동일 단위 결과 제공",
+          "output": "VM 또는 업무 집계 계약 후보. 전용 결과/원천 귀속 미제공",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "합의된 bytes/s 결과를 정렬해 순위·막대 표시, 동일 기간·커버리지 명시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "공유 Pool 트래픽을 tenant 수로 나눠 배분하지 않음",
+        "decision": "미정 — 전송 계측기관·스케줄러/테넌트 레지스트리 운영기관(미정)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W10-03",
+      "key": "volumes-isolation",
+      "screens": [
+        "⑩"
+      ],
+      "title": "볼륨·프로비저닝·격리",
+      "meaning": "PVC→Pool/Container 귀속 필요. 격리 기법은 구현·검증 근거 필요. 이벤트만으로 사용 성공 판정 금지.",
+      "metrics": [],
+      "events": [
+        "csi.provision",
+        "csi.delete"
+      ],
+      "api": [
+        "GET /v1/events",
+        "전용 volumes API 미제공"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "PVC→Pool/Container 귀속 필요. 격리 기법은 구현·검증 근거 필요. 이벤트만으로 사용 성공 판정 금지.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/events\n전용 volumes API 미제공",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "PVC→Pool/Container 귀속 필요. 격리 기법은 구현·검증 근거 필요. 이벤트만으로 사용 성공 판정 금지.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "볼륨·PVC 연결·프로비저닝·격리 기법 현황",
+        "institution": {
+          "provider": "KETI K8s/CSI(후보), 글루시스 스토리지, 각 격리 기능 소유기관",
+          "source": "PVC/volume/Pool/Container 식별자·상태, csi.provision 결과와 사용 검증, 격리 기법 근거",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "논리 볼륨→저장소 관계 연결, 요청/생성/연결/사용 성공 단계 분리",
+          "output": "events는 존재; 전용 volumes 조회/격리 결과 계약은 미제공",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "볼륨 목록·상태·격리 여부를 검증 근거로 연결. 이벤트 1건을 전체 성공으로 처리하지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "PVC provision 실제 제어는 후속. 1차 표시 여부·원천 필드 확인 필요",
+        "decision": "미정 — KETI K8s/CSI(후보), 글루시스 스토리지, 각 격리 기능 소유기관·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W11-03",
+      "key": "alert-rules",
+      "screens": [
+        "⑪"
+      ],
+      "title": "임계값·상태 계산·Ack 책임",
+      "meaning": "임계값 정의·발화/해소 상태 계산·Ack 영속화·권한 책임 결정.",
+      "metrics": [],
+      "events": [
+        "alert.fire",
+        "alert.resolve"
+      ],
+      "api": [
+        "GET /v1/events",
+        "Ack 계약 미정"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "임계값 정의·발화/해소 상태 계산·Ack 영속화·권한 책임 결정.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/events\nAck 계약 미정",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "임계값 정의·발화/해소 상태 계산·Ack 영속화·권한 책임 결정.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "임계값·경고/위험 등급·경보 해소와 Ack 규칙",
+        "institution": {
+          "provider": "기관 지표 의미 제공자·글루시스·온라인파워스 공동 합의",
+          "source": "지표 단위/분모·경계값·지속시간·룰 버전, 상태 전이와 ack 기록",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "공통 룰로 히트맵/POD 경고/경보 상태 일치; 룰 변경 이력·ack 책임 명시",
+          "output": "events 조회 외 임계값/상태/Ack 제품 계약 미정",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "표시 색·경보 상태는 합의된 룰 결과 사용. UI만의 임의 임계값 계산을 피함",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "원본 wait 10/15% 등은 제안. 실제 발화 조건·해소·Ack 계약 미정",
+        "decision": "미정 — 기관 지표 의미 제공자·글루시스·온라인파워스 공동 합의·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W12-01",
+      "key": "role-matrix",
+      "screens": [
+        "⑫"
+      ],
+      "title": "역할 4종 × 13화면 권한표",
+      "meaning": "admin/op/user/ro × F/S/R/X는 원본 검토안. bearer testbed_all은 테넌트 격리 근거가 아님.",
+      "metrics": [],
+      "events": [
+        "audit.access"
+      ],
+      "api": [
+        "제품 RBAC 미제공"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "admin/op/user/ro × F/S/R/X는 원본 검토안. bearer testbed_all은 테넌트 격리 근거가 아님.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "제품 RBAC 미제공",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "admin/op/user/ro × F/S/R/X는 원본 검토안. bearer testbed_all은 테넌트 격리 근거가 아님.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "역할별 화면·기능·데이터 범위",
+        "institution": {
+          "provider": "온라인파워스 사용자 인증, 글루시스 데이터 범위 검사(공동 설계)",
+          "source": "사용자/역할/tenant 권한, 위임 신원, 대상별 조회/변경 허용 범위",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "업무 API 권한 검사와 VM 직접조회 범위 강제 주체 합의; UI 선택과 실권한 구분",
+          "output": "원본 admin/op/user/ro × F/S/R/X는 제안. 제품 RBAC API 미제공",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "메뉴/버튼은 서버 권한 결과로 표시. Role 드롭다운으로 권한을 얻지 않음",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "testbed_all 토큰은 제품 테넌트 격리 검증이 아님; 인증/권한 경계 확인 필요",
+        "decision": "미정 — 온라인파워스 사용자 인증, 글루시스 데이터 범위 검사(공동 설계)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W12-02",
+      "key": "audit-log",
+      "screens": [
+        "⑫"
+      ],
+      "title": "접근·변경 감사",
+      "meaning": "actor/role/target/request_id 등 attrs의 실제 schema 확인. ns 정밀도·보존·조회 권한 협의.",
+      "metrics": [],
+      "events": [
+        "audit.access",
+        "audit.change"
+      ],
+      "api": [
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "actor/role/target/request_id 등 attrs의 실제 schema 확인. ns 정밀도·보존·조회 권한 협의.",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "actor/role/target/request_id 등 attrs의 실제 schema 확인. ns 정밀도·보존·조회 권한 협의.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정",
+      "response_fields": "원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "접근·변경 감사 이력",
+        "institution": {
+          "provider": "온라인파워스 화면 백엔드·글루시스 API·기관 제어 발행자",
+          "source": "actor/role/target/action/request_id·시각·결과·출처의 감사 이벤트",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "감사 상관키 연결, 민감정보 제외, 보존/조회 범위 합의",
+          "output": "/v1/events; audit attrs 실제 schema·발행 범위·보존은 미정",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "주체·대상·행위·결과·시각을 표로 연결, 조회 권한/실패 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "원본 Role 전환 기록은 목업. 실제 요청 감사 완결성은 확인 필요",
+        "decision": "미정 — 온라인파워스 화면 백엔드·글루시스 API·기관 제어 발행자·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W13-01",
+      "key": "scorecard-1",
+      "screens": [
+        "⑬"
+      ],
+      "title": "I/O 성능 향상",
+      "meaning": "(시험값−기준값)/기준값×100; 기준값>0·동일 조건; TTA 기준 시스템·시험 원본·구성·반복",
+      "metrics": [],
+      "events": [
+        "bench.result"
+      ],
+      "api": [
+        "GET /v1/scorecard-runs",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "(시험값−기준값)/기준값×100; 기준값>0·동일 조건; TTA 기준 시스템·시험 원본·구성·반복",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/scorecard-runs\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "(시험값−기준값)/기준값×100; 기준값>0·동일 조건; TTA 기준 시스템·시험 원본·구성·반복",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "검증 주체 후보: TTA·글루시스·시험 수행기관 / 미팅에서 확정",
+      "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "I/O 성능 향상의 목표·측정값·평가 상태·시험 근거",
+        "institution": {
+          "provider": "TTA·글루시스·시험 수행기관 (후보·미팅 확정); TTA는 검증 역할",
+          "source": "TTA 기준 시스템·시험 원본·구성·반복; 시험 run ID·설정·대상·시각·출처·원본 결과",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "시험 조건/단위/원본 근거 검증 후 (시험값−기준값)/기준값×100; 기준값>0·동일 조건; indicator와 run을 연결하고 재시험·실패·합성 구분",
+          "output": "/v1/scorecard-runs: indicator,target,measured,unit,run_at,source,attrs 및 provenance/quality",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "행=io_uplift 별칭(현재 합성 예시용), 목표=target, 값=measured+unit, 근거=run/attrs. 실제 indicator 확인 후 연결",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 scorecard는 합성 fixture. 공식 원본 시험·평가 조건·검증 승인 없이 달성 판정하지 않음. 목표 ≥20%는 목업 제안",
+        "decision": "미정 — TTA·글루시스·시험 수행기관 (후보·미팅 확정); TTA는 검증 역할·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W13-02",
+      "key": "scorecard-2",
+      "screens": [
+        "⑬"
+      ],
+      "title": "노드별 순차 읽기",
+      "meaning": "읽기 bytes/초/1e9; 노드별 원본 집계. 전체값 임의 나눗셈 금지; IO500 easy-read·참여 노드·시험 구간",
+      "metrics": [],
+      "events": [
+        "bench.result"
+      ],
+      "api": [
+        "GET /v1/scorecard-runs",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "읽기 bytes/초/1e9; 노드별 원본 집계. 전체값 임의 나눗셈 금지; IO500 easy-read·참여 노드·시험 구간",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/scorecard-runs\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "읽기 bytes/초/1e9; 노드별 원본 집계. 전체값 임의 나눗셈 금지; IO500 easy-read·참여 노드·시험 구간",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "검증 주체 후보: TTA·글루시스·스토리지 시험기관 / 미팅에서 확정",
+      "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "노드별 순차 읽기의 목표·측정값·평가 상태·시험 근거",
+        "institution": {
+          "provider": "TTA·글루시스·스토리지 시험기관 (후보·미팅 확정); TTA는 검증 역할",
+          "source": "IO500 easy-read·참여 노드·시험 구간; 시험 run ID·설정·대상·시각·출처·원본 결과",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "시험 조건/단위/원본 근거 검증 후 읽기 bytes/초/1e9; 노드별 원본 집계. 전체값 임의 나눗셈 금지; indicator와 run을 연결하고 재시험·실패·합성 구분",
+          "output": "/v1/scorecard-runs: indicator,target,measured,unit,run_at,source,attrs 및 provenance/quality",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "행=sequential_read 별칭(현재 합성 예시용), 목표=target, 값=measured+unit, 근거=run/attrs. 실제 indicator 확인 후 연결",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 scorecard는 합성 fixture. 공식 원본 시험·평가 조건·검증 승인 없이 달성 판정하지 않음. 목표 ≥200 GB/s는 목업 제안",
+        "decision": "미정 — TTA·글루시스·스토리지 시험기관 (후보·미팅 확정); TTA는 검증 역할·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W13-03",
+      "key": "scorecard-3",
+      "screens": [
+        "⑬"
+      ],
+      "title": "노드별 순차 쓰기",
+      "meaning": "쓰기 bytes/초/1e9; 노드별 원본 집계; IO500 easy-write·동일 조건",
+      "metrics": [],
+      "events": [
+        "bench.result"
+      ],
+      "api": [
+        "GET /v1/scorecard-runs",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "쓰기 bytes/초/1e9; 노드별 원본 집계; IO500 easy-write·동일 조건",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/scorecard-runs\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "쓰기 bytes/초/1e9; 노드별 원본 집계; IO500 easy-write·동일 조건",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "검증 주체 후보: TTA·글루시스·스토리지 시험기관 / 미팅에서 확정",
+      "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "노드별 순차 쓰기의 목표·측정값·평가 상태·시험 근거",
+        "institution": {
+          "provider": "TTA·글루시스·스토리지 시험기관 (후보·미팅 확정); TTA는 검증 역할",
+          "source": "IO500 easy-write·동일 조건; 시험 run ID·설정·대상·시각·출처·원본 결과",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "시험 조건/단위/원본 근거 검증 후 쓰기 bytes/초/1e9; 노드별 원본 집계; indicator와 run을 연결하고 재시험·실패·합성 구분",
+          "output": "/v1/scorecard-runs: indicator,target,measured,unit,run_at,source,attrs 및 provenance/quality",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "행=sequential_write 별칭(현재 합성 예시용), 목표=target, 값=measured+unit, 근거=run/attrs. 실제 indicator 확인 후 연결",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 scorecard는 합성 fixture. 공식 원본 시험·평가 조건·검증 승인 없이 달성 판정하지 않음. 목표 ≥140 GB/s는 목업 제안",
+        "decision": "미정 — TTA·글루시스·스토리지 시험기관 (후보·미팅 확정); TTA는 검증 역할·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W13-04",
+      "key": "scorecard-4",
+      "screens": [
+        "⑬"
+      ],
+      "title": "체크포인트 읽기",
+      "meaning": "체크포인트 읽기 bytes/초/2^30; MLPerf 관련 원본 시험·checkpoint 범위·구간",
+      "metrics": [],
+      "events": [
+        "bench.result"
+      ],
+      "api": [
+        "GET /v1/scorecard-runs",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "체크포인트 읽기 bytes/초/2^30; MLPerf 관련 원본 시험·checkpoint 범위·구간",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/scorecard-runs\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "체크포인트 읽기 bytes/초/2^30; MLPerf 관련 원본 시험·checkpoint 범위·구간",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "검증 주체 후보: TTA·글루시스·워크로드 시험기관 / 미팅에서 확정",
+      "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "체크포인트 읽기의 목표·측정값·평가 상태·시험 근거",
+        "institution": {
+          "provider": "TTA·글루시스·워크로드 시험기관 (후보·미팅 확정); TTA는 검증 역할",
+          "source": "MLPerf 관련 원본 시험·checkpoint 범위·구간; 시험 run ID·설정·대상·시각·출처·원본 결과",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "시험 조건/단위/원본 근거 검증 후 체크포인트 읽기 bytes/초/2^30; indicator와 run을 연결하고 재시험·실패·합성 구분",
+          "output": "/v1/scorecard-runs: indicator,target,measured,unit,run_at,source,attrs 및 provenance/quality",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "행=checkpoint_read 별칭(현재 합성 예시용), 목표=target, 값=measured+unit, 근거=run/attrs. 실제 indicator 확인 후 연결",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 scorecard는 합성 fixture. 공식 원본 시험·평가 조건·검증 승인 없이 달성 판정하지 않음. 목표 ≥40 GiB/s는 목업 제안",
+        "decision": "미정 — TTA·글루시스·워크로드 시험기관 (후보·미팅 확정); TTA는 검증 역할·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W13-05",
+      "key": "scorecard-5",
+      "screens": [
+        "⑬"
+      ],
+      "title": "체크포인트 쓰기",
+      "meaning": "체크포인트 쓰기 bytes/초/2^30; MLPerf 관련 쓰기 원본·동기화 완료 기준",
+      "metrics": [],
+      "events": [
+        "bench.result"
+      ],
+      "api": [
+        "GET /v1/scorecard-runs",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "체크포인트 쓰기 bytes/초/2^30; MLPerf 관련 쓰기 원본·동기화 완료 기준",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/scorecard-runs\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "체크포인트 쓰기 bytes/초/2^30; MLPerf 관련 쓰기 원본·동기화 완료 기준",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "검증 주체 후보: TTA·글루시스·워크로드 시험기관 / 미팅에서 확정",
+      "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "체크포인트 쓰기의 목표·측정값·평가 상태·시험 근거",
+        "institution": {
+          "provider": "TTA·글루시스·워크로드 시험기관 (후보·미팅 확정); TTA는 검증 역할",
+          "source": "MLPerf 관련 쓰기 원본·동기화 완료 기준; 시험 run ID·설정·대상·시각·출처·원본 결과",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "시험 조건/단위/원본 근거 검증 후 체크포인트 쓰기 bytes/초/2^30; indicator와 run을 연결하고 재시험·실패·합성 구분",
+          "output": "/v1/scorecard-runs: indicator,target,measured,unit,run_at,source,attrs 및 provenance/quality",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "행=checkpoint_write 별칭(현재 합성 예시용), 목표=target, 값=measured+unit, 근거=run/attrs. 실제 indicator 확인 후 연결",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 scorecard는 합성 fixture. 공식 원본 시험·평가 조건·검증 승인 없이 달성 판정하지 않음. 목표 ≥20 GiB/s는 목업 제안",
+        "decision": "미정 — TTA·글루시스·워크로드 시험기관 (후보·미팅 확정); TTA는 검증 역할·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W13-06",
+      "key": "scorecard-6",
+      "screens": [
+        "⑬"
+      ],
+      "title": "피드백 지연",
+      "meaning": "동일 span 분석 완료→정책 적용 완료 시각 차이; ns→ms /1e6; 분석/적용 상태·span·정밀 시각. API 수신시각 대체 금지",
+      "metrics": [],
+      "events": [
+        "predict.bottleneck",
+        "policy.change"
+      ],
+      "api": [
+        "GET /v1/scorecard-runs",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "동일 span 분석 완료→정책 적용 완료 시각 차이; ns→ms /1e6; 분석/적용 상태·span·정밀 시각. API 수신시각 대체 금지",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/scorecard-runs\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "동일 span 분석 완료→정책 적용 완료 시각 차이; ns→ms /1e6; 분석/적용 상태·span·정밀 시각. API 수신시각 대체 금지",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "검증 주체 후보: 글루시스·KETI·TTA / 미팅에서 확정",
+      "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "피드백 지연의 목표·측정값·평가 상태·시험 근거",
+        "institution": {
+          "provider": "글루시스·KETI·TTA (후보·미팅 확정); TTA는 검증 역할",
+          "source": "분석/적용 상태·span·정밀 시각. API 수신시각 대체 금지; 시험 run ID·설정·대상·시각·출처·원본 결과",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "시험 조건/단위/원본 근거 검증 후 동일 span 분석 완료→정책 적용 완료 시각 차이; ns→ms /1e6; indicator와 run을 연결하고 재시험·실패·합성 구분",
+          "output": "/v1/scorecard-runs: indicator,target,measured,unit,run_at,source,attrs 및 provenance/quality",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "행=feedback_latency 별칭(현재 합성 예시용), 목표=target, 값=measured+unit, 근거=run/attrs. 실제 indicator 확인 후 연결",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 scorecard는 합성 fixture. 공식 원본 시험·평가 조건·검증 승인 없이 달성 판정하지 않음. 목표 ≤200 ms는 목업 제안",
+        "decision": "미정 — 글루시스·KETI·TTA (후보·미팅 확정); TTA는 검증 역할·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W13-07",
+      "key": "scorecard-7",
+      "screens": [
+        "⑬"
+      ],
+      "title": "호스트 CPU 사용률",
+      "meaning": "대상 학습 노드의 시간 가중 평균 ratio×100; CPU 정규화 합의; gpuflow_host_cpu_util_ratio·대상·기간·DPU 조건",
+      "metrics": [
+        "gpuflow_host_cpu_util_ratio"
+      ],
+      "events": [],
+      "api": [
+        "GET /v1/scorecard-runs",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "대상 학습 노드의 시간 가중 평균 ratio×100; CPU 정규화 합의; gpuflow_host_cpu_util_ratio·대상·기간·DPU 조건",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/scorecard-runs\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "대상 학습 노드의 시간 가중 평균 ratio×100; CPU 정규화 합의; gpuflow_host_cpu_util_ratio·대상·기간·DPU 조건",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "검증 주체 후보: 글루시스·망고부스트·KETI·TTA / 미팅에서 확정",
+      "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "호스트 CPU 사용률의 목표·측정값·평가 상태·시험 근거",
+        "institution": {
+          "provider": "글루시스·망고부스트·KETI·TTA (후보·미팅 확정); TTA는 검증 역할",
+          "source": "gpuflow_host_cpu_util_ratio·대상·기간·DPU 조건; 시험 run ID·설정·대상·시각·출처·원본 결과",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "시험 조건/단위/원본 근거 검증 후 대상 학습 노드의 시간 가중 평균 ratio×100; CPU 정규화 합의; indicator와 run을 연결하고 재시험·실패·합성 구분",
+          "output": "/v1/scorecard-runs: indicator,target,measured,unit,run_at,source,attrs 및 provenance/quality",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "행=host_cpu 별칭(현재 합성 예시용), 목표=target, 값=measured+unit, 근거=run/attrs. 실제 indicator 확인 후 연결",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 scorecard는 합성 fixture. 공식 원본 시험·평가 조건·검증 승인 없이 달성 판정하지 않음. 목표 ≤5%는 목업 제안",
+        "decision": "미정 — 글루시스·망고부스트·KETI·TTA (후보·미팅 확정); TTA는 검증 역할·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W13-08",
+      "key": "scorecard-8",
+      "screens": [
+        "⑬"
+      ],
+      "title": "원격 복구 RTO",
+      "meaning": "장애/전환 시작→서비스 복구 완료. event 한 건만으로 계산 금지; 복구 시작·완료의 실제 상태·검증 로그",
+      "metrics": [],
+      "events": [
+        "dr.failover"
+      ],
+      "api": [
+        "GET /v1/scorecard-runs",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "장애/전환 시작→서비스 복구 완료. event 한 건만으로 계산 금지; 복구 시작·완료의 실제 상태·검증 로그",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/scorecard-runs\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "장애/전환 시작→서비스 복구 완료. event 한 건만으로 계산 금지; 복구 시작·완료의 실제 상태·검증 로그",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "검증 주체 후보: 글루시스·TTA·복구 시험기관 / 미팅에서 확정",
+      "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "원격 복구 RTO의 목표·측정값·평가 상태·시험 근거",
+        "institution": {
+          "provider": "글루시스·TTA·복구 시험기관 (후보·미팅 확정); TTA는 검증 역할",
+          "source": "복구 시작·완료의 실제 상태·검증 로그; 시험 run ID·설정·대상·시각·출처·원본 결과",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "시험 조건/단위/원본 근거 검증 후 장애/전환 시작→서비스 복구 완료. event 한 건만으로 계산 금지; indicator와 run을 연결하고 재시험·실패·합성 구분",
+          "output": "/v1/scorecard-runs: indicator,target,measured,unit,run_at,source,attrs 및 provenance/quality",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "행=recovery_rto 별칭(현재 합성 예시용), 목표=target, 값=measured+unit, 근거=run/attrs. 실제 indicator 확인 후 연결",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 scorecard는 합성 fixture. 공식 원본 시험·평가 조건·검증 승인 없이 달성 판정하지 않음. 목표 ≤30 s는 목업 제안",
+        "decision": "미정 — 글루시스·TTA·복구 시험기관 (후보·미팅 확정); TTA는 검증 역할·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W13-09",
+      "key": "scorecard-9",
+      "screens": [
+        "⑬"
+      ],
+      "title": "격리 기법 수",
+      "meaning": "구현·검증된 고유 기법의 개수. 목업 Active 개수 제외; ⑩ 격리 기법별 증거·중복 제거 기준",
+      "metrics": [],
+      "events": [],
+      "api": [
+        "GET /v1/scorecard-runs",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "구현·검증된 고유 기법의 개수. 목업 Active 개수 제외; ⑩ 격리 기법별 증거·중복 제거 기준",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/scorecard-runs\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "구현·검증된 고유 기법의 개수. 목업 Active 개수 제외; ⑩ 격리 기법별 증거·중복 제거 기준",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "검증 주체 후보: 글루시스·관련 기관·TTA / 미팅에서 확정",
+      "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "격리 기법 수의 목표·측정값·평가 상태·시험 근거",
+        "institution": {
+          "provider": "글루시스·관련 기관·TTA (후보·미팅 확정); TTA는 검증 역할",
+          "source": "⑩ 격리 기법별 증거·중복 제거 기준; 시험 run ID·설정·대상·시각·출처·원본 결과",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "시험 조건/단위/원본 근거 검증 후 구현·검증된 고유 기법의 개수. 목업 Active 개수 제외; indicator와 run을 연결하고 재시험·실패·합성 구분",
+          "output": "/v1/scorecard-runs: indicator,target,measured,unit,run_at,source,attrs 및 provenance/quality",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "행=isolation_count 별칭(현재 합성 예시용), 목표=target, 값=measured+unit, 근거=run/attrs. 실제 indicator 확인 후 연결",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 scorecard는 합성 fixture. 공식 원본 시험·평가 조건·검증 승인 없이 달성 판정하지 않음. 목표 ≥6는 목업 제안",
+        "decision": "미정 — 글루시스·관련 기관·TTA (후보·미팅 확정); TTA는 검증 역할·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W13-10",
+      "key": "scorecard-10",
+      "screens": [
+        "⑬"
+      ],
+      "title": "프로비저닝 자동화",
+      "meaning": "자동 요청→생성·연결·사용 성공 증거. demo 클릭 수 제외; PVC/volume/Container 연결·성공 결과·사용 검증",
+      "metrics": [],
+      "events": [
+        "csi.provision"
+      ],
+      "api": [
+        "GET /v1/scorecard-runs",
+        "GET /v1/events"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+      "limits": "자동 요청→생성·연결·사용 성공 증거. demo 클릭 수 제외; PVC/volume/Container 연결·성공 결과·사용 검증",
+      "decisions": [
+        "제공 범위·원천 필드·분모·단위",
+        "담당·기한·제품 갱신/이력 범위"
+      ],
+      "query": "GET /v1/scorecard-runs\nGET /v1/events",
+      "query_state": "기존 API만 사용. 기관 경로·신규 계약 후보는 실행하지 않음.",
+      "sample": {
+        "kind": "저장된 표본 또는 고정 mock · 실측 인수와 구분"
+      },
+      "display": "자동 요청→생성·연결·사용 성공 증거. demo 클릭 수 제외; PVC/volume/Container 연결·성공 결과·사용 검증",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "검증 주체 후보: KETI·글루시스·TTA / 미팅에서 확정",
+      "response_fields": "items[].data: id, event_key, indicator, target, measured, unit, run_at, ts_ns, source, attrs; 공통 provenance/quality. indicator 문자열과 KPI를 명시적으로 연결.",
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "프로비저닝 자동화의 목표·측정값·평가 상태·시험 근거",
+        "institution": {
+          "provider": "KETI·글루시스·TTA (후보·미팅 확정); TTA는 검증 역할",
+          "source": "PVC/volume/Container 연결·성공 결과·사용 검증; 시험 run ID·설정·대상·시각·출처·원본 결과",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "시험 조건/단위/원본 근거 검증 후 자동 요청→생성·연결·사용 성공 증거. demo 클릭 수 제외; indicator와 run을 연결하고 재시험·실패·합성 구분",
+          "output": "/v1/scorecard-runs: indicator,target,measured,unit,run_at,source,attrs 및 provenance/quality",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "행=provisioning 별칭(현재 합성 예시용), 목표=target, 값=measured+unit, 근거=run/attrs. 실제 indicator 확인 후 연결",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "매핑 초안 · API/원천 제공과 화면 표시 상태 분리",
+        "gap": "현재 scorecard는 합성 fixture. 공식 원본 시험·평가 조건·검증 승인 없이 달성 판정하지 않음. 목표 지원는 목업 제안",
+        "decision": "미정 — KETI·글루시스·TTA (후보·미팅 확정); TTA는 검증 역할·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W01-08",
+      "key": "pod-summary",
+      "screens": [
+        "①"
+      ],
+      "title": "POD별 요약",
+      "meaning": "물리 POD별 등록 노드·GPU·Max wait·할당·Alerts·Uplink. Alerts는 원본의 wait≥15% GPU 수이며 전체 경보 수와 구분. 미계측·미연동은 0이 아님.",
+      "metrics": [
+        "gpuflow_derived_gpu_data_wait_ratio",
+        "gpuflow_fabric_port_tx_bytes_total",
+        "gpuflow_fabric_port_rx_bytes_total"
+      ],
+      "api": [
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes",
+        "VM PromQL",
+        "GET /v1/topology-edges"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "등록 GPU 요약 표시 · Max wait/Alerts 미계측·할당/Uplink 미연동",
+      "limits": "기존 API의 모든 페이지를 읽고 measured/false만 인벤토리·관계에 사용한다. relation lease와 source 품질을 재검증하며 종료·stale·unknown·conflict는 현재 관계 집계에서 제외한다. GPU UUID는 cluster 범위에서 중복 제거한다. 관측 관계는 예약/할당이 아니다. 저장된 관측은 captured_at 기준으로 관계 유효성을 판정하며 현재 상태를 뜻하지 않는다. GPU/rack/node 필터는 관계 검증 후 적용한다. 랙 미등록을 추정값으로 채우지 않는다.",
+      "decisions": [
+        "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
+      ],
+      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\nGET /v1/topology-edges?page_size=200\n목록은 next_cursor 끝까지 순회. 포트→POD 연결을 확인한 뒤 해당 포트의 RX/TX counter를 VM PromQL로 조회. Uplink 사용률은 링크 용량·방향·집계 구간 확인 후 산출.",
+      "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
+      "sample": {
+        "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
+        "measured_workloads": 3,
+        "simulation_workloads": 45,
+        "note": "실측 3건은 완료/종료된 검증 작업이다. 실시간 보기에서는 매번 기존 API를 조회한다."
+      },
+      "display": "실측 등록 GPU / 관측된 유효 GPU 관계 / 스케줄러 할당량 미확인을 분리. 시뮬레이션은 별도 이력 수로 표시.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "/v1/workloads → items[].data: workload_id, type, tenant, namespace, pod, placement, storage, started_at, ended_at\n/v1/topology-nodes → items[].data: id, kind, layer, pod, rack, attrs\n공통: items[].provenance, items[].quality, next_cursor, backend. ns 값은 정밀도를 잃지 않도록 처리.\n추가: placement.cluster, nodes, active_gpu_uuids, registry(state, observed_at, valid_until), quality.registry_stale, binding_verified. inventory attrs.cluster/node/gpu_uuid와 연결. 종료·만료는 제외.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "물리 POD별 노드·GPU·할당·Max wait·Alerts·Uplink",
+        "institution": {
+          "provider": "GPU/스케줄러/패브릭 원천기관(미정), 글루시스 연결 레지스트리",
+          "source": "GPU/노드→POD, 할당/대기율, 포트 RX/TX/링크속도와 포트→POD 연결",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "POD별 중복 제거 집계, wait 최대와 wait≥15% GPU 수, 링크 방향/용량을 반영한 uplink 계산",
+          "output": "workloads/topology-nodes/edges + VM wait/fabric counter; 집계 규칙은 추가 확정",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "타일별 등록 수/할당/Max wait/Alerts/Uplink를 분리. Alerts는 전체 경보 건수와 다름",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "등록 GPU 요약 표시 · Max wait/Alerts 미계측·할당/Uplink 미연동",
+        "gap": "현재 등록 노드·GPU 수만 제공. 나머지 수치는 미계측/미연동; physical POD≠K8s Pod",
+        "decision": "미정 — GPU/스케줄러/패브릭 원천기관(미정), 글루시스 연결 레지스트리·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W01-09",
+      "key": "top-wait",
+      "screens": [
+        "①"
+      ],
+      "title": "Top nodes by wait",
+      "meaning": "Top8 순위의 기간·다중 GPU 가중·유효 표본·동률·노드→③ 이동 키(cluster/node/GPU UUID) 결정. wait 미계측이면 순위 미산출.",
+      "metrics": [
+        "gpuflow_derived_gpu_data_wait_ratio"
+      ],
+      "api": [
+        "GET /v1/topology-nodes",
+        "VM PromQL"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "원본 표시 계약 매핑 · 수치/기관 실연동 별도",
+      "limits": "Top8 순위의 기간·다중 GPU 가중·유효 표본·동률·노드→③ 이동 키(cluster/node/GPU UUID) 결정. wait 미계측이면 순위 미산출.",
+      "decisions": [
+        "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
+      ],
+      "query": "GET /v1/topology-nodes?page_size=200\ngpuflow_derived_gpu_data_wait_ratio{data_origin=\"measured\",simulated=\"false\"}\n노드별 가중·기간·유효 표본·동률 규칙 확정 후 Top8 집계. 미계측은 미산출.",
+      "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
+      "sample": {
+        "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
+        "measured_workloads": 3,
+        "simulation_workloads": 45,
+        "note": "실측 3건은 완료/종료된 검증 작업이다. 실시간 보기에서는 매번 기존 API를 조회한다."
+      },
+      "display": "Top8 순위의 기간·다중 GPU 가중·유효 표본·동률·노드→③ 이동 키(cluster/node/GPU UUID) 결정. wait 미계측이면 순위 미산출.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "Top8 순위의 기간·다중 GPU 가중·유효 표본·동률·노드→③ 이동 키(cluster/node/GPU UUID) 결정. wait 미계측이면 순위 미산출.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "노드별 GPU wait Top8",
+        "institution": {
+          "provider": "GPU wait 원천기관(미정), 글루시스 노드 집계",
+          "source": "GPU별 wait 분자·분모·관측 구간, GPU→node/cluster/POD 연결",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "노드별 다중 GPU 가중·유효 표본·동률 규칙 합의 후 집계 결과 제공",
+          "output": "VM gpuflow_derived_gpu_data_wait_ratio + topology-nodes; 노드 집계 규칙 확인 필요",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "합의된 노드 결과를 Top8 정렬, 클릭 시 cluster/node/시각 전달; 결측 순위 미산출",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "원본 표시 계약 매핑 · 수치/기관 실연동 별도",
+        "gap": "전체 workload 수·GPU utilization으로 순위를 대신 만들지 않음",
+        "decision": "미정 — GPU wait 원천기관(미정), 글루시스 노드 집계·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W01-10",
+      "key": "type-occupancy",
+      "screens": [
+        "①"
+      ],
+      "title": "워크로드 유형별 GPU 점유",
+      "meaning": "Inference/Training/Data/Other batch/Idle 범주·유형 그룹 등록·공유 GPU 배분·할당시간 분모 결정. 미관측 GPU를 Idle로 분류하지 않음.",
+      "metrics": [],
+      "api": [
+        "GET /v1/workloads",
+        "스케줄러 할당 원천 확인 필요"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "원본 표시 계약 매핑 · 수치/기관 실연동 별도",
+      "limits": "Inference/Training/Data/Other batch/Idle 범주·유형 그룹 등록·공유 GPU 배분·할당시간 분모 결정. 미관측 GPU를 Idle로 분류하지 않음.",
+      "decisions": [
+        "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
+      ],
+      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\n각 응답의 next_cursor를 끝까지 순회",
+      "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
+      "sample": {
+        "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
+        "measured_workloads": 3,
+        "simulation_workloads": 45,
+        "note": "실측 3건은 완료/종료된 검증 작업이다. 실시간 보기에서는 매번 기존 API를 조회한다."
+      },
+      "display": "Inference/Training/Data/Other batch/Idle 범주·유형 그룹 등록·공유 GPU 배분·할당시간 분모 결정. 미관측 GPU를 Idle로 분류하지 않음.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "Inference/Training/Data/Other batch/Idle 범주·유형 그룹 등록·공유 GPU 배분·할당시간 분모 결정. 미관측 GPU를 Idle로 분류하지 않음.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "Inference/Training/Data/Other batch/Idle의 GPU 점유",
+        "institution": {
+          "provider": "스케줄러 운영기관(미정), 글루시스 유형 레지스트리",
+          "source": "workload type, GPU 할당 수/시간·공유 비율·전체 가능 자원·기간",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "원천 type을 합의된 5범주로 매핑, 동일 GPU 중복/공유 처리, Idle은 스케줄러 근거로 판정",
+          "output": "workloads와 스케줄러 할당 원천 필요; 제품 점유 집계 결과 미제공",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "범주별 합의된 점유 결과로 도넛/막대 구성, 미확인은 별도 표시",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "원본 표시 계약 매핑 · 수치/기관 실연동 별도",
+        "gap": "관측 안 된 GPU=Idle이 아님. 유형표·할당시간 분모·MIG 공유 규칙 필요",
+        "decision": "미정 — 스케줄러 운영기관(미정), 글루시스 유형 레지스트리·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    },
+    {
+      "id": "W10-04",
+      "key": "orchestrators",
+      "screens": [
+        "⑩"
+      ],
+      "title": "스케줄러·오케스트레이터 연동",
+      "meaning": "Kubernetes: namespace/Pod/PVC·할당 GPU·동기화 시각(KETI K8s/CSI 후보). Slurm: partition·running/pending·할당 GPU(글루시스 registry 후보). 원본 버전·건수는 목업. provider·관측 시각·상태·registry 연결·권한/폴링 계약을 기관 미팅에서 확정.",
+      "metrics": [],
+      "api": [
+        "기관 Kubernetes/Slurm 어댑터 미정",
+        "GET /v1/workloads",
+        "GET /v1/topology-nodes"
+      ],
+      "labels": [
+        "cluster",
+        "node",
+        "source",
+        "pod",
+        "data_origin",
+        "simulated"
+      ],
+      "readiness": "원본 표시 계약 매핑 · 수치/기관 실연동 별도",
+      "limits": "Kubernetes: namespace/Pod/PVC·할당 GPU·동기화 시각(KETI K8s/CSI 후보). Slurm: partition·running/pending·할당 GPU(글루시스 registry 후보). 원본 버전·건수는 목업. provider·관측 시각·상태·registry 연결·권한/폴링 계약을 기관 미팅에서 확정.",
+      "decisions": [
+        "분자/분모·공유 GPU·미등록 노드·테넌트 범위"
+      ],
+      "query": "GET /v1/workloads?page_size=200\nGET /v1/topology-nodes?page_size=200\n각 응답의 next_cursor를 끝까지 순회",
+      "query_state": "실측 목록 연결 검증 · current scope의 유효관계만 집계",
+      "sample": {
+        "kind": "2026-11-07 registry-sync 검증 이력 요약 · 현재값 아님",
+        "measured_workloads": 3,
+        "simulation_workloads": 45,
+        "note": "실측 3건은 완료/종료된 검증 작업이다. 실시간 보기에서는 매번 기존 API를 조회한다."
+      },
+      "display": "Kubernetes: namespace/Pod/PVC·할당 GPU·동기화 시각(KETI K8s/CSI 후보). Slurm: partition·running/pending·할당 GPU(글루시스 registry 후보). 원본 버전·건수는 목업. provider·관측 시각·상태·registry 연결·권한/폴링 계약을 기관 미팅에서 확정.",
+      "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
+      "owner": "미정 — 글루시스·온라인파워스·데이터 제공기관 / 미팅에서 확정",
+      "response_fields": "Kubernetes: namespace/Pod/PVC·할당 GPU·동기화 시각(KETI K8s/CSI 후보). Slurm: partition·running/pending·할당 GPU(글루시스 registry 후보). 원본 버전·건수는 목업. provider·관측 시각·상태·registry 연결·권한/폴링 계약을 기관 미팅에서 확정.",
+      "events": [],
+      "pending_contracts": [],
+      "subregions": [],
+      "control_api_proposals": [],
+      "handoff": {
+        "mockup": "Kubernetes/Slurm 연동 현황·실행/대기·GPU 할당",
+        "institution": {
+          "provider": "KETI K8s/CSI·글루시스 Slurm registry(후보), 실제 운영기관",
+          "source": "namespace/Pod/PVC 또는 job/partition, running/pending·GPU 할당·버전·동기화 시각",
+          "status": "원천 필드·샘플·담당·제공일 확인 필요 — 각 제공기관 / 화면·API 미팅"
+        },
+        "gluesys": {
+          "process": "오케스트레이터별 ID/상태를 정규화, 논리 Pod와 물리 POD 분리, source/신선도 연결",
+          "output": "workloads/topology-nodes 기본 조회 존재; 기관 어댑터·동기화 상태 필드 미확인",
+          "status": "가공·제공 방식 제안. 아래 현재 구현 근거와 추가 필요 항목을 구분"
+        },
+        "onlinepowers": {
+          "binding": "연동 카드의 종류/상태/건수/할당/최근 동기화를 확인된 원천에 연결",
+          "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
+        },
+        "current": "원본 표시 계약 매핑 · 수치/기관 실연동 별도",
+        "gap": "목업 버전·건수는 예시. 담당·접근·폴링·원천 필드·제공일 미정",
+        "decision": "미정 — KETI K8s/CSI·글루시스 Slurm registry(후보), 실제 운영기관·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
+      }
+    }
+  ],
+  "evidence_revision": "2026-11-10.handoff.7",
+  "baselines": {
+    "console": "5eba8dc7c11c2b94d2f35c853bc674ae0342406e",
+    "gpuflow-kit": "e27f81fba387047d1e2546aef5d0f9a6ca10d0c8",
+    "telemetry-spec": "af28385",
+    "original_guide_sha256": "22499aef2d31e7672889e33e6058b6da5451ef992ea1bb006a67d9a89949d4c0"
+  },
+  "catalog_symbols": {
+    "metrics": [
+      "gpuflow_gpu_util_ratio",
+      "gpuflow_gpu_sm_active_ratio",
+      "gpuflow_gpu_hbm_used_bytes",
+      "gpuflow_gpu_pcie_rx_bytes_total",
+      "gpuflow_gpu_pcie_tx_bytes_total",
+      "gpuflow_storage_target_read_bytes_total",
+      "gpuflow_storage_target_write_bytes_total",
+      "gpuflow_storage_target_ops_total",
+      "gpuflow_storage_target_latency_seconds",
+      "gpuflow_storage_bio_buffer_used_bytes",
+      "gpuflow_storage_nvme_queue_depth",
+      "gpuflow_storage_client_read_bytes_total",
+      "gpuflow_storage_client_write_bytes_total",
+      "gpuflow_storage_capacity_used_ratio",
+      "gpuflow_storage_node_state",
+      "gpuflow_storage_rebuild_progress_ratio",
+      "gpuflow_storage_mdt_ops_total",
+      "gpuflow_policy_active",
+      "gpuflow_cache_lookup_total",
+      "gpuflow_cache_evict_total",
+      "gpuflow_cache_store_seconds",
+      "gpuflow_cache_used_bytes",
+      "gpuflow_cache_cxl_bytes_total",
+      "gpuflow_app_vllm_kv_usage_ratio",
+      "gpuflow_app_preemption_total",
+      "gpuflow_app_request_ttft_seconds",
+      "gpuflow_transport_bytes_total",
+      "gpuflow_transport_kv_op_seconds",
+      "gpuflow_transport_staging_used_bytes",
+      "gpuflow_host_io_stall_seconds_total",
+      "gpuflow_host_vfs_latency_seconds",
+      "gpuflow_host_cpu_util_ratio",
+      "gpuflow_fabric_port_tx_bytes_total",
+      "gpuflow_fabric_port_rx_bytes_total",
+      "gpuflow_fabric_pfc_pause_total",
+      "gpuflow_fabric_ecn_mark_total",
+      "gpuflow_fabric_cnp_total",
+      "gpuflow_fabric_retrans_total",
+      "gpuflow_fabric_dpu_offload_ratio",
+      "gpuflow_ingest_rejected_total",
+      "gpuflow_gpu_allocated_seconds_total",
+      "gpuflow_app_train_steps_total",
+      "gpuflow_predict_util_ratio",
+      "gpuflow_predict_util_lower",
+      "gpuflow_predict_util_upper",
+      "gpuflow_predict_accuracy_ratio",
+      "gpuflow_derived_gpu_data_wait_ratio",
+      "gpuflow_derived_tier_hit_ratio",
+      "gpuflow_derived_path_zerocopy_ratio",
+      "gpuflow_derived_target_skew_ratio"
+    ],
+    "events": [
+      "request.start",
+      "request.end",
+      "kv.lookup",
+      "kv.load",
+      "kv.store",
+      "kv.evict",
+      "tier.promote",
+      "tier.demote",
+      "prefetch.issue",
+      "prefetch.ready",
+      "ckpt.write.start",
+      "ckpt.write.end",
+      "train.step",
+      "policy.change",
+      "storage.rebalance.start",
+      "storage.rebalance.end",
+      "storage.rebuild.start",
+      "storage.rebuild.end",
+      "storage.rebuild.progress",
+      "dr.failover",
+      "bench.result",
+      "alert.fire",
+      "alert.resolve",
+      "audit.access",
+      "audit.change",
+      "node.join",
+      "node.leave",
+      "node.maintenance",
+      "csi.provision",
+      "csi.delete",
+      "qos.limit.change",
+      "predict.bottleneck"
+    ]
+  },
+  "review_apis": {
+    "policies": {
+      "screen": "⑨",
+      "method": "GET",
+      "path": "/v1/policies",
+      "fields": [
+        "policy",
+        "name",
+        "from_tier",
+        "to_tier",
+        "rule",
+        "owner",
+        "workload_id",
+        "active",
+        "updated_at",
+        "updated_ns"
+      ],
+      "key": "policy"
+    },
+    "policy-history": {
+      "screen": "⑨",
+      "method": "GET",
+      "path": "/v1/policy-history",
+      "fields": [
+        "id",
+        "event_key",
+        "policy",
+        "ts",
+        "ts_ns",
+        "active",
+        "actor",
+        "role",
+        "reason",
+        "span_id",
+        "attrs"
+      ],
+      "key": "id"
+    },
+    "scorecard-runs": {
+      "screen": "⑬",
+      "method": "GET",
+      "path": "/v1/scorecard-runs",
+      "fields": [
+        "id",
+        "event_key",
+        "indicator",
+        "target",
+        "measured",
+        "unit",
+        "run_at",
+        "ts_ns",
+        "source",
+        "attrs"
+      ],
+      "key": "id"
+    },
+    "llm": {
+      "screen": "⑦",
+      "method": "POST",
+      "path": "/v1/llm/explain",
+      "fields": [
+        "question_id",
+        "scenario",
+        "mock",
+        "response",
+        "evidence",
+        "request_id"
+      ],
+      "key": "question_id"
+    }
+  },
+  "kpis": [
+    {
+      "widget_id": "W13-01",
+      "key": "io_uplift",
+      "title": "I/O 성능 향상",
+      "target": "≥20%",
+      "unit": "%",
+      "formula": "(시험값−기준값)/기준값×100; 기준값>0·동일 조건",
+      "events": [
+        "bench.result"
+      ],
+      "metrics": [],
+      "evidence": "TTA 기준 시스템·시험 원본·구성·반복",
+      "validators": "TTA·글루시스·시험 수행기관 (후보·미팅 확정)",
+      "indicator_aliases": [
+        "io_uplift"
+      ],
+      "target_status": "원본 목업 목표 · 평가 조건·목표 확정 여부는 미팅 확인",
+      "related_screen": "⑬"
+    },
+    {
+      "widget_id": "W13-02",
+      "key": "sequential_read",
+      "title": "노드별 순차 읽기",
+      "target": "≥200 GB/s",
+      "unit": "GB/s",
+      "formula": "읽기 bytes/초/1e9; 노드별 원본 집계. 전체값 임의 나눗셈 금지",
+      "events": [
+        "bench.result"
+      ],
+      "metrics": [],
+      "evidence": "IO500 easy-read·참여 노드·시험 구간",
+      "validators": "TTA·글루시스·스토리지 시험기관 (후보·미팅 확정)",
+      "indicator_aliases": [
+        "sequential_read"
+      ],
+      "target_status": "원본 목업 목표 · 평가 조건·목표 확정 여부는 미팅 확인",
+      "related_screen": "⑥"
+    },
+    {
+      "widget_id": "W13-03",
+      "key": "sequential_write",
+      "title": "노드별 순차 쓰기",
+      "target": "≥140 GB/s",
+      "unit": "GB/s",
+      "formula": "쓰기 bytes/초/1e9; 노드별 원본 집계",
+      "events": [
+        "bench.result"
+      ],
+      "metrics": [],
+      "evidence": "IO500 easy-write·동일 조건",
+      "validators": "TTA·글루시스·스토리지 시험기관 (후보·미팅 확정)",
+      "indicator_aliases": [
+        "sequential_write"
+      ],
+      "target_status": "원본 목업 목표 · 평가 조건·목표 확정 여부는 미팅 확인",
+      "related_screen": "⑥"
+    },
+    {
+      "widget_id": "W13-04",
+      "key": "checkpoint_read",
+      "title": "체크포인트 읽기",
+      "target": "≥40 GiB/s",
+      "unit": "GiB/s",
+      "formula": "체크포인트 읽기 bytes/초/2^30",
+      "events": [
+        "bench.result"
+      ],
+      "metrics": [],
+      "evidence": "MLPerf 관련 원본 시험·checkpoint 범위·구간",
+      "validators": "TTA·글루시스·워크로드 시험기관 (후보·미팅 확정)",
+      "indicator_aliases": [
+        "checkpoint_read"
+      ],
+      "target_status": "원본 목업 목표 · 평가 조건·목표 확정 여부는 미팅 확인",
+      "related_screen": "②"
+    },
+    {
+      "widget_id": "W13-05",
+      "key": "checkpoint_write",
+      "title": "체크포인트 쓰기",
+      "target": "≥20 GiB/s",
+      "unit": "GiB/s",
+      "formula": "체크포인트 쓰기 bytes/초/2^30",
+      "events": [
+        "bench.result"
+      ],
+      "metrics": [],
+      "evidence": "MLPerf 관련 쓰기 원본·동기화 완료 기준",
+      "validators": "TTA·글루시스·워크로드 시험기관 (후보·미팅 확정)",
+      "indicator_aliases": [
+        "checkpoint_write"
+      ],
+      "target_status": "원본 목업 목표 · 평가 조건·목표 확정 여부는 미팅 확인",
+      "related_screen": "②"
+    },
+    {
+      "widget_id": "W13-06",
+      "key": "feedback_latency",
+      "title": "피드백 지연",
+      "target": "≤200 ms",
+      "unit": "ms",
+      "formula": "동일 span 분석 완료→정책 적용 완료 시각 차이; ns→ms /1e6",
+      "events": [
+        "predict.bottleneck",
+        "policy.change"
+      ],
+      "metrics": [],
+      "evidence": "분석/적용 상태·span·정밀 시각. API 수신시각 대체 금지",
+      "validators": "글루시스·KETI·TTA (후보·미팅 확정)",
+      "indicator_aliases": [
+        "feedback_latency"
+      ],
+      "target_status": "원본 목업 목표 · 평가 조건·목표 확정 여부는 미팅 확인",
+      "related_screen": "⑨"
+    },
+    {
+      "widget_id": "W13-07",
+      "key": "host_cpu",
+      "title": "호스트 CPU 사용률",
+      "target": "≤5%",
+      "unit": "%",
+      "formula": "대상 학습 노드의 시간 가중 평균 ratio×100; CPU 정규화 합의",
+      "events": [],
+      "metrics": [
+        "gpuflow_host_cpu_util_ratio"
+      ],
+      "evidence": "gpuflow_host_cpu_util_ratio·대상·기간·DPU 조건",
+      "validators": "글루시스·망고부스트·KETI·TTA (후보·미팅 확정)",
+      "indicator_aliases": [
+        "host_cpu"
+      ],
+      "target_status": "원본 목업 목표 · 평가 조건·목표 확정 여부는 미팅 확인",
+      "related_screen": "③"
+    },
+    {
+      "widget_id": "W13-08",
+      "key": "recovery_rto",
+      "title": "원격 복구 RTO",
+      "target": "≤30 s",
+      "unit": "s",
+      "formula": "장애/전환 시작→서비스 복구 완료. event 한 건만으로 계산 금지",
+      "events": [
+        "dr.failover"
+      ],
+      "metrics": [],
+      "evidence": "복구 시작·완료의 실제 상태·검증 로그",
+      "validators": "글루시스·TTA·복구 시험기관 (후보·미팅 확정)",
+      "indicator_aliases": [
+        "recovery_rto"
+      ],
+      "target_status": "원본 목업 목표 · 평가 조건·목표 확정 여부는 미팅 확인",
+      "related_screen": "⑥"
+    },
+    {
+      "widget_id": "W13-09",
+      "key": "isolation_count",
+      "title": "격리 기법 수",
+      "target": "≥6",
+      "unit": "count",
+      "formula": "구현·검증된 고유 기법의 개수. 목업 Active 개수 제외",
+      "events": [],
+      "metrics": [],
+      "evidence": "⑩ 격리 기법별 증거·중복 제거 기준",
+      "validators": "글루시스·관련 기관·TTA (후보·미팅 확정)",
+      "indicator_aliases": [
+        "isolation_count"
+      ],
+      "target_status": "원본 목업 목표 · 평가 조건·목표 확정 여부는 미팅 확인",
+      "related_screen": "⑩"
+    },
+    {
+      "widget_id": "W13-10",
+      "key": "provisioning",
+      "title": "프로비저닝 자동화",
+      "target": "지원",
+      "unit": "boolean",
+      "formula": "자동 요청→생성·연결·사용 성공 증거. demo 클릭 수 제외",
+      "events": [
+        "csi.provision"
+      ],
+      "metrics": [],
+      "evidence": "PVC/volume/Container 연결·성공 결과·사용 검증",
+      "validators": "KETI·글루시스·TTA (후보·미팅 확정)",
+      "indicator_aliases": [
+        "provisioning"
+      ],
+      "target_status": "원본 목업 목표 · 평가 조건·목표 확정 여부는 미팅 확인",
+      "related_screen": "⑩"
+    }
+  ],
+  "screen_inventory": [
+    {
+      "screen": "①",
+      "widgets": [
+        "W01-01",
+        "W01-02",
+        "W01-03",
+        "W01-04",
+        "W01-05",
+        "W01-06",
+        "W01-07",
+        "W01-08",
+        "W01-09",
+        "W01-10"
+      ],
+      "residual": "POD 타일 Max wait·Alerts·Uplink, Top nodes·유형별 점유의 수치 미산출, tenant/namespace 필터 미연동"
+    },
+    {
+      "screen": "②",
+      "widgets": [
+        "W02-01",
+        "W02-02",
+        "W02-03",
+        "W02-04",
+        "W02-05",
+        "W02-06",
+        "W02-07"
+      ],
+      "residual": "KV miss 전용 표시·Live/1m/10m 구간 전환·L3→GPU IOPS 표시 규칙 미구현"
+    },
+    {
+      "screen": "③",
+      "widgets": [
+        "W02-02",
+        "W02-04",
+        "W02-05",
+        "W03-01",
+        "W03-02",
+        "W03-03"
+      ],
+      "residual": "rail(railc)은 계층별 경로의 표현 요소. 실제 metric_ref·단위 연결 미완"
+    },
+    {
+      "screen": "④",
+      "widgets": [
+        "W02-02",
+        "W03-03",
+        "W04-01"
+      ],
+      "residual": "verdict·권고 토글의 실측 진단 미완; policy.recommend 추가 계약 후보"
+    },
+    {
+      "screen": "⑤",
+      "widgets": [
+        "W05-01",
+        "W05-02",
+        "W05-03"
+      ],
+      "residual": "티어 정책 실효과·미등록 기관 지표 확인 필요"
+    },
+    {
+      "screen": "⑥",
+      "widgets": [
+        "W01-07",
+        "W06-01",
+        "W06-02",
+        "W06-03",
+        "W06-04"
+      ],
+      "residual": "QP·온도·NVMe-oF 지표, SN4700 포트 연결 및 실제 설정 API 확인 필요"
+    },
+    {
+      "screen": "⑦",
+      "widgets": [
+        "W07-01",
+        "W07-02"
+      ],
+      "residual": "원본 고정 질문 4개 이상 후보 중 API 구현은 Q01~03 mock; 실모델·근거 조회 미연동"
+    },
+    {
+      "screen": "⑧",
+      "widgets": [
+        "W08-01",
+        "W08-02",
+        "W08-03"
+      ],
+      "residual": "진행·영향·ETA 원천 미제공; 실행 제어는 후속"
+    },
+    {
+      "screen": "⑨",
+      "widgets": [
+        "W09-01",
+        "W09-02",
+        "W09-03",
+        "W09-04"
+      ],
+      "residual": "AWSM/HCI는 KETI 기관 제공 확인 대기; 실적용 후속"
+    },
+    {
+      "screen": "⑩",
+      "widgets": [
+        "W10-01",
+        "W10-02",
+        "W10-03",
+        "W10-04"
+      ],
+      "residual": "전용 tenant/volume/qos API 없음; 1차 노출 여부 미정"
+    },
+    {
+      "screen": "⑪",
+      "widgets": [
+        "W11-01",
+        "W11-02",
+        "W11-03"
+      ],
+      "residual": "현재 경보 집계·Ack 영속화·임계값 담당 미정"
+    },
+    {
+      "screen": "⑫",
+      "widgets": [
+        "W12-01",
+        "W12-02"
+      ],
+      "residual": "역할표는 제안; 제품 RBAC·감사 보존 미확정"
+    },
+    {
+      "screen": "⑬",
+      "widgets": [
+        "W13-01",
+        "W13-02",
+        "W13-03",
+        "W13-04",
+        "W13-05",
+        "W13-06",
+        "W13-07",
+        "W13-08",
+        "W13-09",
+        "W13-10"
+      ],
+      "residual": "10행 매핑 완료 대상. 실측 시험·공식 평가 인수는 별도"
+    }
+  ],
+  "metric_specs": {
+    "gpuflow_gpu_util_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "gpu"
+      ],
+      "description": "GPU 사용률"
+    },
+    "gpuflow_gpu_sm_active_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "gpu"
+      ],
+      "description": "SM 활성 비율"
+    },
+    "gpuflow_gpu_hbm_used_bytes": {
+      "type": "gauge",
+      "unit": "bytes",
+      "labels": [
+        "gpu"
+      ],
+      "description": "HBM 사용량"
+    },
+    "gpuflow_gpu_pcie_rx_bytes_total": {
+      "type": "counter",
+      "unit": "bytes",
+      "labels": [
+        "gpu"
+      ],
+      "description": "PCIe 수신 바이트 누적"
+    },
+    "gpuflow_gpu_pcie_tx_bytes_total": {
+      "type": "counter",
+      "unit": "bytes",
+      "labels": [
+        "gpu"
+      ],
+      "description": "PCIe 송신 바이트 누적"
+    },
+    "gpuflow_storage_target_read_bytes_total": {
+      "type": "counter",
+      "unit": "bytes",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "타깃 읽기 바이트 누적"
+    },
+    "gpuflow_storage_target_write_bytes_total": {
+      "type": "counter",
+      "unit": "bytes",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "타깃 쓰기 바이트 누적"
+    },
+    "gpuflow_storage_target_ops_total": {
+      "type": "counter",
+      "unit": "1",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "타깃 I/O 수 누적"
+    },
+    "gpuflow_storage_target_latency_seconds": {
+      "type": "histogram",
+      "unit": "seconds",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "타깃 I/O 지연"
+    },
+    "gpuflow_storage_bio_buffer_used_bytes": {
+      "type": "gauge",
+      "unit": "bytes",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "BIO 버퍼 사용량"
+    },
+    "gpuflow_storage_nvme_queue_depth": {
+      "type": "gauge",
+      "unit": "1",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "NVMe 큐 깊이"
+    },
+    "gpuflow_storage_client_read_bytes_total": {
+      "type": "counter",
+      "unit": "bytes",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "클라이언트 읽기 바이트 누적"
+    },
+    "gpuflow_storage_client_write_bytes_total": {
+      "type": "counter",
+      "unit": "bytes",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "클라이언트 쓰기 바이트 누적"
+    },
+    "gpuflow_storage_capacity_used_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "스토리지 용량 사용률"
+    },
+    "gpuflow_storage_node_state": {
+      "type": "gauge",
+      "unit": "1",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "스토리지 정상 상태 1"
+    },
+    "gpuflow_storage_rebuild_progress_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "재구축 진행률; 평상시 완료 1"
+    },
+    "gpuflow_storage_mdt_ops_total": {
+      "type": "counter",
+      "unit": "1",
+      "labels": [
+        "backend",
+        "tier"
+      ],
+      "description": "Lustre MDT 처리 수 누적"
+    },
+    "gpuflow_policy_active": {
+      "type": "gauge",
+      "unit": "1",
+      "labels": [
+        "workload_id",
+        "policy"
+      ],
+      "description": "정책 활성 상태; Phase 3 기본 비활성"
+    },
+    "gpuflow_cache_lookup_total": {
+      "type": "counter",
+      "unit": "1",
+      "labels": [
+        "workload_id",
+        "tier",
+        "result"
+      ],
+      "description": "KV 조회 수"
+    },
+    "gpuflow_cache_evict_total": {
+      "type": "counter",
+      "unit": "1",
+      "labels": [
+        "workload_id",
+        "tier"
+      ],
+      "description": "KV 축출 수"
+    },
+    "gpuflow_cache_store_seconds": {
+      "type": "histogram",
+      "unit": "seconds",
+      "labels": [
+        "workload_id",
+        "tier"
+      ],
+      "description": "KV 저장 지연"
+    },
+    "gpuflow_cache_used_bytes": {
+      "type": "gauge",
+      "unit": "bytes",
+      "labels": [
+        "workload_id",
+        "tier"
+      ],
+      "description": "캐시 사용량"
+    },
+    "gpuflow_cache_cxl_bytes_total": {
+      "type": "counter",
+      "unit": "bytes",
+      "labels": [
+        "workload_id",
+        "tier"
+      ],
+      "description": "CXL 전송 바이트 누적"
+    },
+    "gpuflow_app_vllm_kv_usage_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "workload_id"
+      ],
+      "description": "vLLM KV 사용률"
+    },
+    "gpuflow_app_preemption_total": {
+      "type": "counter",
+      "unit": "1",
+      "labels": [
+        "workload_id"
+      ],
+      "description": "추론 선점 수 누적"
+    },
+    "gpuflow_app_request_ttft_seconds": {
+      "type": "histogram",
+      "unit": "seconds",
+      "labels": [
+        "workload_id"
+      ],
+      "description": "첫 토큰 응답 시간"
+    },
+    "gpuflow_transport_bytes_total": {
+      "type": "counter",
+      "unit": "bytes",
+      "labels": [
+        "workload_id",
+        "path"
+      ],
+      "description": "전송 경로별 바이트"
+    },
+    "gpuflow_transport_kv_op_seconds": {
+      "type": "histogram",
+      "unit": "seconds",
+      "labels": [
+        "workload_id",
+        "path",
+        "op"
+      ],
+      "description": "KV load/store 지연"
+    },
+    "gpuflow_transport_staging_used_bytes": {
+      "type": "gauge",
+      "unit": "bytes",
+      "labels": [
+        "workload_id"
+      ],
+      "description": "staging 사용량"
+    },
+    "gpuflow_host_io_stall_seconds_total": {
+      "type": "counter",
+      "unit": "seconds",
+      "labels": [
+        "gpu",
+        "workload_id"
+      ],
+      "description": "I/O 대기 시간 누적"
+    },
+    "gpuflow_host_vfs_latency_seconds": {
+      "type": "histogram",
+      "unit": "seconds",
+      "labels": [
+        "workload_id"
+      ],
+      "description": "VFS 지연"
+    },
+    "gpuflow_host_cpu_util_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "workload_id"
+      ],
+      "description": "호스트 CPU 사용률"
+    },
+    "gpuflow_fabric_port_tx_bytes_total": {
+      "type": "counter",
+      "unit": "bytes",
+      "labels": [
+        "device"
+      ],
+      "description": "포트 송신 바이트"
+    },
+    "gpuflow_fabric_port_rx_bytes_total": {
+      "type": "counter",
+      "unit": "bytes",
+      "labels": [
+        "device"
+      ],
+      "description": "포트 수신 바이트"
+    },
+    "gpuflow_fabric_pfc_pause_total": {
+      "type": "counter",
+      "unit": "1",
+      "labels": [
+        "device"
+      ],
+      "description": "PFC pause 수"
+    },
+    "gpuflow_fabric_ecn_mark_total": {
+      "type": "counter",
+      "unit": "1",
+      "labels": [
+        "device"
+      ],
+      "description": "ECN mark 수"
+    },
+    "gpuflow_fabric_cnp_total": {
+      "type": "counter",
+      "unit": "1",
+      "labels": [
+        "device"
+      ],
+      "description": "CNP 수"
+    },
+    "gpuflow_fabric_retrans_total": {
+      "type": "counter",
+      "unit": "1",
+      "labels": [
+        "device"
+      ],
+      "description": "재전송 수"
+    },
+    "gpuflow_fabric_dpu_offload_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "device"
+      ],
+      "description": "DPU offload 비율; testbed에서는 0"
+    },
+    "gpuflow_ingest_rejected_total": {
+      "type": "counter",
+      "unit": "1",
+      "labels": [
+        "reason"
+      ],
+      "description": "거부된 고유 레코드 수"
+    },
+    "gpuflow_gpu_allocated_seconds_total": {
+      "type": "counter",
+      "unit": "seconds",
+      "labels": [
+        "gpu",
+        "workload_id"
+      ],
+      "description": "GPU 할당 시간; 가상 GPU당 실행 중 1초/초"
+    },
+    "gpuflow_app_train_steps_total": {
+      "type": "counter",
+      "unit": "1",
+      "labels": [
+        "workload_id"
+      ],
+      "description": "합성 학습 step 누적값; rebuild 영향 검증"
+    },
+    "gpuflow_predict_util_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "workload_id",
+        "layer",
+        "horizon_s"
+      ],
+      "description": "합성 모델 util_ratio; storage=keti, 나머지=gluesys; accuracy는 알려진 합성 미래와의 일치도"
+    },
+    "gpuflow_predict_util_lower": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "workload_id",
+        "layer",
+        "horizon_s"
+      ],
+      "description": "합성 모델 util_lower; storage=keti, 나머지=gluesys; accuracy는 알려진 합성 미래와의 일치도"
+    },
+    "gpuflow_predict_util_upper": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "workload_id",
+        "layer",
+        "horizon_s"
+      ],
+      "description": "합성 모델 util_upper; storage=keti, 나머지=gluesys; accuracy는 알려진 합성 미래와의 일치도"
+    },
+    "gpuflow_predict_accuracy_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "workload_id",
+        "layer",
+        "horizon_s"
+      ],
+      "description": "합성 모델 accuracy_ratio; storage=keti, 나머지=gluesys; accuracy는 알려진 합성 미래와의 일치도"
+    },
+    "gpuflow_derived_gpu_data_wait_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "workload_id",
+        "gpu"
+      ],
+      "description": "15초 I/O stall 증가율 / GPU 할당시간 증가율"
+    },
+    "gpuflow_derived_tier_hit_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "workload_id",
+        "tier"
+      ],
+      "description": "15초 hit / 전체 lookup 증가율"
+    },
+    "gpuflow_derived_path_zerocopy_ratio": {
+      "type": "gauge",
+      "unit": "ratio",
+      "labels": [
+        "workload_id"
+      ],
+      "description": "15초 (gds+gdr) 전송량 / 전체 전송량"
+    },
+    "gpuflow_derived_target_skew_ratio": {
+      "type": "gauge",
+      "unit": "1",
+      "labels": [
+        "backend"
+      ],
+      "description": "POD·backend별 target 쓰기 증가율 최대/평균; 명시된 수식상 1 이상"
+    }
+  },
+  "role_matrix": {
+    "roles": [
+      "admin",
+      "op",
+      "user",
+      "ro"
+    ],
+    "symbols": {
+      "F": "전체 제어(제안)",
+      "S": "자기 범위(제안)",
+      "R": "조회(제안)",
+      "X": "숨김(제안)"
+    },
+    "rows": [
+      {
+        "screen": "①",
+        "permissions": [
+          "F",
+          "F",
+          "S",
+          "R"
+        ]
+      },
+      {
+        "screen": "②",
+        "permissions": [
+          "F",
+          "F",
+          "S",
+          "R"
+        ]
+      },
+      {
+        "screen": "③",
+        "permissions": [
+          "F",
+          "F",
+          "S",
+          "R"
+        ]
+      },
+      {
+        "screen": "④",
+        "permissions": [
+          "F",
+          "F",
+          "S",
+          "R"
+        ]
+      },
+      {
+        "screen": "⑤",
+        "permissions": [
+          "F",
+          "F",
+          "S",
+          "R"
+        ]
+      },
+      {
+        "screen": "⑥",
+        "permissions": [
+          "F",
+          "F",
+          "X",
+          "R"
+        ]
+      },
+      {
+        "screen": "⑦",
+        "permissions": [
+          "F",
+          "F",
+          "S",
+          "X"
+        ]
+      },
+      {
+        "screen": "⑧",
+        "permissions": [
+          "F",
+          "S",
+          "X",
+          "X"
+        ]
+      },
+      {
+        "screen": "⑨",
+        "permissions": [
+          "F",
+          "S",
+          "X",
+          "X"
+        ]
+      },
+      {
+        "screen": "⑩",
+        "permissions": [
+          "F",
+          "R",
+          "S",
+          "R"
+        ]
+      },
+      {
+        "screen": "⑪",
+        "permissions": [
+          "F",
+          "F",
+          "S",
+          "R"
+        ]
+      },
+      {
+        "screen": "⑫",
+        "permissions": [
+          "F",
+          "R",
+          "X",
+          "X"
+        ]
+      },
+      {
+        "screen": "⑬",
+        "permissions": [
+          "F",
+          "F",
+          "R",
+          "R"
+        ]
+      }
+    ],
+    "status": "원본 UI 검토안 · 서버 권한 구현 아님"
+  },
+  "compatible_revisions": [
+    "2026-11-10.6",
+    "2026-11-10.5",
+    "2026-11-10.3",
+    "2026-11-07.1"
+  ],
+  "global_scope": {
+    "physical": "cluster/POD/rack/node: 토폴로지 레지스트리. 현재 필터는 ① 컴퓨트 영역만 지원. ②~⑬ 전역 적용은 미연동이며 스토리지 전체 범위와 구분.",
+    "period": "저장 관측: captured_at 고정. API 보기: 조회 시각. 원본 Live 2s/1h·1m/12h·10m는 query_range 기간·step·recording rule·raw 보존 계약이며 UI 5초 polling과 별개. 현재 1m/10m 선택 조회 미제공.",
+    "logical": "tenant/namespace 등록 주체: 스케줄러 연동·업무 레지스트리 제공 기관(후보). 글루시스 정규화/API, 온라인파워스 화면 필터. 원본 필드 미포함과 서버 강제 필터 미지원 상태를 구분. 이름을 추정하지 않음.",
+    "role": "현재 실권한은 testbed_all Bearer 범위. UI Role로 실제 사용자 권한을 바꾸지 않음. 제품 역할/tenant 강제: 온라인파워스 백엔드의 사용자 인증·화면 조합, 글루시스 API의 위임 신원·데이터 범위 검사 공동 계약 필요(미정). VM 직접 조회도 같은 범위 강제 주체 결정 필요.",
+    "audit": "Role 전환/접근/변경의 audit.access/change 발행·actor/request_id·보존·조회 권한: 온라인파워스/글루시스 공동 미팅 결정. 원본 User→team-infer 고정은 목업 예시이며 실제 테넌트로 복제하지 않음.",
+    "modes": "현재 시나리오/저장 관측/API 조회 제공. Replay는 출처 라벨과 구분되는 과거 시간축 재생 기능으로 제품 제공 여부 미정. 저장 관측은 재생 아님. 시계·Pause의 의미와 Period 적용을 함께 결정.",
+    "screens": {
+      "①": "raw 지표·진단/경로 시계열 조회 범위·집계 미정",
+      "②": "실행 시작~종료 구간 GPU 시계열만 지원; Trend Live/1m/10m 전환 미제공",
+      "③": "raw 지표·진단/경로 시계열 조회 범위·집계 미정",
+      "④": "raw 지표·진단/경로 시계열 조회 범위·집계 미정",
+      "⑤": "raw 지표·진단/경로 시계열 조회 범위·집계 미정",
+      "⑥": "raw 지표·진단/경로 시계열 조회 범위·집계 미정",
+      "⑦": "사용자 선택 호출; 자동 주기 없음",
+      "⑧": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원",
+      "⑨": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원",
+      "⑩": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원",
+      "⑪": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원",
+      "⑫": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원",
+      "⑬": "목록/이벤트 이력/시험 run 범위는 개별 API 계약; Period 일괄 적용 미지원"
+    }
+  },
+  "cross_screen_contracts": {
+    "유형": "WSPEC은 원본 예시 워크로드 목록. type 열거값·Inference/Training·data·dev 2그룹·점유 5범주 분류표/등록 주체는 기관·레지스트리 미팅 결정. benchmark를 무조건 training 또는 idle로 바꾸지 않음.",
+    "임계값": "원본 제안: wait≥10% 경고/≥15% 위험, 예측 병목85%, 부하60/85%, PFC1.7k/min, CPU목표≤5%. 정의 주체·단위·기간·분모·변경 이력·룰 버전은 공동 확정. 히트맵/POD Alerts/⑪은 같은 룰 사용. 계측 없는 색·경보 미생성.",
+    "이동": "히트맵/Top nodes→③: cluster/node/GPU UUID와 관측 시각. workload 연결이 유일하지 않으면 임의 선택 금지. 경보/KPI data-go는 대상 screen과 event/run/workload 키 보존. 현재 GPU 셀 자동 이동 미지원, 계약 매핑만 제공.",
+    "모드": "Live/Replay/Scenario·시계·Pause는 전역 Period와 연계. Replay 제공 여부·재생 시각/관측 시각 구분·재생 속도·Pause 범위 미정. 저장 관측을 재생으로 간주하지 않음."
+  },
+  "source_workload_types": [
+    "Benchmark · IO500",
+    "Benchmark · MLPerf checkpoint",
+    "Data · dedup",
+    "Data · images",
+    "Data · ingest",
+    "Data · shard repack",
+    "Data · tokenize",
+    "Dev · DAOS perf test",
+    "Dev · GDS regression",
+    "Dev · KV cache prototype",
+    "Dev · RL",
+    "Dev · notebook",
+    "Eval · benchmark",
+    "Eval · long context",
+    "Eval · safety",
+    "Inference · MoE",
+    "Inference · RAG",
+    "Inference · batch",
+    "Inference · batch summarize",
+    "Inference · batch translate",
+    "Inference · chatbot",
+    "Inference · code",
+    "Inference · embedding",
+    "Inference · multimodal",
+    "Inference · reranker",
+    "Inference · synthetic data",
+    "Training · DPO",
+    "Training · Korean fine-tune",
+    "Training · LoRA",
+    "Training · MoE pretraining",
+    "Training · SFT",
+    "Training · checkpoint restore",
+    "Training · speech",
+    "Training · vision"
+  ],
+  "meeting_contract": {
+    "basis": "목업을 요구사항 기준으로 사용합니다. 시나리오 값은 예시이며 기관의 실제 제공·제품 구현을 뜻하지 않습니다.",
+    "flow": "기관 원천 → exporter·API·이벤트 → node-agent/수집 → 글루시스 정규화·레지스트리 연결·파생 계산 → VM / 업무 API → 온라인파워스 화면",
+    "responsibility": "분모·상태·식별자 연결·업무 의미가 있는 집계는 글루시스 제공 책임으로 제안합니다. 온라인파워스는 합의된 결과의 조회·캐시·단위 표시·정렬·차트·오류 표시를 맡습니다. 제품 반영 위치와 일정은 미팅에서 확정합니다.",
+    "access": "시계열: 온라인파워스 백엔드가 VM을 직접 조회하는 현재 방향을 유지합니다. 글루시스가 파생 지표·조회 규칙을 준비합니다. 목록·이벤트: 글루시스 업무 API를 조회합니다. 새 필드나 집계 API는 이 문서만으로 제공된 것이 아닙니다.",
+    "source_status": "기관명은 제공 후보 또는 기존 역할에 따른 협의 대상입니다. 기관 원천 이름·필드·단위·식별키·주기·샘플·담당·제공일은 회신으로 확인해야 합니다. TTA는 검증 주체이며 exporter 개발 의무를 부여하지 않습니다.",
+    "decision_prompt": "미정 — 각 제공기관·글루시스·온라인파워스 / 화면·API 미팅에서 제공 범위·담당·기한을 확인"
+  },
+  "scope_handoffs": [
+    {
+      "name": "클러스터·물리 POD·랙·노드",
+      "institution": "장비/스케줄러 운영기관: 노드·GPU·포트와 cluster/물리 POD/rack 연결 원천",
+      "gluesys": "토폴로지 ID 정규화·중복 제거·유효 범위·미등록 처리",
+      "onlinepowers": "같은 식별키로 화면 범위 필터·선택 전달; K8s Pod와 별도 표기",
+      "current": "현재 관측 필터는 ① 컴퓨트만. 전체 화면/스토리지 적용은 추가 필요"
+    },
+    {
+      "name": "Period·Live/Replay/Scenario",
+      "institution": "UTC 관측 시각·원천 주기·누적량/분포 형식·출처",
+      "gluesys": "집계 구간·recording rule·보존·step·관측/재생/예측 시간축 규약",
+      "onlinepowers": "query_range 기간/step 선택·추이·Pause 표시; polling과 수집 주기 구분",
+      "current": "저장 관측은 고정 시각. 1m/10m 선택 조회·Replay 제품 기능 미제공"
+    },
+    {
+      "name": "테넌트·네임스페이스",
+      "institution": "스케줄러/테넌트 운영기관: workload의 소속 ID·권한 원천",
+      "gluesys": "ID 연결·데이터 범위 계약; 미포함·미확인을 별도 상태로 제공",
+      "onlinepowers": "서버 권한 내 필터/화면 조합, VM 직접 조회의 범위 강제 공동 설계",
+      "current": "현재 전역 필터 미연동. 미정 — 운영기관·글루시스·온라인파워스 / 미팅"
+    },
+    {
+      "name": "Role·권한·감사",
+      "institution": "기관 제어/사용자 관리 주체: 허용 기능과 감사 주체",
+      "gluesys": "업무 API 위임 신원·범위 검사·감사 저장 규약",
+      "onlinepowers": "사용자 인증·메뉴/버튼 권한·화면 백엔드 범위 검사·감사 발행",
+      "current": "원본 역할표는 제안. testbed_all은 제품 RBAC가 아님; 책임 경계 미팅 확정"
+    }
+  ]
+}

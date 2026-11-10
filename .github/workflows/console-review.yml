@@ -1,0 +1,48 @@
+name: Console review contract
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Validate available Node runtime
+        run: node -e 'if (Number(process.versions.node.split(".")[0]) < 20) process.exit(1)'
+      - name: Verify aggregation, evidence and redacted samples
+        run: node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
+      - name: Verify generated mappings and local gateway
+        run: |
+          python3 console/sync_mapping_docs.py --check
+          python3 -m unittest discover -s console/tests -p "test_mapping_gateway.py" -v
+      - name: Build standalone review preview
+        run: >-
+          python3 console/build_review_preview.py output/batch-review.html
+          --snapshot console/samples/batch-observation.redacted.json
+          --workload sample-batch-delayed --screen overview --meeting
+      - name: Upload standalone preview
+        id: preview
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: gpuflow-console-preview
+          path: output/batch-review.html
+          if-no-files-found: error
+          retention-days: 30
+      - name: Show preview download instructions
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.artifact-url }}
+        run: |
+          python3 - <<'PY'
+          import os
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## GPUFlow 미리보기\n\n')
+              summary.write('[미리보기 ZIP 다운로드](' + os.environ['PREVIEW_URL'] + ')\n\n')
+              summary.write('GitHub에 로그인한 뒤 ZIP을 다운로드하고 압축을 풀어 **batch-review.html**을 브라우저로 여세요.\n\n')
+              summary.write('식별자를 치환한 과거 실측 샘플이며 ① 전체 현황부터 ⑬까지 관측 범위와 시나리오 목업을 검토할 수 있습니다. 보관 기간은 30일입니다.\n')
+          PY

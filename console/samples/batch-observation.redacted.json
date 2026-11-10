@@ -1,0 +1,998 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "snapshot_consistent": false,
+  "captured_at": "2026-11-09T05:05:16.135401Z",
+  "source": "redacted_measured_sample",
+  "sample_notice": "실측 수치와 시각을 유지하고 식별자를 치환한 과거 표본입니다. 현재 상태·독립 재실행 검증을 뜻하지 않습니다.",
+  "redacted": true,
+  "workloads": [
+    {
+      "data": {
+        "workload_id": "sample-batch-failed",
+        "type": "benchmark",
+        "pod": "sample-pod",
+        "started_at": "2026-11-09T01:34:27.072717Z",
+        "ended_at": "2026-11-09T01:34:39.706809Z",
+        "placement": {
+          "cluster": "sample-cluster",
+          "nodes": [
+            "sample-compute"
+          ],
+          "gpu_uuids": [
+            "GPU-00000000-0000-0000-0000-000000000001"
+          ],
+          "active_gpu_uuids": [],
+          "registry": {
+            "state": "failed",
+            "reason": "launcher_outcome",
+            "terminal": true,
+            "observed_at": "2026-11-09T01:34:40.392970Z",
+            "valid_until": null,
+            "ended_at_basis": "launcher",
+            "metric_attribution": "gpu_window_only",
+            "shared_gpu_observed": false
+          },
+          "execution_status": "failed",
+          "execution_kind": "cuda_daos_batches",
+          "progress": {
+            "status": "failed",
+            "stage": "terminal",
+            "started_at": "2026-11-09T01:34:27.154122Z",
+            "ended_at": "2026-11-09T01:34:39.706809Z",
+            "observed_at": "2026-11-09T01:34:39.706837Z",
+            "expected_batches": 6,
+            "current_batch": 3,
+            "input_delay_requested_seconds": 3.0,
+            "failure_injection_batch": 3,
+            "kernel": "xor_bytes_257_rounds",
+            "inter_batch_pause_seconds": 1,
+            "gpu_data_wait_ratio": null,
+            "error": "daos_read_failed",
+            "totals": {
+              "daos_copy_wall_seconds": 0.6169377480400726,
+              "host_prepare_wall_seconds": 0.22187789902091026,
+              "input_delay_seconds": 6.005678775021806,
+              "h2d_wall_seconds": 0.007288148975931108,
+              "kernel_wall_seconds": 0.013064343016594648,
+              "kernel_gpu_seconds": 0.013034719944000244,
+              "d2h_wall_seconds": 0.026941442978568375,
+              "verify_wall_seconds": 0.07120320305693895,
+              "completed_batches": 2,
+              "verified_read_bytes": 67108864
+            },
+            "batches": [
+              {
+                "daos_copy_wall_seconds": 0.3169979570666328,
+                "host_prepare_wall_seconds": 0.11183433898258954,
+                "input_delay_seconds": 3.0028027900261804,
+                "h2d_wall_seconds": 0.0038599109975621104,
+                "kernel_wall_seconds": 0.006534449988976121,
+                "kernel_gpu_seconds": 0.006517343997955323,
+                "d2h_wall_seconds": 0.013904900988563895,
+                "verify_wall_seconds": 0.03701898700091988,
+                "batch": 1,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:34:27.331110Z",
+                "ended_at": "2026-11-09T01:34:30.860952Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.2999397909734398,
+                "host_prepare_wall_seconds": 0.11004356003832072,
+                "input_delay_seconds": 3.002875984995626,
+                "h2d_wall_seconds": 0.0034282379783689976,
+                "kernel_wall_seconds": 0.006529893027618527,
+                "kernel_gpu_seconds": 0.006517375946044922,
+                "d2h_wall_seconds": 0.01303654199000448,
+                "verify_wall_seconds": 0.03418421605601907,
+                "batch": 2,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:34:31.864017Z",
+                "ended_at": "2026-11-09T01:34:35.358934Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.28544204006902874,
+                "host_prepare_wall_seconds": null,
+                "input_delay_seconds": 3.002411573077552,
+                "h2d_wall_seconds": null,
+                "kernel_wall_seconds": null,
+                "kernel_gpu_seconds": null,
+                "d2h_wall_seconds": null,
+                "verify_wall_seconds": null,
+                "batch": 3,
+                "status": "failed",
+                "read_bytes": null,
+                "input_verified": null,
+                "output_verified": null,
+                "input_sha256": null,
+                "output_sha256": null,
+                "expected_output_sha256": null,
+                "started_at": "2026-11-09T01:34:36.361546Z",
+                "ended_at": "2026-11-09T01:34:39.653400Z",
+                "error": "daos_read_failed"
+              }
+            ]
+          }
+        },
+        "storage": {
+          "backend": "daos",
+          "system": "sample-daos",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "container": "00000000-0000-0000-0000-000000000003",
+          "binding": {
+            "version": 1,
+            "state": "verified_read",
+            "basis": "explicit_daos_uri_readback",
+            "observed_at": "2026-11-09T01:34:27.054720Z",
+            "observed_before": "2026-11-09T01:34:27.054720Z",
+            "scope": "observed_batch_io",
+            "access_mode": "daos_cli",
+            "pool_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+            "container_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002:container:00000000-0000-0000-0000-000000000003",
+            "membership_stable_at_endpoints": null,
+            "metric_attribution": "shared_pool_not_workload",
+            "gpu_relation": "batch_kernel_verification",
+            "mount_relation": "not_observed",
+            "pool_members": [
+              {
+                "rank": 0,
+                "node": "sample-storage-1",
+                "target_id": "sample-storage-1-daos-rank-0"
+              },
+              {
+                "rank": 1,
+                "node": "sample-storage-2",
+                "target_id": "sample-storage-2-daos-rank-1"
+              }
+            ],
+            "io": {
+              "operation": "read",
+              "bytes": 33554432,
+              "sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "expected_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "checksum_verified": true,
+              "client_node": "sample-compute"
+            },
+            "transfer": {
+              "path": null,
+              "gpu_uuid": null,
+              "bytes": null,
+              "host_sha256": null,
+              "device_readback_sha256": null,
+              "roundtrip_verified": null,
+              "cuda_device_verified": null,
+              "read_started_at": null,
+              "read_ended_at": null,
+              "transfer_started_at": null,
+              "transfer_ended_at": null,
+              "daos_copy_wall_seconds": null,
+              "h2d_wall_seconds": null,
+              "d2h_wall_seconds": null,
+              "allocation_hold_seconds": null,
+              "staging": null,
+              "fabric_provider": null,
+              "client_interface": null,
+              "gds": null,
+              "gpu_compute": null
+            }
+          }
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false,
+        "registry_stale": false,
+        "binding_verified": false
+      }
+    },
+    {
+      "data": {
+        "workload_id": "sample-batch-delayed",
+        "type": "benchmark",
+        "pod": "sample-pod",
+        "started_at": "2026-11-09T01:32:43.932112Z",
+        "ended_at": "2026-11-09T01:33:04.465953Z",
+        "placement": {
+          "cluster": "sample-cluster",
+          "nodes": [
+            "sample-compute"
+          ],
+          "gpu_uuids": [
+            "GPU-00000000-0000-0000-0000-000000000001"
+          ],
+          "active_gpu_uuids": [],
+          "registry": {
+            "state": "completed",
+            "reason": "launcher_outcome",
+            "terminal": true,
+            "observed_at": "2026-11-09T01:33:05.376226Z",
+            "valid_until": null,
+            "ended_at_basis": "launcher",
+            "metric_attribution": "gpu_window_only",
+            "shared_gpu_observed": false
+          },
+          "execution_status": "completed",
+          "execution_kind": "cuda_daos_batches",
+          "progress": {
+            "status": "completed",
+            "stage": "terminal",
+            "started_at": "2026-11-09T01:32:44.004955Z",
+            "ended_at": "2026-11-09T01:33:04.465953Z",
+            "observed_at": "2026-11-09T01:33:04.465989Z",
+            "expected_batches": 8,
+            "current_batch": 8,
+            "input_delay_requested_seconds": 1.0,
+            "failure_injection_batch": 0,
+            "kernel": "xor_bytes_257_rounds",
+            "inter_batch_pause_seconds": 1,
+            "gpu_data_wait_ratio": null,
+            "error": null,
+            "totals": {
+              "daos_copy_wall_seconds": 2.56546478101518,
+              "host_prepare_wall_seconds": 0.9326065251370892,
+              "input_delay_seconds": 8.005974620231427,
+              "h2d_wall_seconds": 0.029044899973087013,
+              "kernel_wall_seconds": 0.05229291890282184,
+              "kernel_gpu_seconds": 0.05215446376800537,
+              "d2h_wall_seconds": 0.10612556722480804,
+              "verify_wall_seconds": 0.2782841579755768,
+              "completed_batches": 8,
+              "verified_read_bytes": 268435456
+            },
+            "batches": [
+              {
+                "daos_copy_wall_seconds": 0.35014661797322333,
+                "host_prepare_wall_seconds": 0.1205791289685294,
+                "input_delay_seconds": 1.000699296942912,
+                "h2d_wall_seconds": 0.00372465793043375,
+                "kernel_wall_seconds": 0.006540743983350694,
+                "kernel_gpu_seconds": 0.0065261759757995605,
+                "d2h_wall_seconds": 0.013256683014333248,
+                "verify_wall_seconds": 0.03422095801215619,
+                "batch": 1,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:44.163143Z",
+                "ended_at": "2026-11-09T01:32:45.717732Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3753939870512113,
+                "host_prepare_wall_seconds": 0.11309183202683926,
+                "input_delay_seconds": 1.0004186150617898,
+                "h2d_wall_seconds": 0.003476543934084475,
+                "kernel_wall_seconds": 0.00654292106628418,
+                "kernel_gpu_seconds": 0.006519360065460205,
+                "d2h_wall_seconds": 0.013463965035043657,
+                "verify_wall_seconds": 0.03464005305431783,
+                "batch": 2,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:46.721042Z",
+                "ended_at": "2026-11-09T01:32:48.292591Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.29783487191889435,
+                "host_prepare_wall_seconds": 0.11138062400277704,
+                "input_delay_seconds": 1.0010346410563216,
+                "h2d_wall_seconds": 0.0034743649885058403,
+                "kernel_wall_seconds": 0.006530973012559116,
+                "kernel_gpu_seconds": 0.006515391826629639,
+                "d2h_wall_seconds": 0.01310226903297007,
+                "verify_wall_seconds": 0.03440987900830805,
+                "batch": 3,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:49.295609Z",
+                "ended_at": "2026-11-09T01:32:50.788075Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3364849160425365,
+                "host_prepare_wall_seconds": 0.11533934809267521,
+                "input_delay_seconds": 1.0001795130083337,
+                "h2d_wall_seconds": 0.0035068120341748,
+                "kernel_wall_seconds": 0.006531778955832124,
+                "kernel_gpu_seconds": 0.006517439842224121,
+                "d2h_wall_seconds": 0.012902872054837644,
+                "verify_wall_seconds": 0.03426617698278278,
+                "batch": 4,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:51.791405Z",
+                "ended_at": "2026-11-09T01:32:53.326491Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.2772258810000494,
+                "host_prepare_wall_seconds": 0.1151967040495947,
+                "input_delay_seconds": 1.0010301430011168,
+                "h2d_wall_seconds": 0.003934347070753574,
+                "kernel_wall_seconds": 0.006543554947711527,
+                "kernel_gpu_seconds": 0.006524672031402588,
+                "d2h_wall_seconds": 0.013669871957972646,
+                "verify_wall_seconds": 0.03548549104016274,
+                "batch": 5,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:54.329139Z",
+                "ended_at": "2026-11-09T01:32:55.809229Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.321955049992539,
+                "host_prepare_wall_seconds": 0.11146766901947558,
+                "input_delay_seconds": 1.0010173741029575,
+                "h2d_wall_seconds": 0.0037124870577827096,
+                "kernel_wall_seconds": 0.006536328000947833,
+                "kernel_gpu_seconds": 0.006516448020935059,
+                "d2h_wall_seconds": 0.01321838004514575,
+                "verify_wall_seconds": 0.034387357998639345,
+                "batch": 6,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:56.812221Z",
+                "ended_at": "2026-11-09T01:32:58.329840Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.2988558909855783,
+                "host_prepare_wall_seconds": 0.13376072503160685,
+                "input_delay_seconds": 1.0005503869615495,
+                "h2d_wall_seconds": 0.003613209002651274,
+                "kernel_wall_seconds": 0.006535982945933938,
+                "kernel_gpu_seconds": 0.006517727851867675,
+                "d2h_wall_seconds": 0.013190573081374168,
+                "verify_wall_seconds": 0.0344575229100883,
+                "batch": 7,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:59.332799Z",
+                "ended_at": "2026-11-09T01:33:00.849485Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3075675660511479,
+                "host_prepare_wall_seconds": 0.11179049394559115,
+                "input_delay_seconds": 1.0010446500964463,
+                "h2d_wall_seconds": 0.003602477954700589,
+                "kernel_wall_seconds": 0.006530635990202427,
+                "kernel_gpu_seconds": 0.006517248153686523,
+                "d2h_wall_seconds": 0.013320953003130853,
+                "verify_wall_seconds": 0.036416718969121575,
+                "batch": 8,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:33:01.851909Z",
+                "ended_at": "2026-11-09T01:33:03.405362Z",
+                "error": null
+              }
+            ]
+          }
+        },
+        "storage": {
+          "backend": "daos",
+          "system": "sample-daos",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "container": "00000000-0000-0000-0000-000000000003",
+          "binding": {
+            "version": 1,
+            "state": "verified_read",
+            "basis": "explicit_daos_uri_readback",
+            "observed_at": "2026-11-09T01:32:43.912755Z",
+            "observed_before": "2026-11-09T01:32:43.912755Z",
+            "scope": "observed_batch_io",
+            "access_mode": "daos_cli",
+            "pool_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+            "container_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002:container:00000000-0000-0000-0000-000000000003",
+            "membership_stable_at_endpoints": null,
+            "metric_attribution": "shared_pool_not_workload",
+            "gpu_relation": "batch_kernel_verification",
+            "mount_relation": "not_observed",
+            "pool_members": [
+              {
+                "rank": 0,
+                "node": "sample-storage-1",
+                "target_id": "sample-storage-1-daos-rank-0"
+              },
+              {
+                "rank": 1,
+                "node": "sample-storage-2",
+                "target_id": "sample-storage-2-daos-rank-1"
+              }
+            ],
+            "io": {
+              "operation": "read",
+              "bytes": 33554432,
+              "sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "expected_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "checksum_verified": true,
+              "client_node": "sample-compute"
+            },
+            "transfer": {
+              "path": null,
+              "gpu_uuid": null,
+              "bytes": null,
+              "host_sha256": null,
+              "device_readback_sha256": null,
+              "roundtrip_verified": null,
+              "cuda_device_verified": null,
+              "read_started_at": null,
+              "read_ended_at": null,
+              "transfer_started_at": null,
+              "transfer_ended_at": null,
+              "daos_copy_wall_seconds": null,
+              "h2d_wall_seconds": null,
+              "d2h_wall_seconds": null,
+              "allocation_hold_seconds": null,
+              "staging": null,
+              "fabric_provider": null,
+              "client_interface": null,
+              "gds": null,
+              "gpu_compute": null
+            }
+          }
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false,
+        "registry_stale": false,
+        "binding_verified": false
+      }
+    },
+    {
+      "data": {
+        "workload_id": "sample-batch-normal",
+        "type": "benchmark",
+        "pod": "sample-pod",
+        "started_at": "2026-11-09T01:32:21.788513Z",
+        "ended_at": "2026-11-09T01:32:34.335904Z",
+        "placement": {
+          "cluster": "sample-cluster",
+          "nodes": [
+            "sample-compute"
+          ],
+          "gpu_uuids": [
+            "GPU-00000000-0000-0000-0000-000000000001"
+          ],
+          "active_gpu_uuids": [],
+          "registry": {
+            "state": "completed",
+            "reason": "launcher_outcome",
+            "terminal": true,
+            "observed_at": "2026-11-09T01:32:34.980973Z",
+            "valid_until": null,
+            "ended_at_basis": "launcher",
+            "metric_attribution": "gpu_window_only",
+            "shared_gpu_observed": false
+          },
+          "execution_status": "completed",
+          "execution_kind": "cuda_daos_batches",
+          "progress": {
+            "status": "completed",
+            "stage": "terminal",
+            "started_at": "2026-11-09T01:32:21.866422Z",
+            "ended_at": "2026-11-09T01:32:34.335904Z",
+            "observed_at": "2026-11-09T01:32:34.335937Z",
+            "expected_batches": 8,
+            "current_batch": 8,
+            "input_delay_requested_seconds": 0,
+            "failure_injection_batch": 0,
+            "kernel": "xor_bytes_257_rounds",
+            "inter_batch_pause_seconds": 1,
+            "gpu_data_wait_ratio": null,
+            "error": null,
+            "totals": {
+              "daos_copy_wall_seconds": 2.5556592092616484,
+              "host_prepare_wall_seconds": 0.9363509609829634,
+              "input_delay_seconds": 2.9267859645187855e-05,
+              "h2d_wall_seconds": 0.029026521951891482,
+              "kernel_wall_seconds": 0.05228935892228037,
+              "kernel_gpu_seconds": 0.05216377639770508,
+              "d2h_wall_seconds": 0.10787051205988973,
+              "verify_wall_seconds": 0.28092664282303303,
+              "completed_batches": 8,
+              "verified_read_bytes": 268435456
+            },
+            "batches": [
+              {
+                "daos_copy_wall_seconds": 0.29914867505431175,
+                "host_prepare_wall_seconds": 0.11397892294917256,
+                "input_delay_seconds": 3.6419369280338287e-06,
+                "h2d_wall_seconds": 0.0035748480586335063,
+                "kernel_wall_seconds": 0.006538121961057186,
+                "kernel_gpu_seconds": 0.006523200035095215,
+                "d2h_wall_seconds": 0.013760564965195954,
+                "verify_wall_seconds": 0.03449523902963847,
+                "batch": 1,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:22.071565Z",
+                "ended_at": "2026-11-09T01:32:22.571896Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.33160859695635736,
+                "host_prepare_wall_seconds": 0.11095309094525874,
+                "input_delay_seconds": 3.6730198189616203e-06,
+                "h2d_wall_seconds": 0.0038006589747965336,
+                "kernel_wall_seconds": 0.006536880042403936,
+                "kernel_gpu_seconds": 0.006522592067718506,
+                "d2h_wall_seconds": 0.01343082101084292,
+                "verify_wall_seconds": 0.034388820989988744,
+                "batch": 2,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:23.575098Z",
+                "ended_at": "2026-11-09T01:32:24.100031Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3040102340746671,
+                "host_prepare_wall_seconds": 0.11108247493393719,
+                "input_delay_seconds": 3.42691782861948e-06,
+                "h2d_wall_seconds": 0.003805518033914268,
+                "kernel_wall_seconds": 0.00653026404324919,
+                "kernel_gpu_seconds": 0.006515327930450439,
+                "d2h_wall_seconds": 0.013382902019657195,
+                "verify_wall_seconds": 0.034772336948662996,
+                "batch": 3,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:25.102223Z",
+                "ended_at": "2026-11-09T01:32:25.601267Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3426319590071216,
+                "host_prepare_wall_seconds": 0.11234958004206419,
+                "input_delay_seconds": 3.363005816936493e-06,
+                "h2d_wall_seconds": 0.003587821964174509,
+                "kernel_wall_seconds": 0.006538696005009115,
+                "kernel_gpu_seconds": 0.006518239974975586,
+                "d2h_wall_seconds": 0.01406981807667762,
+                "verify_wall_seconds": 0.038846504990942776,
+                "batch": 4,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:26.603880Z",
+                "ended_at": "2026-11-09T01:32:27.157952Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.30591496801935136,
+                "host_prepare_wall_seconds": 0.11245218408294022,
+                "input_delay_seconds": 4.269066266715527e-06,
+                "h2d_wall_seconds": 0.003490061964839697,
+                "kernel_wall_seconds": 0.006538564921356738,
+                "kernel_gpu_seconds": 0.006520576000213623,
+                "d2h_wall_seconds": 0.013434918015263975,
+                "verify_wall_seconds": 0.034860505955293775,
+                "batch": 5,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:28.161678Z",
+                "ended_at": "2026-11-09T01:32:28.663691Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3578718750504777,
+                "host_prepare_wall_seconds": 0.11370415601413697,
+                "input_delay_seconds": 3.5829143598675728e-06,
+                "h2d_wall_seconds": 0.003742436063475907,
+                "kernel_wall_seconds": 0.006537306006066501,
+                "kernel_gpu_seconds": 0.00652016019821167,
+                "d2h_wall_seconds": 0.013456308981403708,
+                "verify_wall_seconds": 0.035044491989538074,
+                "batch": 6,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:29.667007Z",
+                "ended_at": "2026-11-09T01:32:30.224466Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.30298144300468266,
+                "host_prepare_wall_seconds": 0.14201692305505276,
+                "input_delay_seconds": 3.1240051612257957e-06,
+                "h2d_wall_seconds": 0.0035027608973905444,
+                "kernel_wall_seconds": 0.006534699001349509,
+                "kernel_gpu_seconds": 0.006522016048431396,
+                "d2h_wall_seconds": 0.013156687025912106,
+                "verify_wall_seconds": 0.03421581396833062,
+                "batch": 7,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:31.228928Z",
+                "ended_at": "2026-11-09T01:32:31.757946Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3114914580946788,
+                "host_prepare_wall_seconds": 0.11981362896040082,
+                "input_delay_seconds": 4.1869934648275375e-06,
+                "h2d_wall_seconds": 0.0035224159946665168,
+                "kernel_wall_seconds": 0.0065348269417881966,
+                "kernel_gpu_seconds": 0.006521664142608643,
+                "d2h_wall_seconds": 0.013178491964936256,
+                "verify_wall_seconds": 0.03430292895063758,
+                "batch": 8,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:32.761227Z",
+                "ended_at": "2026-11-09T01:32:33.275924Z",
+                "error": null
+              }
+            ]
+          }
+        },
+        "storage": {
+          "backend": "daos",
+          "system": "sample-daos",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "container": "00000000-0000-0000-0000-000000000003",
+          "binding": {
+            "version": 1,
+            "state": "verified_read",
+            "basis": "explicit_daos_uri_readback",
+            "observed_at": "2026-11-09T01:32:21.768888Z",
+            "observed_before": "2026-11-09T01:32:21.768888Z",
+            "scope": "observed_batch_io",
+            "access_mode": "daos_cli",
+            "pool_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+            "container_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002:container:00000000-0000-0000-0000-000000000003",
+            "membership_stable_at_endpoints": null,
+            "metric_attribution": "shared_pool_not_workload",
+            "gpu_relation": "batch_kernel_verification",
+            "mount_relation": "not_observed",
+            "pool_members": [
+              {
+                "rank": 0,
+                "node": "sample-storage-1",
+                "target_id": "sample-storage-1-daos-rank-0"
+              },
+              {
+                "rank": 1,
+                "node": "sample-storage-2",
+                "target_id": "sample-storage-2-daos-rank-1"
+              }
+            ],
+            "io": {
+              "operation": "read",
+              "bytes": 33554432,
+              "sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "expected_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "checksum_verified": true,
+              "client_node": "sample-compute"
+            },
+            "transfer": {
+              "path": null,
+              "gpu_uuid": null,
+              "bytes": null,
+              "host_sha256": null,
+              "device_readback_sha256": null,
+              "roundtrip_verified": null,
+              "cuda_device_verified": null,
+              "read_started_at": null,
+              "read_ended_at": null,
+              "transfer_started_at": null,
+              "transfer_ended_at": null,
+              "daos_copy_wall_seconds": null,
+              "h2d_wall_seconds": null,
+              "d2h_wall_seconds": null,
+              "allocation_hold_seconds": null,
+              "staging": null,
+              "fabric_provider": null,
+              "client_interface": null,
+              "gds": null,
+              "gpu_compute": null
+            }
+          }
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false,
+        "registry_stale": false,
+        "binding_verified": false
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "data": {
+        "id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+        "kind": "storage_pool",
+        "pod": "physical-ab",
+        "attrs": {
+          "cluster": "sample-cluster",
+          "node": null,
+          "model": null,
+          "gpu_uuid": null,
+          "backend": "daos",
+          "system": "sample-daos",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "container": null,
+          "rank": null
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002:container:00000000-0000-0000-0000-000000000003",
+        "kind": "storage_container",
+        "pod": "physical-ab",
+        "attrs": {
+          "cluster": "sample-cluster",
+          "node": null,
+          "model": null,
+          "gpu_uuid": null,
+          "backend": "daos",
+          "system": "sample-daos",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "container": "00000000-0000-0000-0000-000000000003",
+          "rank": null
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "id": "GPU-00000000-0000-0000-0000-000000000001",
+        "kind": "gpu",
+        "pod": "sample-pod",
+        "attrs": {
+          "cluster": "sample-cluster",
+          "node": "sample-compute",
+          "model": "NVIDIA A2",
+          "gpu_uuid": "GPU-00000000-0000-0000-0000-000000000001",
+          "backend": null,
+          "system": null,
+          "pool": null,
+          "container": null,
+          "rank": null
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "id": "sample-storage-1-daos-rank-0",
+        "kind": "storage_target",
+        "pod": "physical-a",
+        "attrs": {
+          "cluster": "sample-cluster",
+          "node": "sample-storage-1",
+          "model": null,
+          "gpu_uuid": null,
+          "backend": "daos",
+          "system": null,
+          "pool": null,
+          "container": null,
+          "rank": 0
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "id": "sample-storage-2-daos-rank-1",
+        "kind": "storage_target",
+        "pod": "physical-b",
+        "attrs": {
+          "cluster": "sample-cluster",
+          "node": "sample-storage-2",
+          "model": null,
+          "gpu_uuid": null,
+          "backend": "daos",
+          "system": null,
+          "pool": null,
+          "container": null,
+          "rank": 1
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": {
+        "from_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+        "to_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002:container:00000000-0000-0000-0000-000000000003",
+        "link": "contains",
+        "attrs": {
+          "relation": "logical_containment",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "system": "sample-daos",
+          "observed_at": "2026-11-07T16:14:35.012144Z",
+          "rank": null
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "from_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+        "to_id": "sample-storage-1-daos-rank-0",
+        "link": "member",
+        "attrs": {
+          "relation": "enabled_pool_rank_not_io_attribution",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "system": "sample-daos",
+          "observed_at": "2026-11-07T16:14:35.012144Z",
+          "rank": 0
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "from_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+        "to_id": "sample-storage-2-daos-rank-1",
+        "link": "member",
+        "attrs": {
+          "relation": "enabled_pool_rank_not_io_attribution",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "system": "sample-daos",
+          "observed_at": "2026-11-07T16:14:35.012144Z",
+          "rank": 1
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    }
+  ]
+}
