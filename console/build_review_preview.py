@@ -16,11 +16,16 @@ def build(output, snapshot=None, workload=None, screen=None):
     html = html.replace('<script src="review.js"></script>',
         '<script id="gpuflow-review-data" type="application/json">'+encoded+'</script>\n<script>'+js+'</script>')
     html = html.replace('<link rel="stylesheet" href="testbed.css">', '<style>'+(root/'testbed.css').read_text()+'</style>')
+    mapping_js=(root/'mapping.js').read_text()
+    assert '</script' not in mapping_js.lower()
+    html=html.replace('<script src="mapping.js"></script>','<script>'+mapping_js+'</script>')
     testbed_js=(root/'testbed.js').read_text()
     assert '</script' not in testbed_js.lower()
     embedded=''
     if snapshot:
-        encoded_snapshot=json.dumps(json.loads(snapshot.read_text()),ensure_ascii=False).replace('<','\\u003c')
+        sample=json.loads(snapshot.read_text())
+        sample['review_api_samples']=json.loads((root/'samples/review-api.fixtures.json').read_text())
+        encoded_snapshot=json.dumps(sample,ensure_ascii=False).replace('<','\\u003c')
         embedded='<script id="gpuflow-testbed-data" type="application/json">'+encoded_snapshot+'</script>\n'
         embedded+='<script>if(!new URL(location.href).searchParams.has("data")){const u=new URL(location.href);u.searchParams.set("data","snapshot");history.replaceState(null,"",u);}</script>\n'
     if workload:

@@ -779,7 +779,7 @@ function drawChart(k,r){
 
 /* Agent: fixed scenario answers */
 const QA={
- infer:[['Why did TTFT rise?',()=>{const r=compute('infer');return r.hot?`Sessions grew to 40 and L1 DRAM (80 GiB) filled to 92%, pushing the KV miss rate to 42%. Chunks that are needed again must be read from DAOS, but they sit on 3 targets, so p99 latency is 18 ms. As a result GPUs spend ${r.wait}% of their time waiting for KV restores.\nRecommended: enable the L2 CXL tier → round-robin target placement → server-side prefetch, in that order.`:`The applied policies brought wait down to ${r.wait}%. What remains is mostly the server-DRAM hop on the L3 read path.`},'gpuflow_cache_lookup_total{tier}, gpuflow_storage_target_read_seconds, kv.load events'],
+ infer:[['Why did TTFT rise?',()=>{const r=compute('infer');return r.hot?`Sessions grew to 40 and L1 DRAM (80 GiB) filled to 92%, pushing the KV miss rate to 42%. Chunks that are needed again must be read from DAOS, but they sit on 3 targets, so p99 latency is 18 ms. As a result GPUs spend ${r.wait}% of their time waiting for KV restores.\nRecommended: enable the L2 CXL tier → round-robin target placement → server-side prefetch, in that order.`:`The applied policies brought wait down to ${r.wait}%. What remains is mostly the server-DRAM hop on the L3 read path.`},'gpuflow_cache_lookup_total{tier}, gpuflow_storage_target_latency_seconds, kv.load events'],
   ['Which tier serves most KV?',()=>{const r=compute('infer');return `L0 HBM ${r.hits.l0}%, L1 DRAM ${r.hits.l1}%, L2 CXL ${r.hits.l2}%, L3 DAOS ${r.hits.l3}%, miss ${r.hits.miss}%. Misses lead to prefill recomputation.`},'gpuflow_cache_lookup_total{result="hit"} by tier']],
  train:[['Why are checkpoint saves slow?',()=>`During write bursts, switch PFC pauses rise and one rank writes to its targets more slowly than the others. As in MLPerf Storage rules, the slowest rank sets the save time, so even striping and congestion-control tuning come first.`,'ckpt.write.start/end events, gpuflow_fabric_pfc_pause_total']],
  ingest:[['Is anything wrong with this job?',()=>`It is within normal range. I/O stalls rise briefly only during the shuffle at epoch boundaries. This workload is a target for Y2 intelligent prefetching.`,'gpuflow_host_io_stall_seconds_total (KETI eBPF)']]
@@ -1241,8 +1241,8 @@ function renderSc(){const pc=LOG.filter(e=>e.src==='Policy').length,prov=LOG.fil
    ['10. Provisioning automation','Supported',prov?`${prov} demo run(s)`:'—',prov?'Scenario':'Not measured','csi.provision events','⑩']];
   const ok=(t,v)=>v==='—'?'none':t.includes('≤')?parseFloat(v)<=parseFloat(t.replace('≤','')):t.includes('≥')?parseFloat(v)>=parseFloat(t.replace('≥','')):v!=='—';
   $('#sc').innerHTML=`<div class="ksban"><b>Y1 results · complete in Y3</b> Measured values will be filled in from TTA tests, IO500 and MLPerf results. 'Scenario' marks mockup example values.</div>
-  <section class="panel" aria-label="Scorecard"><div class="ph"><h2>10 quantitative KPIs</h2><small>Target · current · source</small></div><div class="tw"><table class="dtab"><thead><tr><th>KPI</th><th>Target</th><th>Current</th><th>Status</th><th>Source</th><th>Basis / note</th><th>Screen</th></tr></thead><tbody>${S.map(([n,t,v,src,note,scr])=>{const o=src==='Scenario'?'scenario':ok(t,v);
-    return `<tr><td><b>${n}</b></td><td class="num">${t}</td><td class="num">${v}</td><td><span class="pill ${o==='none'||o==='scenario'?'warn':o?'good':'crit'}">${o==='scenario'?'Example · not evaluated':o==='none'?'Not measured':o?'Met':'Not met'}</span></td><td><span class="src s-${src==='Scenario'?'sim':src==='Measured'?'live':'none'}">${src}</span></td><td class="kscap" style="font-family:var(--f-ui)">${note}</td><td><button type="button" class="btn ghost" data-go="${scr}">${scr}</button></td></tr>`}).join('')}</tbody></table></div></section>`;
+  <section class="panel" aria-label="Scorecard"><div class="ph"><h2>10 quantitative KPIs</h2><small>Target · current · source</small></div><div class="tw"><table class="dtab"><thead><tr><th>KPI</th><th>Target</th><th>Current</th><th>Status</th><th>Source</th><th>Basis / note</th><th>Screen</th></tr></thead><tbody>${S.map(([n,t,v,src,note,scr],index)=>{const o=src==='Scenario'?'scenario':ok(t,v);
+    return `<tr data-review-key="scorecard-${index+1}"><td><b>${n}</b></td><td class="num">${t}</td><td class="num">${v}</td><td><span class="pill ${o==='none'||o==='scenario'?'warn':o?'good':'crit'}">${o==='scenario'?'Example · not evaluated':o==='none'?'Not measured':o?'Met':'Not met'}</span></td><td><span class="src s-${src==='Scenario'?'sim':src==='Measured'?'live':'none'}">${src}</span></td><td class="kscap" style="font-family:var(--f-ui)">${note}</td><td><button type="button" class="btn ghost" data-go="${scr}">${scr}</button></td></tr>`}).join('')}</tbody></table></div></section>`;
   document.querySelectorAll('#sc [data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go))}
 
 /* ── Forecast (KETI eBPF + Informer): future utilization per layer. Each workload type has periodic bursts;
@@ -1326,6 +1326,7 @@ window.addEventListener('gpuflow:review-context-request',()=>window.dispatchEven
 clk();syncScope();go('①');
 </script>
 
+<script src="mapping.js"></script>
 <script src="testbed.js"></script>
 <script src="review.js"></script>
 </body></html>

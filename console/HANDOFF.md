@@ -21,6 +21,19 @@ node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 
 샘플은 실제 읽기/GPU 커널 검증의 수치와 시각을 보존하고 장비·작업·저장소 식별자를 치환한 과거 표본입니다. `redacted`와 `sample_notice`를 유지합니다. 원천 provenance는 실측으로 남기지만, 치환된 식별자를 실제 API/VM 필터로 쓰거나 현재 상태라고 해석하지 않습니다. 실행기 원본 데이터나 독립 재실행 증명은 포함하지 않습니다.
 
+## 최신 매핑 보완판
+
+검토 위젯은 기존 ID를 유지하여 52개로 확장했습니다. ⑤~⑬ 위젯과 ⑬ KPI 10행을 항목별로 검토할 수 있습니다.
+
+- [전체 화면–위젯 매핑·잔여 항목](generated/FULL_SCREEN_WIDGET_MAP.md)
+- [기존 API 4개 필드 매핑](generated/EXISTING_API_MAP.md)
+- [KPI 10행·산식·검증 주체](generated/KPI_ROW_MAP.md)
+- [문서 정합성](generated/MAPPING_ALIGNMENT.md), [카탈로그 차이](CATALOG_ALIGNMENT.md)
+
+⑦은 기존 Q01~Q03 고정 mock을 선택해 normal/no_evidence/timeout 표시를 확인합니다. ⑨ 정책·이력과 ⑬ scorecard의 내장 예시는 합성 계약 fixture이며 DB 캡처가 아닙니다. 실측 batch 표본의 출처와 혼합하지 않습니다.
+
+로컬 중계 참조 구현 `review_preview_server.py`는 `--api-url`, `--token-file`, `--port`로 실행합니다. API URL·토큰 파일은 로컬에서 제공하며 브라우저에 Bearer를 전달하지 않습니다. 기존 목록 3종과 LLM을 중계하고, GPU 시계열 중계는 별도 미구성(503)입니다. 기존 J 중계 교체·운영 배포를 의미하지 않습니다.
+
 ## 화면 확인
 
 1. 첫 화면 ①에서 클러스터·컴퓨트 장비 POD·랙·노드 필터, POD 요약, 회색 GPU 히트맵과 스토리지 등록 구성을 확인합니다. 랙 미등록·대기율 미계측은 실제 결손이며 0이 아닙니다.
@@ -39,6 +52,8 @@ node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 
 ## 검증 범위
 
-순수 판정 77개와 치환 샘플 6개 검증을 수행합니다. 로컬 브라우저 테스트는 Playwright와 Chromium이 있는 환경에서 `PUBLIC_PREVIEW_FILE`에 생성된 HTML 절대 경로를 지정해 `node console/tests/handoff-browser.cjs`로 실행합니다. 기존 시나리오 검토 회귀는 로컬 HTTP 서버와 `console/tests/review-browser.cjs`로 확인합니다. CI는 PR과 main push에서 순수 판정·샘플 83개 검사와 standalone HTML 빌드를 수행합니다. 브라우저 검증은 로컬 별도 실행입니다. 실제 장비·담당자 접속·브라우저 인수와 구분합니다.
+순수 판정·매핑 85개와 치환 샘플 6개 검증을 수행합니다. 로컬 브라우저 테스트는 Playwright와 Chromium이 있는 환경에서 `PUBLIC_PREVIEW_FILE`에 생성된 HTML 절대 경로를 지정해 `node console/tests/handoff-browser.cjs`로 실행합니다. 기존 시나리오 검토 회귀는 로컬 HTTP 서버와 `console/tests/review-browser.cjs`로 확인합니다. CI는 PR과 main push에서 순수 판정·샘플 91개 검사와 standalone HTML 빌드를 수행합니다. 브라우저 검증은 로컬 별도 실행입니다. 실제 장비·담당자 접속·브라우저 인수와 구분합니다.
 
-전체 페이지 회귀는 같은 환경에서 `node console/tests/all-pages-browser.cjs`로 실행합니다. 13개 화면 × 관측/시나리오 × 데스크톱/모바일, 기존 20개 위젯의 관측 모드 검토 연결과 오프라인 실패 표시를 검사합니다. [페이지별 검수 결과](ALL_PAGES_REVIEW.md)를 함께 확인하세요.
+전체 페이지 회귀는 같은 환경에서 `node console/tests/all-pages-browser.cjs`로 실행합니다. 13개 화면 × 관측/시나리오 × 데스크톱/모바일, 52개 위젯의 관측 모드 검토 연결·LLM 9개 상태·KPI 10행과 오프라인 실패 표시를 검사합니다. [페이지별 검수 결과](ALL_PAGES_REVIEW.md)를 함께 확인하세요.
+
+매핑 생성·검사: `python3 console/sync_mapping_docs.py --check`. HTTP 중계 회귀: `python3 -m unittest discover -s console/tests -p "test_mapping_gateway.py" -v`. 실제 J 데이터·접속은 별도 인수 대상입니다.

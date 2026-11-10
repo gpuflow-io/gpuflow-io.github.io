@@ -17,6 +17,10 @@ jobs:
         run: node -e 'if (Number(process.versions.node.split(".")[0]) < 20) process.exit(1)'
       - name: Verify aggregation, evidence and redacted samples
         run: node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
+      - name: Verify generated mappings and local gateway
+        run: |
+          python3 console/sync_mapping_docs.py --check
+          python3 -m unittest discover -s console/tests -p "test_mapping_gateway.py" -v
       - name: Build standalone review preview
         run: >-
           python3 console/build_review_preview.py output/batch-review.html

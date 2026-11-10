@@ -182,6 +182,7 @@
   const pathBox=document.createElement('div');pathBox.id='tb-path';pathBox.className='view';pathBox.hidden=true;workBox.after(pathBox);
   const analysisBox=document.createElement('div');analysisBox.id='tb-analysis';analysisBox.className='view';analysisBox.hidden=true;pathBox.after(analysisBox);
   const extraBox=document.createElement('div');extraBox.id='tb-extra';extraBox.className='view';extraBox.hidden=true;analysisBox.after(extraBox);
+  const mappingBox=document.createElement('div');mappingBox.id='tb-contract-widgets';mappingBox.className='view';mappingBox.hidden=true;extraBox.after(mappingBox);
   const modeSelect=document.getElementById('tb-mode');modeSelect.value=mode;
   const kpi=(key,title,value,detail)=>`<div class="panel kpi" ${key?`data-review-key="${key}"`:''}><span class="eyebrow">${esc(title)}</span><span class="v num">${esc(value)}</span><span class="d">${esc(detail)}</span></div>`;
   function stateLabel(item, a){
@@ -363,19 +364,47 @@
     document.getElementById('tb-node').onchange=e=>{node=e.target.value;render();};
     root.dispatchEvent(new Event('gpuflow:testbed-render'));
   }
-  const pageRequirements={
-    '⑤':[['계층별 용량·적중률','표본 미포함','캐시 exporter의 tier별 hit/miss·evict·used/capacity와 분모·단위 필요. 제공기관·매핑 담당은 미팅에서 확정.'],['데이터 이동·티어 정책','표본 미포함','이동 이벤트·정책 이력과 workload 연결 필요. 후속 RFC 예정.']],
-    '⑥':[['Metadata / target load','표본 미포함','DAOS rank·target 및 Lustre MDT/OST의 ops·지연·단위·집계 구간 필요. 등록 rank는 부하 측정치가 아님.'],['Fabric / DPU','표본 미포함','NIC/DPU/포트 식별·연결과 처리량·재전송·혼잡 계측 필요. DPU Apply/Rollback은 실측 보기에서 제공하지 않음.']],
-    '⑦':[['고정 질문·입력 근거','서비스 미연동','질문 ID·대상·기간·권한 범위와 고정 근거 조회 템플릿을 확정해야 합니다. 이 미리보기는 모델을 호출하지 않습니다.'],['응답·출처·실패 처리','표본 미포함','answer/findings/evidence·관측 시각·품질과 timeout/no_evidence/forbidden 계약 검토. 모델·서빙 일정은 미정.']],
-    '⑧':[['노드 상태·GPU/NIC 연결','일부 구성만 확인','노드 목록은 표본에 포함된 물리 노드입니다. health·heartbeat·NIC·rack과 CPU/RAM/NUMA는 표본 미포함. 정상으로 기본 처리하지 않습니다.'],['Maintenance / Drain / 추가 / 복구','실장비 제어 미제공','1차년도 조회 범위. 관리 제어 API·권한·감사·복구는 후속 협의하며 이 화면에는 실행 버튼을 제공하지 않습니다.']],
-    '⑨':[['정책 목록·권고·이력','표본 미포함','정책 owner·mode·파라미터 및 predict.bottleneck → policy.change span 연결 필요.'],['데모 토글·실행 상태','데모 서비스 미연동','접수/진행/완료/실패, simulated=true 계약 필요. 브라우저 목업 동작은 서버 적용이나 이력 저장을 뜻하지 않습니다.']],
-    '⑩':[['테넌트·쿼터·QoS','표본 미포함','테넌트/namespace별 할당·사용량·쿼터 및 권한 연결 필요. 1차년도 표시 범위는 미팅에서 확정.'],['볼륨·PVC·격리','표본 미포함','CSI/PVC → Pool/Container 귀속 근거 필요. Container가 있다고 PVC 프로비저닝·격리 검증을 완료한 것은 아닙니다.']],
-    '⑪':[['활성 경보','표본 미포함','alert.fire/resolve·심각도·대상·최초/최근 시각 필요. 표본에 없음을 경보 0건으로 표시하지 않습니다.','alerts'],['이벤트·Ack','표본 미포함','event ID·발생 시각·source·span_id·보존/페이지 처리 필요. Ack 영속화 주체·권한·감사는 미정.','events']],
-    '⑫':[['접근 권한·역할','실제 인증 미연동','시나리오 Role 선택은 UI 검토 기능입니다. 실제 로그인·테넌트 제한·서버 권한 검사 근거가 아닙니다.'],['감사 이력','표본 미포함','actor·대상·결과·request ID·시각과 감사 보존 계약 필요. 브라우저 클릭 로그를 서버 감사로 간주하지 않습니다.']],
-    '⑬':[['KPI 측정 결과·판정','공인 평가 근거 미포함','정상·지연·실패 배치 실험은 전달 검증입니다. IO500/MLPerf·기준 장비·조건·반복 수·산식 없는 상태에서 목표 달성으로 판정하지 않습니다.'],['측정 출처·조건','표본 미포함','scorecard run ID·측정 기간·버전·구성·원본 결과·검증 주체 필요. TTA와 판정 조건·일정을 합의해야 합니다.']]
-  };
+  const catalog=()=>root.GPUFlowReviewCatalog||(()=>{try{return JSON.parse(document.getElementById('gpuflow-review-data')?.textContent||'null');}catch{return null;}})();
+  let llmQuestion='Q01',llmScenario='normal',llmResult=null,llmBusy=false,llmSeq=0,reviewResources=null,resourceError='',resourceBusy=false;
+  const contractWidgets=screen=>(catalog()?.widgets||[]).filter(w=>w.screens[0]===screen&&/W(?:05|06|07|08|09|10|11|12)/.test(w.id));
+  function contractCard(w){
+    return `<section class="panel tb-content" data-review-key="${esc(w.key)}"><h3>${esc(w.id)} ${esc(w.title)}</h3><p>${esc(w.meaning)}</p><p class="tb-status">${esc(w.readiness)}</p><details><summary>지표·이벤트·API·결정 사항</summary><p>${esc(w.api.join(' · ')||'연결 API 미정')}</p><p>지표: ${esc(w.metrics.join(', ')||'등록된 지표 연결 없음')}</p><p>이벤트: ${esc((w.events||[]).join(', ')||'해당 없음/확인 필요')}</p><p>미확정 계약: ${esc((w.pending_contracts||[]).join(', ')||'없음')}</p><p>${esc(w.response_fields)}</p><p>${esc(w.owner)}</p></details></section>`;
+  }
+  const resources=()=>mode==='snapshot'?data?.review_api_samples?.resources:reviewResources;
+  function apiList(name,fields){
+    const envelope=resources()?.[name],state=root.GPUFlowMapping.resourceState(envelope);
+    const labels={missing:'API 제공 · 이 조회/표본에는 응답 미포함',error:'API 제공 · 중계 조회 실패',invalid:'완전한 목록·응답 형식 확인 실패',empty:'조회 성공 · 빈 목록',present:'응답 표시 가능'};
+    return `<section class="panel tb-content" id="tb-api-${name}"><h3>GET /v1/${name}</h3><p>${esc(labels[state.status])}${resourceError?' · '+esc(resourceError):''}</p><p>${mode==='snapshot'?'합성 계약 fixture · DB 실측 캡처 아님':'기존 업무 API 중계 조회'} · ${esc(envelope?.captured_at||'조회 시각 미포함')}</p><div class="tb-table"><table><thead><tr>${fields.map(f=>`<th>${esc(f)}</th>`).join('')}<th>출처·품질</th></tr></thead><tbody>${state.items.map(x=>`<tr>${fields.map(f=>`<td>${esc(typeof x.data[f]==='object'?JSON.stringify(x.data[f]):x.data[f]??'미제공')}</td>`).join('')}<td>${esc(x.provenance.data_origin||'unknown')} / ${esc(JSON.stringify(x.quality))}</td></tr>`).join('')||`<tr><td colspan="${fields.length+1}">${esc(labels[state.status])}</td></tr>`}</tbody></table></div><p>저장된 active·변경 이력은 실제 장비 적용·효과의 증거와 구분합니다. ns 원본 값은 문자열로 보존합니다.</p></section>`;
+  }
+  function kpiTable(){
+    const c=catalog();if(!c)return '<p>매핑 자료 준비 중…</p>';
+    const rows=root.GPUFlowMapping.scorecardRows(c,resources()?.['scorecard-runs']);
+    return `<section class="panel tb-content"><h2>⑬ KPI 10행 매핑</h2><p>${mode==='snapshot'?'정책·스코어카드 합성 계약 fixture · DB 실측 캡처 아님 · batch 관측과 별도 시각':'기존 업무 API 중계 조회 · 원천 provenance/quality 확인'}</p><p>목표는 원본 목업 표기입니다. 조건·검증 주체는 미팅 확정 대상이며 합성값·실측 원천값만으로 목표 달성을 판정하지 않습니다.</p><p>indicator 연결은 명시한 별칭만 사용합니다. 같은 KPI에 여러 run이 있으면 임의 선택하지 않습니다.</p><div class="tb-table"><table id="tb-kpi-table"><thead><tr><th>KPI·목표</th><th>원천 값·출처</th><th>연결·평가 상태</th><th>산식·근거·검증</th></tr></thead><tbody>${rows.map(({kpi:k,row,status})=>`<tr data-review-key="scorecard-${esc(k.widget_id.split('-')[1].replace(/^0/,''))}"><td><b>${esc(k.widget_id)} ${esc(k.title)}</b><p>${esc(k.target)}</p></td><td>${row?esc(row.data.measured??'측정값 미제공')+' '+esc(row.data.unit)+'<p>'+esc(row.provenance.data_origin)+' · '+esc(row.data.source)+'</p><p>run '+esc(row.data.id)+' · '+esc(row.data.run_at)+'</p>':'응답/연결 근거 없음'}</td><td>${esc({mapped:'행 연결됨',ambiguous:'복수 run · 선택 필요',unmapped:'indicator 연결 미확정',missing:'표본 미포함',invalid:'응답 형식 오류',error:'조회 실패',empty:'조회 성공·빈 목록'}[status])}<p>평가 미확정</p></td><td><details><summary>산식·필드·검증 주체</summary><p>${esc(k.formula)}</p><p>${esc(k.evidence)}</p><p>${esc(k.validators)}</p><p>indicator 별칭: ${esc(k.indicator_aliases.join(', '))} · 합성 예시용 별칭이며 실제 DB indicator는 연결 확인 필요</p><p>원본 데이터: ${esc(row?JSON.stringify(row.data):'미포함')}</p></details></td></tr>`).join('')}</tbody></table></div><p>연결되지 않은 원천 indicator: ${esc(root.GPUFlowMapping.resourceState(resources()?.['scorecard-runs']).items.filter(x=>!c.kpis.some(k=>k.indicator_aliases.includes(x.data.indicator))).map(x=>x.data.indicator).join(', ')||'없음/응답 미포함')}</p></section>`;
+  }
+  function llmPanel(){
+    return `<section class="panel tb-content" id="tb-llm"><h3>POST /v1/llm/explain · 고정 mock 응답</h3><p>${mode==='snapshot'?'기존 API 고정 fixture의 오프라인 표시 · API 호출 아님':'업무 API 중계 호출 · 실모델 아님'}</p><div class="tb-filters"><label>질문 <select id="tb-llm-question">${['Q01','Q02','Q03'].map(q=>`<option ${q===llmQuestion?'selected':''}>${q}</option>`).join('')}</select></label><label>데이터 상태 <select id="tb-llm-scenario">${['normal','no_evidence','timeout'].map(s=>`<option ${s===llmScenario?'selected':''}>${s}</option>`).join('')}</select></label><button type="button" class="tb-open" id="tb-llm-run" ${llmBusy?'disabled':''}>${llmBusy?'조회 중…':'선택한 mock 응답 확인'}</button></div>${llmResult?`<p>HTTP ${esc(llmResult.http_status)} · ${esc(llmResult.body?.error?.code||llmResult.body?.response?.status||'응답 오류')}</p><p>${esc(llmResult.body?.response?.answer||llmResult.body?.error?.message||'근거 없음')}</p><details><summary>출처·근거·품질·관측/생성 시각·오류 원본</summary><pre class="tb-json">${esc(JSON.stringify(llmResult.body,null,2))}</pre></details>`:'<p>사용자가 질문을 선택할 때만 표시·호출합니다. 자동 주기 호출은 하지 않습니다.</p>'}</section>`;
+  }
+  async function requestLlm(){
+    const seq=++llmSeq,requestMode=mode;llmBusy=true;llmResult=null;renderExtra();
+    try{
+      let result;
+      if(mode==='snapshot')result=root.GPUFlowMapping.llmFixture(data?.review_api_samples?.llm,llmQuestion,llmScenario)||{http_status:0,body:{error:{code:'FIXTURE_MISSING',message:'표본 미포함'}}};
+      else{
+        const response=await fetch('/testbed-api/llm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question_id:llmQuestion,scenario:llmScenario}),signal:AbortSignal.timeout(12000)});
+        result={http_status:response.status,body:await response.json()};
+      }
+      if(seq===llmSeq&&mode===requestMode)llmResult=result;
+    }catch{if(seq===llmSeq&&mode===requestMode)llmResult={http_status:0,body:{error:{code:'GATEWAY_UNAVAILABLE',message:'API 제공 · 중계 연결 실패'}}};}
+    finally{if(seq===llmSeq){llmBusy=false;if(activeScreen==='⑦')renderExtra();}}
+  }
+  async function refreshResources(){
+    if(mode!=='live'||resourceBusy)return;resourceBusy=true;
+    try{const r=await fetch('/testbed-api/review-resources',{cache:'no-store',signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error();const value=await r.json();if(mode==='live'){reviewResources=value;resourceError='';}}
+    catch{if(mode==='live'){reviewResources=null;resourceError='중계 조회 실패 · 빈 목록으로 처리하지 않음';}}
+    finally{resourceBusy=false;if(mode==='live')render();}
+  }
   function renderExtra(){
-    const requirements=pageRequirements[activeScreen]||[];
+    const requirements=contractWidgets(activeScreen);
     let details='';
     if(!error&&data&&['⑥','⑧'].includes(activeScreen)){
       const a=overviewModel(data,mode);
@@ -385,18 +414,25 @@
         details=`<section class="panel tb-content"><h2>표본의 물리 노드 목록</h2><p>범위: 표본 전체 · health·할당·관리 제어와 분리</p><div class="tb-table"><table><thead><tr><th>클러스터 / 노드</th><th>장비 POD</th><th>등록 구성</th><th>랙</th><th>상태</th></tr></thead><tbody>${[...nodes.values()].map(xs=>`<tr><td>${esc(xs[0].data.attrs.cluster)} / ${esc(xs[0].data.attrs.node)}</td><td>${esc([...new Set(xs.map(x=>x.data.pod))].join(', '))}</td><td>${esc(xs.map(x=>x.data.kind).join(', '))}</td><td>${esc([...new Set(xs.map(x=>x.data.rack||x.data.attrs.rack||'미등록'))].join(', '))}</td><td>표본 미포함</td></tr>`).join('')||'<tr><td colspan="5">등록 물리 노드 없음</td></tr>'}</tbody></table></div></section>`;
       }
     }
-    const markup=`<section class="panel tb-content"><h2>${esc(activeScreen)} 관측 범위·연동 검토</h2><p>${error?esc(error):data?'관측 시각 '+esc(data.captured_at)+' (UTC) · '+(mode==='snapshot'?'과거 표본 · 현재 상태 아님':'API 조회 범위'):'관측 자료 조회 중…'}</p><p>이 페이지의 미연동 영역은 아래에 표시합니다. 실제 데이터가 없는 자리에 시나리오 수치를 채우지 않습니다.</p><button type="button" class="tb-open" id="tb-show-scenario">이 페이지의 시나리오 목업 보기</button><p>제공 담당·계약·일정: 미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정</p></section>${details}<div class="tb-two-grid">${requirements.map(x=>pendingCard(...x)).join('')}</div>`;
+    if(activeScreen==='⑦')details+=llmPanel();
+    if(activeScreen==='⑨')details+=apiList('policies',['policy','name','owner','rule','workload_id','active','updated_ns'])+apiList('policy-history',['id','policy','ts_ns','actor','reason','span_id','attrs']);
+    if(activeScreen==='⑬')details+=kpiTable();
+    if(activeScreen==='⑫'&&catalog()?.role_matrix){const m=catalog().role_matrix;details+=`<section class="panel tb-content"><h3>원본 역할×화면 권한 제안</h3><p>${esc(m.status)} · F 전체 / S 자기 범위 / R 조회 / X 숨김</p><div class="tb-table"><table><thead><tr><th>화면</th>${m.roles.map(r=>`<th>${esc(r)}</th>`).join('')}</tr></thead><tbody>${m.rows.map(r=>`<tr><td>${esc(r.screen)}</td>${r.permissions.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`;}
+    const markup=`<section class="panel tb-content"><h2>${esc(activeScreen)} 관측 범위·연동 검토</h2><p>${error?esc(error):data?'관측 시각 '+esc(data.captured_at)+' (UTC) · '+(mode==='snapshot'?'과거 표본 · 현재 상태 아님':'API 조회 범위'):'관측 자료 조회 중…'}</p><p>이 페이지의 미연동 영역은 아래에 표시합니다. 실제 데이터가 없는 자리에 시나리오 수치를 채우지 않습니다.</p><button type="button" class="tb-open" id="tb-show-scenario">이 페이지의 시나리오 목업 보기</button><p>제공 담당·계약·일정: 미정 — 글루시스·온라인파워스·해당 기관 / 화면·API 미팅에서 확정</p></section>${details}<div class="tb-two-grid">${requirements.map(contractCard).join('')}</div>`;
     if(extraBox._markup===markup&&extraBox.querySelector('#tb-show-scenario'))return;
     extraBox.innerHTML=markup;extraBox._markup=markup;
     document.getElementById('tb-show-scenario').onclick=()=>{modeSelect.value='scenario';modeSelect.onchange();};
+    const question=document.getElementById('tb-llm-question');if(question){question.onchange=e=>{llmQuestion=e.target.value;llmResult=null;renderExtra();};document.getElementById('tb-llm-scenario').onchange=e=>{llmScenario=e.target.value;llmResult=null;renderExtra();};document.getElementById('tb-llm-run').onclick=requestLlm;}
     root.dispatchEvent(new Event('gpuflow:testbed-render'));
   }
 
   function render(){
     const overview=activeScreen==='①';
     const views={'①':'ov','②':'dt','③':'dt','④':'dt','⑤':'dt','⑥':'fab','⑦':'dt','⑧':'node','⑨':'pol','⑩':'ten','⑪':'alr','⑫':'aud','⑬':'sc'};
-    const extra=mode!=='scenario'&&!!pageRequirements[activeScreen];
+    const extra=mode!=='scenario'&&['⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫','⑬'].includes(activeScreen);
     extraBox.hidden=!extra;
+    mappingBox.hidden=mode!=='scenario'||activeScreen==='⑬';
+    if(!mappingBox.hidden){const html=contractWidgets(activeScreen).filter(w=>!['W11-01','W11-02'].includes(w.id)).map(contractCard).join('');if(mappingBox.innerHTML!==html)mappingBox.innerHTML=html;}
     for(const id of new Set(Object.values(views)))document.getElementById(id).hidden=extra||id!==views[activeScreen];
     const work=mode!=='scenario'&&activeScreen==='②';
     const path=mode!=='scenario'&&activeScreen==='③';
@@ -432,11 +468,12 @@
       if(location.protocol==='file:')throw Error('실시간 조회는 승인된 내부 미리보기 주소에서 이용하세요. 이 파일에는 저장된 관측이 포함됩니다.');
       const response=await fetch('/testbed-api/snapshot',{cache:'no-store',signal:AbortSignal.timeout(10000)});
       if(!response.ok)throw Error('API 조회 실패 · 현재 관계 미확인');
-      const value=await response.json();aggregate(value);if(mode==='live'){data=value;error='';}
-    }catch(e){if(mode==='live'){data=null;error=e.message;}}
+      const value=await response.json();aggregate(value);if(mode==='live'){data=value;error='';refreshResources();}
+    }catch(e){if(mode==='live'){data=null;error=e.message;reviewResources=null;resourceError='현재 조회 실패 · 이전 응답으로 대체하지 않음';}}
     finally{busy=false;render();}
   }
-  modeSelect.onchange=()=>{mode=modeSelect.value;++seriesSequence;seriesBusy=false;seriesState=null;data=null;error='';cluster='';pod='';rack='';node='';const u=new URL(location.href);u.searchParams.set('data',mode);history.replaceState(null,'',u);root.render();refresh();};
+  modeSelect.onchange=()=>{mode=modeSelect.value;++llmSeq;llmBusy=false;llmResult=null;reviewResources=null;resourceError='';++seriesSequence;seriesBusy=false;seriesState=null;data=null;error='';cluster='';pod='';rack='';node='';const u=new URL(location.href);u.searchParams.set('data',mode);history.replaceState(null,'',u);root.render();refresh();};
+  root.addEventListener('gpuflow:catalog-ready',()=>render());
   root.addEventListener('gpuflow:render',event=>{activeScreen=event.detail.screen;render();});
   setInterval(()=>{if(mode!=='scenario')render();},1000);
   setInterval(refresh,5000);

@@ -83,8 +83,9 @@
       <label class="review-field">위젯 바로가기<select id="review-widget">${catalog.widgets.map(w=>`<option value="${esc(w.id)}" ${w.id===widget.id?'selected':''}>${esc(w.id+' '+w.title)}</option>`).join('')}</select></label>
       <p id="review-context"></p>
       ${section('표시 의미·계산', '<p>'+esc(widget.meaning)+'</p>')}
-      ${section('메트릭·라벨',widget.metrics.length ? list(widget.metrics)+'<p class="review-muted">관련 식별/출처 라벨: '+esc(widget.labels.join(', '))+'</p>' : '<p>이 위젯은 업무 API 레코드 기반입니다.</p>')}
+      ${section('메트릭·라벨',widget.metrics.length ? list(widget.metrics)+'<p class="review-muted">관련 식별/출처 라벨: '+esc(widget.labels.join(', '))+'</p>' : '<p>카탈로그 지표 연결 없음. 업무 API·이벤트 또는 기관 제공 확인 항목을 아래에서 확인하세요.</p>')}
       ${section('조회 경로·필드',list(widget.api)+'<pre>'+esc(widget.response_fields)+'</pre><p>'+esc(catalog.boundary)+'</p>')}
+      ${section('이벤트·미확정 계약',list(widget.events||[])+list(widget.pending_contracts||[]))}
       ${section('요청 예시','<p>'+esc(widget.query_state)+'</p><pre>'+esc(widget.query || '아직 실행 쿼리 없음 — 의미·귀속·계측 범위 합의 후 작성')+'</pre>')}
       ${section('응답·실측 근거','<p class="review-muted">검증 요약은 원본 응답 payload가 아닙니다. 현재값·화면 인수를 뜻하지 않습니다.</p><pre>'+esc(JSON.stringify(widget.sample,null,2))+'</pre>')}
       ${section('현재 제한','<p>'+esc(widget.limits)+'</p>')}
@@ -186,6 +187,7 @@
   const metadata = embedded ? Promise.resolve().then(()=>JSON.parse(embedded.textContent)) :
     fetch('review-contracts.json').then(r=>{if(!r.ok)throw Error('load');return r.json();});
   metadata.then(data=>{
+    window.GPUFlowReviewCatalog=data;window.dispatchEvent(new Event('gpuflow:catalog-ready'));
     if(data.schema_version!==1 || !Array.isArray(data.widgets) || !data.widgets.length)throw Error('schema');
     catalog=data;storageKey='gpuflow-widget-review:'+catalog.revision;loadRecords();
     $('#review-toggle').disabled=false;

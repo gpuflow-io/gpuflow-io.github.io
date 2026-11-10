@@ -1,0 +1,665 @@
+{
+  "schema_version": 1,
+  "notice": "정책·스코어카드는 필드·출처 표시 검토용 합성 fixture이며 DB 캡처가 아닙니다. LLM은 기존 API의 고정 mock fixture입니다.",
+  "resources": {
+    "policies": {
+      "items": [
+        {
+          "data": {
+            "policy": "example-policy",
+            "name": "표시 검토용 정책",
+            "owner": "example-owner",
+            "rule": "후속 검토",
+            "workload_id": "example-workload",
+            "active": true,
+            "from_tier": null,
+            "to_tier": null,
+            "updated_at": "2026-11-10T00:00:00Z",
+            "updated_ns": "1794268800000000000"
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        }
+      ],
+      "backend": "postgres_read_only",
+      "next_cursor": "",
+      "complete": true,
+      "captured_at": "2026-11-10T00:00:00Z",
+      "sample_kind": "synthetic_contract_fixture_not_database_capture"
+    },
+    "policy-history": {
+      "items": [
+        {
+          "data": {
+            "id": "example-history",
+            "event_key": "example-event",
+            "policy": "example-policy",
+            "ts": "2026-11-10T00:00:00Z",
+            "ts_ns": "1794268800000000000",
+            "active": true,
+            "actor": "example-actor",
+            "role": "op",
+            "reason": "합성 표시 검토",
+            "span_id": "example-span",
+            "attrs": {
+              "mode": "demo"
+            }
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        }
+      ],
+      "backend": "postgres_read_only",
+      "next_cursor": "",
+      "complete": true,
+      "captured_at": "2026-11-10T00:00:00Z",
+      "sample_kind": "synthetic_contract_fixture_not_database_capture"
+    },
+    "scorecard-runs": {
+      "items": [
+        {
+          "data": {
+            "id": "example-run-1",
+            "event_key": "example-bench-1",
+            "indicator": "io_uplift",
+            "target": "≥20%",
+            "measured": null,
+            "unit": "%",
+            "run_at": "2026-11-10T00:00:00Z",
+            "ts_ns": "1794268800000000000",
+            "source": "synthetic_review_fixture",
+            "attrs": {
+              "example_only": true,
+              "conditions_verified": false
+            }
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        },
+        {
+          "data": {
+            "id": "example-run-2",
+            "event_key": "example-bench-2",
+            "indicator": "sequential_read",
+            "target": "≥200 GB/s",
+            "measured": null,
+            "unit": "GB/s",
+            "run_at": "2026-11-10T00:00:00Z",
+            "ts_ns": "1794268800000000000",
+            "source": "synthetic_review_fixture",
+            "attrs": {
+              "example_only": true,
+              "conditions_verified": false
+            }
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        },
+        {
+          "data": {
+            "id": "example-run-3",
+            "event_key": "example-bench-3",
+            "indicator": "sequential_write",
+            "target": "≥140 GB/s",
+            "measured": null,
+            "unit": "GB/s",
+            "run_at": "2026-11-10T00:00:00Z",
+            "ts_ns": "1794268800000000000",
+            "source": "synthetic_review_fixture",
+            "attrs": {
+              "example_only": true,
+              "conditions_verified": false
+            }
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        },
+        {
+          "data": {
+            "id": "example-run-4",
+            "event_key": "example-bench-4",
+            "indicator": "checkpoint_read",
+            "target": "≥40 GiB/s",
+            "measured": null,
+            "unit": "GiB/s",
+            "run_at": "2026-11-10T00:00:00Z",
+            "ts_ns": "1794268800000000000",
+            "source": "synthetic_review_fixture",
+            "attrs": {
+              "example_only": true,
+              "conditions_verified": false
+            }
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        },
+        {
+          "data": {
+            "id": "example-run-5",
+            "event_key": "example-bench-5",
+            "indicator": "checkpoint_write",
+            "target": "≥20 GiB/s",
+            "measured": null,
+            "unit": "GiB/s",
+            "run_at": "2026-11-10T00:00:00Z",
+            "ts_ns": "1794268800000000000",
+            "source": "synthetic_review_fixture",
+            "attrs": {
+              "example_only": true,
+              "conditions_verified": false
+            }
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        },
+        {
+          "data": {
+            "id": "example-run-6",
+            "event_key": "example-bench-6",
+            "indicator": "feedback_latency",
+            "target": "≤200 ms",
+            "measured": null,
+            "unit": "ms",
+            "run_at": "2026-11-10T00:00:00Z",
+            "ts_ns": "1794268800000000000",
+            "source": "synthetic_review_fixture",
+            "attrs": {
+              "example_only": true,
+              "conditions_verified": false
+            }
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        },
+        {
+          "data": {
+            "id": "example-run-7",
+            "event_key": "example-bench-7",
+            "indicator": "host_cpu",
+            "target": "≤5%",
+            "measured": 4,
+            "unit": "%",
+            "run_at": "2026-11-10T00:00:00Z",
+            "ts_ns": "1794268800000000000",
+            "source": "synthetic_review_fixture",
+            "attrs": {
+              "example_only": true,
+              "conditions_verified": false
+            }
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        },
+        {
+          "data": {
+            "id": "example-run-8",
+            "event_key": "example-bench-8",
+            "indicator": "recovery_rto",
+            "target": "≤30 s",
+            "measured": null,
+            "unit": "s",
+            "run_at": "2026-11-10T00:00:00Z",
+            "ts_ns": "1794268800000000000",
+            "source": "synthetic_review_fixture",
+            "attrs": {
+              "example_only": true,
+              "conditions_verified": false
+            }
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        },
+        {
+          "data": {
+            "id": "example-run-9",
+            "event_key": "example-bench-9",
+            "indicator": "isolation_count",
+            "target": "≥6",
+            "measured": null,
+            "unit": "count",
+            "run_at": "2026-11-10T00:00:00Z",
+            "ts_ns": "1794268800000000000",
+            "source": "synthetic_review_fixture",
+            "attrs": {
+              "example_only": true,
+              "conditions_verified": false
+            }
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        },
+        {
+          "data": {
+            "id": "example-run-10",
+            "event_key": "example-bench-10",
+            "indicator": "provisioning",
+            "target": "지원",
+            "measured": null,
+            "unit": "boolean",
+            "run_at": "2026-11-10T00:00:00Z",
+            "ts_ns": "1794268800000000000",
+            "source": "synthetic_review_fixture",
+            "attrs": {
+              "example_only": true,
+              "conditions_verified": false
+            }
+          },
+          "provenance": {
+            "data_origin": "simulation",
+            "simulated": true
+          },
+          "quality": {
+            "origin_unknown": false
+          }
+        }
+      ],
+      "backend": "postgres_read_only",
+      "next_cursor": "",
+      "complete": true,
+      "captured_at": "2026-11-10T00:00:00Z",
+      "sample_kind": "synthetic_contract_fixture_not_database_capture"
+    }
+  },
+  "llm": {
+    "Q01": {
+      "normal": {
+        "http_status": 200,
+        "body": {
+          "mock": true,
+          "response": {
+            "question_id": "Q01",
+            "status": "ok",
+            "answer": "합성 fixture의 GPU 데이터 대기율은 0.25 ratio입니다. 이 값만으로 대기율 상승의 원인은 확정할 수 없습니다.",
+            "findings": [
+              {
+                "claim": "합성 fixture의 GPU 데이터 대기율은 0.25 ratio입니다. 이 값만으로 대기율 상승의 원인은 확정할 수 없습니다.",
+                "evidence_ids": [
+                  "Q01-e1"
+                ],
+                "quoted_value": "0.25",
+                "unit": "ratio"
+              }
+            ],
+            "evidence_ids": [
+              "Q01-e1"
+            ],
+            "observed_from": "2026-11-06T00:00:00.000000000Z",
+            "observed_to": "2026-11-06T00:05:00.000000000Z",
+            "provenance": {
+              "kind": "mock_fixture",
+              "data_origins": [
+                "simulation"
+              ],
+              "simulated": true
+            },
+            "quality": {
+              "missing": [],
+              "stale": false,
+              "estimated": false,
+              "truncated": false
+            },
+            "model_version": "none/mock",
+            "prompt_version": "fixed-review-0.1",
+            "generated_at": "2026-11-06T00:05:01.000000000Z",
+            "request_id": "mock-q01-normal"
+          },
+          "evidence": [
+            {
+              "id": "Q01-e1",
+              "query_id": "kpi_wait",
+              "metric": "gpuflow_derived_gpu_data_wait_ratio",
+              "value": "0.25",
+              "unit": "ratio",
+              "data_origin": "simulation",
+              "simulated": true,
+              "evidence_kind": "metric",
+              "observed_at": "2026-11-06T00:05:00.000000000Z",
+              "scope": {
+                "tenant_id": "tenant-example",
+                "workload_id": "workload-example"
+              }
+            }
+          ],
+          "fixture_generated_at": "2026-11-06T00:05:01.000000000Z",
+          "request_id": "mock-q01-normal"
+        }
+      },
+      "no_evidence": {
+        "http_status": 200,
+        "body": {
+          "mock": true,
+          "response": {
+            "question_id": "Q01",
+            "status": "no_evidence",
+            "answer": "판단에 필요한 근거가 수집되지 않았습니다.",
+            "findings": [],
+            "evidence_ids": [],
+            "observed_from": null,
+            "observed_to": null,
+            "provenance": {
+              "kind": "mock_fixture",
+              "data_origins": [],
+              "simulated": true
+            },
+            "quality": {
+              "missing": [
+                "required_evidence"
+              ],
+              "stale": false,
+              "estimated": false,
+              "truncated": false
+            },
+            "model_version": "none/mock",
+            "prompt_version": "fixed-review-0.1",
+            "generated_at": "2026-11-06T00:05:01.000000000Z",
+            "request_id": "mock-q01-no_evidence"
+          },
+          "evidence": [],
+          "fixture_generated_at": "2026-11-06T00:05:01.000000000Z",
+          "request_id": "mock-q01-no_evidence"
+        }
+      },
+      "timeout": {
+        "http_status": 504,
+        "body": {
+          "error": {
+            "code": "DEADLINE_EXCEEDED",
+            "message": "응답 시간 초과",
+            "request_id": "mock-q01-timeout",
+            "retryable": true
+          }
+        }
+      }
+    },
+    "Q02": {
+      "normal": {
+        "http_status": 200,
+        "body": {
+          "mock": true,
+          "response": {
+            "question_id": "Q02",
+            "status": "ok",
+            "answer": "합성 fixture의 GPU 이용률은 0.92 ratio로, 이 fixture에 설정한 비교 임계값을 초과했습니다. 이는 병목 후보 신호이며 병목 원인의 확정은 아닙니다.",
+            "findings": [
+              {
+                "claim": "합성 fixture의 GPU 이용률은 0.92 ratio로, 이 fixture에 설정한 비교 임계값을 초과했습니다. 이는 병목 후보 신호이며 병목 원인의 확정은 아닙니다.",
+                "evidence_ids": [
+                  "Q02-e1"
+                ],
+                "quoted_value": "0.92",
+                "unit": "ratio"
+              }
+            ],
+            "evidence_ids": [
+              "Q02-e1"
+            ],
+            "observed_from": "2026-11-06T00:00:00.000000000Z",
+            "observed_to": "2026-11-06T00:05:00.000000000Z",
+            "provenance": {
+              "kind": "mock_fixture",
+              "data_origins": [
+                "simulation"
+              ],
+              "simulated": true
+            },
+            "quality": {
+              "missing": [],
+              "stale": false,
+              "estimated": false,
+              "truncated": false
+            },
+            "model_version": "none/mock",
+            "prompt_version": "fixed-review-0.1",
+            "generated_at": "2026-11-06T00:05:01.000000000Z",
+            "request_id": "mock-q02-normal"
+          },
+          "evidence": [
+            {
+              "id": "Q02-e1",
+              "query_id": "rail_gpu_review",
+              "metric": "gpuflow_gpu_util_ratio",
+              "value": "0.92",
+              "unit": "ratio",
+              "data_origin": "simulation",
+              "simulated": true,
+              "evidence_kind": "metric",
+              "observed_at": "2026-11-06T00:05:00.000000000Z",
+              "scope": {
+                "tenant_id": "tenant-example",
+                "workload_id": "workload-example"
+              },
+              "threshold": {
+                "value": "0.90",
+                "unit": "ratio",
+                "meaning": "fixture-only comparison; not a production threshold"
+              }
+            }
+          ],
+          "fixture_generated_at": "2026-11-06T00:05:01.000000000Z",
+          "request_id": "mock-q02-normal"
+        }
+      },
+      "no_evidence": {
+        "http_status": 200,
+        "body": {
+          "mock": true,
+          "response": {
+            "question_id": "Q02",
+            "status": "no_evidence",
+            "answer": "판단에 필요한 근거가 수집되지 않았습니다.",
+            "findings": [],
+            "evidence_ids": [],
+            "observed_from": null,
+            "observed_to": null,
+            "provenance": {
+              "kind": "mock_fixture",
+              "data_origins": [],
+              "simulated": true
+            },
+            "quality": {
+              "missing": [
+                "required_evidence"
+              ],
+              "stale": false,
+              "estimated": false,
+              "truncated": false
+            },
+            "model_version": "none/mock",
+            "prompt_version": "fixed-review-0.1",
+            "generated_at": "2026-11-06T00:05:01.000000000Z",
+            "request_id": "mock-q02-no_evidence"
+          },
+          "evidence": [],
+          "fixture_generated_at": "2026-11-06T00:05:01.000000000Z",
+          "request_id": "mock-q02-no_evidence"
+        }
+      },
+      "timeout": {
+        "http_status": 504,
+        "body": {
+          "error": {
+            "code": "DEADLINE_EXCEEDED",
+            "message": "응답 시간 초과",
+            "request_id": "mock-q02-timeout",
+            "retryable": true
+          }
+        }
+      }
+    },
+    "Q03": {
+      "normal": {
+        "http_status": 200,
+        "body": {
+          "mock": true,
+          "response": {
+            "question_id": "Q03",
+            "status": "ok",
+            "answer": "합성 예측 근거가 제시한 storage 계층의 60초 후 이용률은 0.90 ratio입니다. 권고는 추가 관찰이며 정책 실행 요청은 포함하지 않습니다.",
+            "findings": [
+              {
+                "claim": "합성 예측 근거가 제시한 storage 계층의 60초 후 이용률은 0.90 ratio입니다. 권고는 추가 관찰이며 정책 실행 요청은 포함하지 않습니다.",
+                "evidence_ids": [
+                  "Q03-e1"
+                ],
+                "quoted_value": "0.90",
+                "unit": "ratio"
+              }
+            ],
+            "evidence_ids": [
+              "Q03-e1"
+            ],
+            "observed_from": "2026-11-06T00:00:00.000000000Z",
+            "observed_to": "2026-11-06T00:05:00.000000000Z",
+            "provenance": {
+              "kind": "mock_fixture",
+              "data_origins": [
+                "simulation"
+              ],
+              "simulated": true
+            },
+            "quality": {
+              "missing": [],
+              "stale": false,
+              "estimated": true,
+              "truncated": false
+            },
+            "model_version": "none/mock",
+            "prompt_version": "fixed-review-0.1",
+            "generated_at": "2026-11-06T00:05:01.000000000Z",
+            "request_id": "mock-q03-normal"
+          },
+          "evidence": [
+            {
+              "id": "Q03-e1",
+              "query_id": "predict_60",
+              "metric": "gpuflow_predict_util_ratio",
+              "value": "0.90",
+              "unit": "ratio",
+              "data_origin": "simulation",
+              "simulated": true,
+              "evidence_kind": "forecast",
+              "observed_at": "2026-11-06T00:05:00.000000000Z",
+              "scope": {
+                "tenant_id": "tenant-example",
+                "workload_id": "workload-example"
+              },
+              "layer": "storage",
+              "source": "keti",
+              "horizon_s": 60,
+              "forecast_generated_at": "2026-11-06T00:05:00.000000000Z",
+              "forecast_target_at": "2026-11-06T00:06:00.000000000Z",
+              "recommended_action": {
+                "kind": "observation",
+                "text": "추가 관찰",
+                "execute": false
+              }
+            }
+          ],
+          "fixture_generated_at": "2026-11-06T00:05:01.000000000Z",
+          "request_id": "mock-q03-normal"
+        }
+      },
+      "no_evidence": {
+        "http_status": 200,
+        "body": {
+          "mock": true,
+          "response": {
+            "question_id": "Q03",
+            "status": "no_evidence",
+            "answer": "판단에 필요한 근거가 수집되지 않았습니다.",
+            "findings": [],
+            "evidence_ids": [],
+            "observed_from": null,
+            "observed_to": null,
+            "provenance": {
+              "kind": "mock_fixture",
+              "data_origins": [],
+              "simulated": true
+            },
+            "quality": {
+              "missing": [
+                "required_evidence"
+              ],
+              "stale": false,
+              "estimated": false,
+              "truncated": false
+            },
+            "model_version": "none/mock",
+            "prompt_version": "fixed-review-0.1",
+            "generated_at": "2026-11-06T00:05:01.000000000Z",
+            "request_id": "mock-q03-no_evidence"
+          },
+          "evidence": [],
+          "fixture_generated_at": "2026-11-06T00:05:01.000000000Z",
+          "request_id": "mock-q03-no_evidence"
+        }
+      },
+      "timeout": {
+        "http_status": 504,
+        "body": {
+          "error": {
+            "code": "DEADLINE_EXCEEDED",
+            "message": "응답 시간 초과",
+            "request_id": "mock-q03-timeout",
+            "retryable": true
+          }
+        }
+      }
+    }
+  }
+}

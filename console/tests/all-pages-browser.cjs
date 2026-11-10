@@ -31,6 +31,13 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
  await p.locator('#tb-origin').selectOption('measured');await p.waitForSelector('#tb-workload-title');
  assert.match(await p.locator('#tb-detail').innerText(),/표본 미포함/);
  await p.locator('#side [data-s="⑧"]').click();assert.match(await p.locator('#tb-extra').innerText(),/sample-storage-1/);assert.equal(await p.locator('#tb-extra [data-na]').count(),0);
+ await p.locator('#side [data-s="⑦"]').click();
+ for(const q of ['Q01','Q02','Q03'])for(const scenario of ['normal','no_evidence','timeout']){
+ await p.locator('#tb-llm-question').selectOption(q);await p.locator('#tb-llm-scenario').selectOption(scenario);await p.locator('#tb-llm-run').click();
+ assert.match(await p.locator('#tb-llm').innerText(),new RegExp(scenario==='timeout'?'HTTP 504.*DEADLINE_EXCEEDED':scenario==='normal'?'HTTP 200.*ok':'HTTP 200.*no_evidence'));
+ }
+ await p.locator('#side [data-s="⑨"]').click();assert.match(await p.locator('#tb-api-policies').innerText(),/example-policy/);assert.match(await p.locator('#tb-api-policy-history').innerText(),/example-span/);
+ await p.locator('#side [data-s="⑬"]').click();assert.equal(await p.locator('#tb-kpi-table tbody tr').count(),10);assert.equal(await p.locator('#tb-kpi-table').getByText('평가 미확정',{exact:true}).count(),10);
  // All existing review contracts must have a visible anchor in observation mode too.
  await p.locator('#review-toggle').click();
  const contracts=JSON.parse(await p.locator('#gpuflow-review-data').textContent());
