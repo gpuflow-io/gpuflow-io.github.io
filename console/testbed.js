@@ -409,11 +409,11 @@
     catch{if(mode==='live'){reviewResources=null;resourceError='중계 조회 실패 · 빈 목록으로 처리하지 않음';}}
     finally{resourceBusy=false;if(mode==='live')render();}
   }
-  let storageFilters={},storageState=null,storageBusy=false,storageSeq=0;
+  let storageFilters={},storageState=null,opsState=null,storageBusy=false,storageSeq=0;
   async function refreshStorage(){
     if(mode!=='live'||activeScreen!=='⑥'||storageBusy)return;
     storageBusy=true;const seq=++storageSeq;
-    try{const r=await fetch('/testbed-api/storage-series',{cache:'no-store',signal:AbortSignal.timeout(35000)});if(!r.ok)throw Error();const v=await r.json();if(seq===storageSeq&&mode==='live')storageState=v;}
+    try{const get=async path=>{try{const r=await fetch(path,{cache:'no-store',signal:AbortSignal.timeout(35000)});if(!r.ok)throw Error();return await r.json();}catch{return {status:'error'};}};const [v,o]=await Promise.all([get('/testbed-api/storage-series'),get('/testbed-api/storage-ops')]);if(seq===storageSeq&&mode==='live'){storageState=v;opsState=o;}}
     catch{if(seq===storageSeq&&mode==='live')storageState={status:'error'};}
     finally{if(seq===storageSeq){storageBusy=false;if(mode==='live'&&activeScreen==='⑥')renderExtra();}}
   }
@@ -428,7 +428,7 @@
         details=`<section class="panel tb-content"><h2>표본의 물리 노드 목록</h2><p>범위: 표본 전체 · health·할당·관리 제어와 분리</p><div class="tb-table"><table><thead><tr><th>클러스터 / 노드</th><th>장비 POD</th><th>등록 구성</th><th>랙</th><th>상태</th></tr></thead><tbody>${[...nodes.values()].map(xs=>`<tr><td>${esc(xs[0].data.attrs.cluster)} / ${esc(xs[0].data.attrs.node)}</td><td>${esc([...new Set(xs.map(x=>x.data.pod))].join(', '))}</td><td>${esc(xs.map(x=>x.data.kind).join(', '))}</td><td>${esc([...new Set(xs.map(x=>x.data.rack||x.data.attrs.rack||'미등록'))].join(', '))}</td><td>표본 미포함</td></tr>`).join('')||'<tr><td colspan="5">등록 물리 노드 없음</td></tr>'}</tbody></table></div></section>`;
       }
     }
-    if(activeScreen==='⑥')details+=root.GPUFlowStorage.render(mode==='snapshot'?data?.storage_telemetry:storageState,storageFilters,mode);
+    if(activeScreen==='⑥')details+=root.GPUFlowStorage.render(mode==='snapshot'?data?.storage_telemetry:storageState,storageFilters,mode)+root.GPUFlowStorageExtra.render(mode==='snapshot'?data?.storage_ops:opsState,mode==='snapshot'?data?.storage_native_evidence:null,storageFilters,mode);
     if(activeScreen==='⑦')details+=llmPanel();
     if(activeScreen==='⑨')details+=apiList('policies',['policy','name','owner','rule','workload_id','active','updated_ns'])+apiList('policy-history',['id','policy','ts_ns','actor','reason','span_id','attrs']);
     if(activeScreen==='⑬')details+=kpiTable();
@@ -497,7 +497,7 @@
     }catch(e){if(mode==='live'){data=null;error=e.message;reviewResources=null;resourceError='현재 조회 실패 · 이전 응답으로 대체하지 않음';}}
     finally{busy=false;render();}
   }
-  modeSelect.onchange=()=>{mode=modeSelect.value;++storageSeq;storageBusy=false;storageState=null;storageFilters={};++llmSeq;llmBusy=false;llmResult=null;reviewResources=null;resourceError='';++seriesSequence;seriesBusy=false;seriesState=null;data=null;error='';cluster='';pod='';rack='';node='';const u=new URL(location.href);u.searchParams.set('data',mode);history.replaceState(null,'',u);root.render();refresh();};
+  modeSelect.onchange=()=>{mode=modeSelect.value;++storageSeq;storageBusy=false;storageState=null;opsState=null;storageFilters={};++llmSeq;llmBusy=false;llmResult=null;reviewResources=null;resourceError='';++seriesSequence;seriesBusy=false;seriesState=null;data=null;error='';cluster='';pod='';rack='';node='';const u=new URL(location.href);u.searchParams.set('data',mode);history.replaceState(null,'',u);root.render();refresh();};
   root.addEventListener('gpuflow:catalog-ready',()=>render());
   root.addEventListener('gpuflow:render',event=>{activeScreen=event.detail.screen;render();refreshStorage();});
   setInterval(()=>{if(mode!=='scenario')render();},1000);

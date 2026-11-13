@@ -28,8 +28,11 @@ class StorageVM:
         self.base, self.cluster = base.rstrip('/'), cluster
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
 
-    def queries(self, metric):
+    def queries(self, metric, operation=None):
         selector = metric + '{cluster=' + json.dumps(self.cluster) + ',source="gluesys",data_origin="measured",simulated="false",backend="daos",job="gpuflow-measured-daos"}'
+        if operation is not None:
+            if operation not in ('read','write'):raise ValueError('invalid_operation')
+            selector=selector[:-1]+',operation='+json.dumps(operation)+'}'
         return {'counter': selector, 'bytes_per_second': 'rate(' + selector + '[1m])',
                 'sample_at': 'timestamp(' + selector + ')', 'samples': 'count_over_time(' + selector + '[1m])'}
 
@@ -47,7 +50,8 @@ class StorageVM:
             raise ValueError('series_limit')
         return rows
 
-    def capture(self, end=None):
+    def capture(self, end=None, kind="bytes"):
+        if kind not in ("bytes","ops"):raise ValueError("invalid_metric_kind")
         end = ((int(time.time()) - 10 if end is None else int(end)) // 5) * 5
         start = end - 900
         result = {'schema_version': 1, 'status': 'ok', 'captured_at': None,
@@ -56,9 +60,12 @@ class StorageVM:
                   'provenance': {'data_origin': 'measured', 'simulated': False},
                   'queries': {}, 'series': []}
         began = time.monotonic()
-        for direction, metric in METRICS.items():
+        metrics=METRICS if kind=='bytes' else dict.fromkeys(('read','write'),'gpuflow_storage_target_ops_total')
+        if kind=='ops':result['kind']='daos_rpc_ops'
+        for direction, metric in metrics.items():
             combined = {}
-            result['queries'][direction] = self.queries(metric)
+            result['queries'][direction] = self.queries(metric, direction if kind=='ops' else None)
+            if kind=='ops':result['queries'][direction]['ops_per_second']=result['queries'][direction].pop('bytes_per_second')
             for field, query in result['queries'][direction].items():
                 if time.monotonic() - began > 25:
                     raise ValueError('capture_deadline')
@@ -71,8 +78,9 @@ class StorageVM:
                     if labels['cluster'] != self.cluster or any(labels.get(k) != v for k, v in {'source':'gluesys','backend':'daos','data_origin':'measured','simulated':'false','job':'gpuflow-measured-daos'}.items()):
                         raise ValueError('wrong_scope')
                     # Project no identity silently: extra labels require review first.
-                    if set(labels) - set(LABELS):
+                    if set(labels) - (set(LABELS)|({'operation'} if kind=='ops' else set())):
                         raise ValueError('unreviewed_labels')
+                    if kind=='ops' and labels.get('operation')!=direction:raise ValueError('wrong_operation')
                     key = tuple(sorted(labels.items()))
                     if key in seen:
                         raise ValueError('duplicate_series')
