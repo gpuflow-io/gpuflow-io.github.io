@@ -1,0 +1,6205 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "snapshot_consistent": false,
+  "captured_at": "2026-11-09T05:05:16.135401Z",
+  "source": "redacted_measured_sample",
+  "sample_notice": "실측 수치와 시각을 유지하고 식별자를 치환한 과거 표본입니다. 현재 상태·독립 재실행 검증을 뜻하지 않습니다. / ⑥ DAOS 처리량은 2026-11-13 별도 관측. 각 영역의 시각을 확인하세요.",
+  "redacted": true,
+  "workloads": [
+    {
+      "data": {
+        "workload_id": "sample-batch-failed",
+        "type": "benchmark",
+        "pod": "sample-pod",
+        "started_at": "2026-11-09T01:34:27.072717Z",
+        "ended_at": "2026-11-09T01:34:39.706809Z",
+        "placement": {
+          "cluster": "sample-cluster",
+          "nodes": [
+            "sample-compute"
+          ],
+          "gpu_uuids": [
+            "GPU-00000000-0000-0000-0000-000000000001"
+          ],
+          "active_gpu_uuids": [],
+          "registry": {
+            "state": "failed",
+            "reason": "launcher_outcome",
+            "terminal": true,
+            "observed_at": "2026-11-09T01:34:40.392970Z",
+            "valid_until": null,
+            "ended_at_basis": "launcher",
+            "metric_attribution": "gpu_window_only",
+            "shared_gpu_observed": false
+          },
+          "execution_status": "failed",
+          "execution_kind": "cuda_daos_batches",
+          "progress": {
+            "status": "failed",
+            "stage": "terminal",
+            "started_at": "2026-11-09T01:34:27.154122Z",
+            "ended_at": "2026-11-09T01:34:39.706809Z",
+            "observed_at": "2026-11-09T01:34:39.706837Z",
+            "expected_batches": 6,
+            "current_batch": 3,
+            "input_delay_requested_seconds": 3.0,
+            "failure_injection_batch": 3,
+            "kernel": "xor_bytes_257_rounds",
+            "inter_batch_pause_seconds": 1,
+            "gpu_data_wait_ratio": null,
+            "error": "daos_read_failed",
+            "totals": {
+              "daos_copy_wall_seconds": 0.6169377480400726,
+              "host_prepare_wall_seconds": 0.22187789902091026,
+              "input_delay_seconds": 6.005678775021806,
+              "h2d_wall_seconds": 0.007288148975931108,
+              "kernel_wall_seconds": 0.013064343016594648,
+              "kernel_gpu_seconds": 0.013034719944000244,
+              "d2h_wall_seconds": 0.026941442978568375,
+              "verify_wall_seconds": 0.07120320305693895,
+              "completed_batches": 2,
+              "verified_read_bytes": 67108864
+            },
+            "batches": [
+              {
+                "daos_copy_wall_seconds": 0.3169979570666328,
+                "host_prepare_wall_seconds": 0.11183433898258954,
+                "input_delay_seconds": 3.0028027900261804,
+                "h2d_wall_seconds": 0.0038599109975621104,
+                "kernel_wall_seconds": 0.006534449988976121,
+                "kernel_gpu_seconds": 0.006517343997955323,
+                "d2h_wall_seconds": 0.013904900988563895,
+                "verify_wall_seconds": 0.03701898700091988,
+                "batch": 1,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:34:27.331110Z",
+                "ended_at": "2026-11-09T01:34:30.860952Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.2999397909734398,
+                "host_prepare_wall_seconds": 0.11004356003832072,
+                "input_delay_seconds": 3.002875984995626,
+                "h2d_wall_seconds": 0.0034282379783689976,
+                "kernel_wall_seconds": 0.006529893027618527,
+                "kernel_gpu_seconds": 0.006517375946044922,
+                "d2h_wall_seconds": 0.01303654199000448,
+                "verify_wall_seconds": 0.03418421605601907,
+                "batch": 2,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:34:31.864017Z",
+                "ended_at": "2026-11-09T01:34:35.358934Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.28544204006902874,
+                "host_prepare_wall_seconds": null,
+                "input_delay_seconds": 3.002411573077552,
+                "h2d_wall_seconds": null,
+                "kernel_wall_seconds": null,
+                "kernel_gpu_seconds": null,
+                "d2h_wall_seconds": null,
+                "verify_wall_seconds": null,
+                "batch": 3,
+                "status": "failed",
+                "read_bytes": null,
+                "input_verified": null,
+                "output_verified": null,
+                "input_sha256": null,
+                "output_sha256": null,
+                "expected_output_sha256": null,
+                "started_at": "2026-11-09T01:34:36.361546Z",
+                "ended_at": "2026-11-09T01:34:39.653400Z",
+                "error": "daos_read_failed"
+              }
+            ]
+          }
+        },
+        "storage": {
+          "backend": "daos",
+          "system": "sample-daos",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "container": "00000000-0000-0000-0000-000000000003",
+          "binding": {
+            "version": 1,
+            "state": "verified_read",
+            "basis": "explicit_daos_uri_readback",
+            "observed_at": "2026-11-09T01:34:27.054720Z",
+            "observed_before": "2026-11-09T01:34:27.054720Z",
+            "scope": "observed_batch_io",
+            "access_mode": "daos_cli",
+            "pool_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+            "container_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002:container:00000000-0000-0000-0000-000000000003",
+            "membership_stable_at_endpoints": null,
+            "metric_attribution": "shared_pool_not_workload",
+            "gpu_relation": "batch_kernel_verification",
+            "mount_relation": "not_observed",
+            "pool_members": [
+              {
+                "rank": 0,
+                "node": "sample-storage-1",
+                "target_id": "sample-storage-1-daos-rank-0"
+              },
+              {
+                "rank": 1,
+                "node": "sample-storage-2",
+                "target_id": "sample-storage-2-daos-rank-1"
+              }
+            ],
+            "io": {
+              "operation": "read",
+              "bytes": 33554432,
+              "sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "expected_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "checksum_verified": true,
+              "client_node": "sample-compute"
+            },
+            "transfer": {
+              "path": null,
+              "gpu_uuid": null,
+              "bytes": null,
+              "host_sha256": null,
+              "device_readback_sha256": null,
+              "roundtrip_verified": null,
+              "cuda_device_verified": null,
+              "read_started_at": null,
+              "read_ended_at": null,
+              "transfer_started_at": null,
+              "transfer_ended_at": null,
+              "daos_copy_wall_seconds": null,
+              "h2d_wall_seconds": null,
+              "d2h_wall_seconds": null,
+              "allocation_hold_seconds": null,
+              "staging": null,
+              "fabric_provider": null,
+              "client_interface": null,
+              "gds": null,
+              "gpu_compute": null
+            }
+          }
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false,
+        "registry_stale": false,
+        "binding_verified": false
+      }
+    },
+    {
+      "data": {
+        "workload_id": "sample-batch-delayed",
+        "type": "benchmark",
+        "pod": "sample-pod",
+        "started_at": "2026-11-09T01:32:43.932112Z",
+        "ended_at": "2026-11-09T01:33:04.465953Z",
+        "placement": {
+          "cluster": "sample-cluster",
+          "nodes": [
+            "sample-compute"
+          ],
+          "gpu_uuids": [
+            "GPU-00000000-0000-0000-0000-000000000001"
+          ],
+          "active_gpu_uuids": [],
+          "registry": {
+            "state": "completed",
+            "reason": "launcher_outcome",
+            "terminal": true,
+            "observed_at": "2026-11-09T01:33:05.376226Z",
+            "valid_until": null,
+            "ended_at_basis": "launcher",
+            "metric_attribution": "gpu_window_only",
+            "shared_gpu_observed": false
+          },
+          "execution_status": "completed",
+          "execution_kind": "cuda_daos_batches",
+          "progress": {
+            "status": "completed",
+            "stage": "terminal",
+            "started_at": "2026-11-09T01:32:44.004955Z",
+            "ended_at": "2026-11-09T01:33:04.465953Z",
+            "observed_at": "2026-11-09T01:33:04.465989Z",
+            "expected_batches": 8,
+            "current_batch": 8,
+            "input_delay_requested_seconds": 1.0,
+            "failure_injection_batch": 0,
+            "kernel": "xor_bytes_257_rounds",
+            "inter_batch_pause_seconds": 1,
+            "gpu_data_wait_ratio": null,
+            "error": null,
+            "totals": {
+              "daos_copy_wall_seconds": 2.56546478101518,
+              "host_prepare_wall_seconds": 0.9326065251370892,
+              "input_delay_seconds": 8.005974620231427,
+              "h2d_wall_seconds": 0.029044899973087013,
+              "kernel_wall_seconds": 0.05229291890282184,
+              "kernel_gpu_seconds": 0.05215446376800537,
+              "d2h_wall_seconds": 0.10612556722480804,
+              "verify_wall_seconds": 0.2782841579755768,
+              "completed_batches": 8,
+              "verified_read_bytes": 268435456
+            },
+            "batches": [
+              {
+                "daos_copy_wall_seconds": 0.35014661797322333,
+                "host_prepare_wall_seconds": 0.1205791289685294,
+                "input_delay_seconds": 1.000699296942912,
+                "h2d_wall_seconds": 0.00372465793043375,
+                "kernel_wall_seconds": 0.006540743983350694,
+                "kernel_gpu_seconds": 0.0065261759757995605,
+                "d2h_wall_seconds": 0.013256683014333248,
+                "verify_wall_seconds": 0.03422095801215619,
+                "batch": 1,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:44.163143Z",
+                "ended_at": "2026-11-09T01:32:45.717732Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3753939870512113,
+                "host_prepare_wall_seconds": 0.11309183202683926,
+                "input_delay_seconds": 1.0004186150617898,
+                "h2d_wall_seconds": 0.003476543934084475,
+                "kernel_wall_seconds": 0.00654292106628418,
+                "kernel_gpu_seconds": 0.006519360065460205,
+                "d2h_wall_seconds": 0.013463965035043657,
+                "verify_wall_seconds": 0.03464005305431783,
+                "batch": 2,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:46.721042Z",
+                "ended_at": "2026-11-09T01:32:48.292591Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.29783487191889435,
+                "host_prepare_wall_seconds": 0.11138062400277704,
+                "input_delay_seconds": 1.0010346410563216,
+                "h2d_wall_seconds": 0.0034743649885058403,
+                "kernel_wall_seconds": 0.006530973012559116,
+                "kernel_gpu_seconds": 0.006515391826629639,
+                "d2h_wall_seconds": 0.01310226903297007,
+                "verify_wall_seconds": 0.03440987900830805,
+                "batch": 3,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:49.295609Z",
+                "ended_at": "2026-11-09T01:32:50.788075Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3364849160425365,
+                "host_prepare_wall_seconds": 0.11533934809267521,
+                "input_delay_seconds": 1.0001795130083337,
+                "h2d_wall_seconds": 0.0035068120341748,
+                "kernel_wall_seconds": 0.006531778955832124,
+                "kernel_gpu_seconds": 0.006517439842224121,
+                "d2h_wall_seconds": 0.012902872054837644,
+                "verify_wall_seconds": 0.03426617698278278,
+                "batch": 4,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:51.791405Z",
+                "ended_at": "2026-11-09T01:32:53.326491Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.2772258810000494,
+                "host_prepare_wall_seconds": 0.1151967040495947,
+                "input_delay_seconds": 1.0010301430011168,
+                "h2d_wall_seconds": 0.003934347070753574,
+                "kernel_wall_seconds": 0.006543554947711527,
+                "kernel_gpu_seconds": 0.006524672031402588,
+                "d2h_wall_seconds": 0.013669871957972646,
+                "verify_wall_seconds": 0.03548549104016274,
+                "batch": 5,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:54.329139Z",
+                "ended_at": "2026-11-09T01:32:55.809229Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.321955049992539,
+                "host_prepare_wall_seconds": 0.11146766901947558,
+                "input_delay_seconds": 1.0010173741029575,
+                "h2d_wall_seconds": 0.0037124870577827096,
+                "kernel_wall_seconds": 0.006536328000947833,
+                "kernel_gpu_seconds": 0.006516448020935059,
+                "d2h_wall_seconds": 0.01321838004514575,
+                "verify_wall_seconds": 0.034387357998639345,
+                "batch": 6,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:56.812221Z",
+                "ended_at": "2026-11-09T01:32:58.329840Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.2988558909855783,
+                "host_prepare_wall_seconds": 0.13376072503160685,
+                "input_delay_seconds": 1.0005503869615495,
+                "h2d_wall_seconds": 0.003613209002651274,
+                "kernel_wall_seconds": 0.006535982945933938,
+                "kernel_gpu_seconds": 0.006517727851867675,
+                "d2h_wall_seconds": 0.013190573081374168,
+                "verify_wall_seconds": 0.0344575229100883,
+                "batch": 7,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:59.332799Z",
+                "ended_at": "2026-11-09T01:33:00.849485Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3075675660511479,
+                "host_prepare_wall_seconds": 0.11179049394559115,
+                "input_delay_seconds": 1.0010446500964463,
+                "h2d_wall_seconds": 0.003602477954700589,
+                "kernel_wall_seconds": 0.006530635990202427,
+                "kernel_gpu_seconds": 0.006517248153686523,
+                "d2h_wall_seconds": 0.013320953003130853,
+                "verify_wall_seconds": 0.036416718969121575,
+                "batch": 8,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:33:01.851909Z",
+                "ended_at": "2026-11-09T01:33:03.405362Z",
+                "error": null
+              }
+            ]
+          }
+        },
+        "storage": {
+          "backend": "daos",
+          "system": "sample-daos",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "container": "00000000-0000-0000-0000-000000000003",
+          "binding": {
+            "version": 1,
+            "state": "verified_read",
+            "basis": "explicit_daos_uri_readback",
+            "observed_at": "2026-11-09T01:32:43.912755Z",
+            "observed_before": "2026-11-09T01:32:43.912755Z",
+            "scope": "observed_batch_io",
+            "access_mode": "daos_cli",
+            "pool_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+            "container_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002:container:00000000-0000-0000-0000-000000000003",
+            "membership_stable_at_endpoints": null,
+            "metric_attribution": "shared_pool_not_workload",
+            "gpu_relation": "batch_kernel_verification",
+            "mount_relation": "not_observed",
+            "pool_members": [
+              {
+                "rank": 0,
+                "node": "sample-storage-1",
+                "target_id": "sample-storage-1-daos-rank-0"
+              },
+              {
+                "rank": 1,
+                "node": "sample-storage-2",
+                "target_id": "sample-storage-2-daos-rank-1"
+              }
+            ],
+            "io": {
+              "operation": "read",
+              "bytes": 33554432,
+              "sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "expected_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "checksum_verified": true,
+              "client_node": "sample-compute"
+            },
+            "transfer": {
+              "path": null,
+              "gpu_uuid": null,
+              "bytes": null,
+              "host_sha256": null,
+              "device_readback_sha256": null,
+              "roundtrip_verified": null,
+              "cuda_device_verified": null,
+              "read_started_at": null,
+              "read_ended_at": null,
+              "transfer_started_at": null,
+              "transfer_ended_at": null,
+              "daos_copy_wall_seconds": null,
+              "h2d_wall_seconds": null,
+              "d2h_wall_seconds": null,
+              "allocation_hold_seconds": null,
+              "staging": null,
+              "fabric_provider": null,
+              "client_interface": null,
+              "gds": null,
+              "gpu_compute": null
+            }
+          }
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false,
+        "registry_stale": false,
+        "binding_verified": false
+      }
+    },
+    {
+      "data": {
+        "workload_id": "sample-batch-normal",
+        "type": "benchmark",
+        "pod": "sample-pod",
+        "started_at": "2026-11-09T01:32:21.788513Z",
+        "ended_at": "2026-11-09T01:32:34.335904Z",
+        "placement": {
+          "cluster": "sample-cluster",
+          "nodes": [
+            "sample-compute"
+          ],
+          "gpu_uuids": [
+            "GPU-00000000-0000-0000-0000-000000000001"
+          ],
+          "active_gpu_uuids": [],
+          "registry": {
+            "state": "completed",
+            "reason": "launcher_outcome",
+            "terminal": true,
+            "observed_at": "2026-11-09T01:32:34.980973Z",
+            "valid_until": null,
+            "ended_at_basis": "launcher",
+            "metric_attribution": "gpu_window_only",
+            "shared_gpu_observed": false
+          },
+          "execution_status": "completed",
+          "execution_kind": "cuda_daos_batches",
+          "progress": {
+            "status": "completed",
+            "stage": "terminal",
+            "started_at": "2026-11-09T01:32:21.866422Z",
+            "ended_at": "2026-11-09T01:32:34.335904Z",
+            "observed_at": "2026-11-09T01:32:34.335937Z",
+            "expected_batches": 8,
+            "current_batch": 8,
+            "input_delay_requested_seconds": 0,
+            "failure_injection_batch": 0,
+            "kernel": "xor_bytes_257_rounds",
+            "inter_batch_pause_seconds": 1,
+            "gpu_data_wait_ratio": null,
+            "error": null,
+            "totals": {
+              "daos_copy_wall_seconds": 2.5556592092616484,
+              "host_prepare_wall_seconds": 0.9363509609829634,
+              "input_delay_seconds": 2.9267859645187855e-05,
+              "h2d_wall_seconds": 0.029026521951891482,
+              "kernel_wall_seconds": 0.05228935892228037,
+              "kernel_gpu_seconds": 0.05216377639770508,
+              "d2h_wall_seconds": 0.10787051205988973,
+              "verify_wall_seconds": 0.28092664282303303,
+              "completed_batches": 8,
+              "verified_read_bytes": 268435456
+            },
+            "batches": [
+              {
+                "daos_copy_wall_seconds": 0.29914867505431175,
+                "host_prepare_wall_seconds": 0.11397892294917256,
+                "input_delay_seconds": 3.6419369280338287e-06,
+                "h2d_wall_seconds": 0.0035748480586335063,
+                "kernel_wall_seconds": 0.006538121961057186,
+                "kernel_gpu_seconds": 0.006523200035095215,
+                "d2h_wall_seconds": 0.013760564965195954,
+                "verify_wall_seconds": 0.03449523902963847,
+                "batch": 1,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:22.071565Z",
+                "ended_at": "2026-11-09T01:32:22.571896Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.33160859695635736,
+                "host_prepare_wall_seconds": 0.11095309094525874,
+                "input_delay_seconds": 3.6730198189616203e-06,
+                "h2d_wall_seconds": 0.0038006589747965336,
+                "kernel_wall_seconds": 0.006536880042403936,
+                "kernel_gpu_seconds": 0.006522592067718506,
+                "d2h_wall_seconds": 0.01343082101084292,
+                "verify_wall_seconds": 0.034388820989988744,
+                "batch": 2,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:23.575098Z",
+                "ended_at": "2026-11-09T01:32:24.100031Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3040102340746671,
+                "host_prepare_wall_seconds": 0.11108247493393719,
+                "input_delay_seconds": 3.42691782861948e-06,
+                "h2d_wall_seconds": 0.003805518033914268,
+                "kernel_wall_seconds": 0.00653026404324919,
+                "kernel_gpu_seconds": 0.006515327930450439,
+                "d2h_wall_seconds": 0.013382902019657195,
+                "verify_wall_seconds": 0.034772336948662996,
+                "batch": 3,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:25.102223Z",
+                "ended_at": "2026-11-09T01:32:25.601267Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3426319590071216,
+                "host_prepare_wall_seconds": 0.11234958004206419,
+                "input_delay_seconds": 3.363005816936493e-06,
+                "h2d_wall_seconds": 0.003587821964174509,
+                "kernel_wall_seconds": 0.006538696005009115,
+                "kernel_gpu_seconds": 0.006518239974975586,
+                "d2h_wall_seconds": 0.01406981807667762,
+                "verify_wall_seconds": 0.038846504990942776,
+                "batch": 4,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:26.603880Z",
+                "ended_at": "2026-11-09T01:32:27.157952Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.30591496801935136,
+                "host_prepare_wall_seconds": 0.11245218408294022,
+                "input_delay_seconds": 4.269066266715527e-06,
+                "h2d_wall_seconds": 0.003490061964839697,
+                "kernel_wall_seconds": 0.006538564921356738,
+                "kernel_gpu_seconds": 0.006520576000213623,
+                "d2h_wall_seconds": 0.013434918015263975,
+                "verify_wall_seconds": 0.034860505955293775,
+                "batch": 5,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:28.161678Z",
+                "ended_at": "2026-11-09T01:32:28.663691Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3578718750504777,
+                "host_prepare_wall_seconds": 0.11370415601413697,
+                "input_delay_seconds": 3.5829143598675728e-06,
+                "h2d_wall_seconds": 0.003742436063475907,
+                "kernel_wall_seconds": 0.006537306006066501,
+                "kernel_gpu_seconds": 0.00652016019821167,
+                "d2h_wall_seconds": 0.013456308981403708,
+                "verify_wall_seconds": 0.035044491989538074,
+                "batch": 6,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:29.667007Z",
+                "ended_at": "2026-11-09T01:32:30.224466Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.30298144300468266,
+                "host_prepare_wall_seconds": 0.14201692305505276,
+                "input_delay_seconds": 3.1240051612257957e-06,
+                "h2d_wall_seconds": 0.0035027608973905444,
+                "kernel_wall_seconds": 0.006534699001349509,
+                "kernel_gpu_seconds": 0.006522016048431396,
+                "d2h_wall_seconds": 0.013156687025912106,
+                "verify_wall_seconds": 0.03421581396833062,
+                "batch": 7,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:31.228928Z",
+                "ended_at": "2026-11-09T01:32:31.757946Z",
+                "error": null
+              },
+              {
+                "daos_copy_wall_seconds": 0.3114914580946788,
+                "host_prepare_wall_seconds": 0.11981362896040082,
+                "input_delay_seconds": 4.1869934648275375e-06,
+                "h2d_wall_seconds": 0.0035224159946665168,
+                "kernel_wall_seconds": 0.0065348269417881966,
+                "kernel_gpu_seconds": 0.006521664142608643,
+                "d2h_wall_seconds": 0.013178491964936256,
+                "verify_wall_seconds": 0.03430292895063758,
+                "batch": 8,
+                "status": "completed",
+                "read_bytes": 33554432,
+                "input_verified": true,
+                "output_verified": true,
+                "input_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+                "output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "expected_output_sha256": "dff280017fa464413bde560e4f6ec01df7b0917be91a5c4aaa3b948fd61c6fe2",
+                "started_at": "2026-11-09T01:32:32.761227Z",
+                "ended_at": "2026-11-09T01:32:33.275924Z",
+                "error": null
+              }
+            ]
+          }
+        },
+        "storage": {
+          "backend": "daos",
+          "system": "sample-daos",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "container": "00000000-0000-0000-0000-000000000003",
+          "binding": {
+            "version": 1,
+            "state": "verified_read",
+            "basis": "explicit_daos_uri_readback",
+            "observed_at": "2026-11-09T01:32:21.768888Z",
+            "observed_before": "2026-11-09T01:32:21.768888Z",
+            "scope": "observed_batch_io",
+            "access_mode": "daos_cli",
+            "pool_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+            "container_node_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002:container:00000000-0000-0000-0000-000000000003",
+            "membership_stable_at_endpoints": null,
+            "metric_attribution": "shared_pool_not_workload",
+            "gpu_relation": "batch_kernel_verification",
+            "mount_relation": "not_observed",
+            "pool_members": [
+              {
+                "rank": 0,
+                "node": "sample-storage-1",
+                "target_id": "sample-storage-1-daos-rank-0"
+              },
+              {
+                "rank": 1,
+                "node": "sample-storage-2",
+                "target_id": "sample-storage-2-daos-rank-1"
+              }
+            ],
+            "io": {
+              "operation": "read",
+              "bytes": 33554432,
+              "sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "expected_sha256": "ce9fb0b62bc58e31606a8a310dbda37d7482a14c4f30fb8434012e7669c474ef",
+              "checksum_verified": true,
+              "client_node": "sample-compute"
+            },
+            "transfer": {
+              "path": null,
+              "gpu_uuid": null,
+              "bytes": null,
+              "host_sha256": null,
+              "device_readback_sha256": null,
+              "roundtrip_verified": null,
+              "cuda_device_verified": null,
+              "read_started_at": null,
+              "read_ended_at": null,
+              "transfer_started_at": null,
+              "transfer_ended_at": null,
+              "daos_copy_wall_seconds": null,
+              "h2d_wall_seconds": null,
+              "d2h_wall_seconds": null,
+              "allocation_hold_seconds": null,
+              "staging": null,
+              "fabric_provider": null,
+              "client_interface": null,
+              "gds": null,
+              "gpu_compute": null
+            }
+          }
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false,
+        "registry_stale": false,
+        "binding_verified": false
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "data": {
+        "id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+        "kind": "storage_pool",
+        "pod": "physical-ab",
+        "attrs": {
+          "cluster": "sample-cluster",
+          "node": null,
+          "model": null,
+          "gpu_uuid": null,
+          "backend": "daos",
+          "system": "sample-daos",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "container": null,
+          "rank": null
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002:container:00000000-0000-0000-0000-000000000003",
+        "kind": "storage_container",
+        "pod": "physical-ab",
+        "attrs": {
+          "cluster": "sample-cluster",
+          "node": null,
+          "model": null,
+          "gpu_uuid": null,
+          "backend": "daos",
+          "system": "sample-daos",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "container": "00000000-0000-0000-0000-000000000003",
+          "rank": null
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "id": "GPU-00000000-0000-0000-0000-000000000001",
+        "kind": "gpu",
+        "pod": "sample-pod",
+        "attrs": {
+          "cluster": "sample-cluster",
+          "node": "sample-compute",
+          "model": "NVIDIA A2",
+          "gpu_uuid": "GPU-00000000-0000-0000-0000-000000000001",
+          "backend": null,
+          "system": null,
+          "pool": null,
+          "container": null,
+          "rank": null
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "id": "sample-storage-1-daos-rank-0",
+        "kind": "storage_target",
+        "pod": "physical-a",
+        "attrs": {
+          "cluster": "sample-cluster",
+          "node": "sample-storage-1",
+          "model": null,
+          "gpu_uuid": null,
+          "backend": "daos",
+          "system": null,
+          "pool": null,
+          "container": null,
+          "rank": 0
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "id": "sample-storage-2-daos-rank-1",
+        "kind": "storage_target",
+        "pod": "physical-b",
+        "attrs": {
+          "cluster": "sample-cluster",
+          "node": "sample-storage-2",
+          "model": null,
+          "gpu_uuid": null,
+          "backend": "daos",
+          "system": null,
+          "pool": null,
+          "container": null,
+          "rank": 1
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": {
+        "from_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+        "to_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002:container:00000000-0000-0000-0000-000000000003",
+        "link": "contains",
+        "attrs": {
+          "relation": "logical_containment",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "system": "sample-daos",
+          "observed_at": "2026-11-07T16:14:35.012144Z",
+          "rank": null
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "from_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+        "to_id": "sample-storage-1-daos-rank-0",
+        "link": "member",
+        "attrs": {
+          "relation": "enabled_pool_rank_not_io_attribution",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "system": "sample-daos",
+          "observed_at": "2026-11-07T16:14:35.012144Z",
+          "rank": 0
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    },
+    {
+      "data": {
+        "from_id": "daos:sample-daos:pool:00000000-0000-0000-0000-000000000002",
+        "to_id": "sample-storage-2-daos-rank-1",
+        "link": "member",
+        "attrs": {
+          "relation": "enabled_pool_rank_not_io_attribution",
+          "pool": "00000000-0000-0000-0000-000000000002",
+          "system": "sample-daos",
+          "observed_at": "2026-11-07T16:14:35.012144Z",
+          "rank": 1
+        }
+      },
+      "provenance": {
+        "data_origin": "measured",
+        "simulated": false
+      },
+      "quality": {
+        "origin_unknown": false
+      }
+    }
+  ],
+  "storage_telemetry": {
+    "schema_version": 1,
+    "status": "ok",
+    "captured_at": "2026-11-13T04:12:39.995288+00:00",
+    "window": {
+      "start": 1794542245,
+      "end": 1794543145,
+      "step": 5,
+      "rate_window": 60,
+      "latency_offset": "1s",
+      "settle_seconds": 10
+    },
+    "scope": {
+      "cluster": "example-storage-cluster",
+      "backend": "daos"
+    },
+    "provenance": {
+      "data_origin": "measured",
+      "simulated": false
+    },
+    "queries": {
+      "read": {
+        "counter": "gpuflow_storage_target_read_bytes_total{cluster=\"example-storage-cluster\",source=\"gluesys\",data_origin=\"measured\",simulated=\"false\",backend=\"daos\",job=\"gpuflow-measured-daos\"}",
+        "bytes_per_second": "rate(gpuflow_storage_target_read_bytes_total{cluster=\"example-storage-cluster\",source=\"gluesys\",data_origin=\"measured\",simulated=\"false\",backend=\"daos\",job=\"gpuflow-measured-daos\"}[1m])",
+        "sample_at": "timestamp(gpuflow_storage_target_read_bytes_total{cluster=\"example-storage-cluster\",source=\"gluesys\",data_origin=\"measured\",simulated=\"false\",backend=\"daos\",job=\"gpuflow-measured-daos\"})",
+        "samples": "count_over_time(gpuflow_storage_target_read_bytes_total{cluster=\"example-storage-cluster\",source=\"gluesys\",data_origin=\"measured\",simulated=\"false\",backend=\"daos\",job=\"gpuflow-measured-daos\"}[1m])"
+      },
+      "write": {
+        "counter": "gpuflow_storage_target_write_bytes_total{cluster=\"example-storage-cluster\",source=\"gluesys\",data_origin=\"measured\",simulated=\"false\",backend=\"daos\",job=\"gpuflow-measured-daos\"}",
+        "bytes_per_second": "rate(gpuflow_storage_target_write_bytes_total{cluster=\"example-storage-cluster\",source=\"gluesys\",data_origin=\"measured\",simulated=\"false\",backend=\"daos\",job=\"gpuflow-measured-daos\"}[1m])",
+        "sample_at": "timestamp(gpuflow_storage_target_write_bytes_total{cluster=\"example-storage-cluster\",source=\"gluesys\",data_origin=\"measured\",simulated=\"false\",backend=\"daos\",job=\"gpuflow-measured-daos\"})",
+        "samples": "count_over_time(gpuflow_storage_target_write_bytes_total{cluster=\"example-storage-cluster\",source=\"gluesys\",data_origin=\"measured\",simulated=\"false\",backend=\"daos\",job=\"gpuflow-measured-daos\"}[1m])"
+      }
+    },
+    "series": [
+      {
+        "labels": {
+          "backend": "daos",
+          "cluster": "example-storage-cluster",
+          "data_origin": "measured",
+          "instance": "storage-node-a:9191",
+          "job": "gpuflow-measured-daos",
+          "node": "storage-node-a",
+          "otel_scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "otel_scope_version": "0.164.0",
+          "pod": "storage-group-a",
+          "pool": "pool-01",
+          "rank": "0",
+          "simulated": "false",
+          "source": "gluesys",
+          "storage_media": "emulated_virtio",
+          "target": "0",
+          "tier": "l3_pfs",
+          "transport": "tcp"
+        },
+        "direction": "read",
+        "metric": "gpuflow_storage_target_read_bytes_total",
+        "points": [
+          {
+            "at": 1794542245,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542244.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542250,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542249.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542255,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542254.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542260,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542259.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542265,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542264.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542270,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542269.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542275,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542274.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542280,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542279.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542285,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542284.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542290,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542289.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542295,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542294.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542300,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542299.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542305,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542304.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542310,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542309.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542315,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542314.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542320,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542319.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542325,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542324.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542330,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542329.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542335,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542334.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542340,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542339.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542345,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542344.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542350,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542349.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542355,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542354.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542360,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542359.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542365,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542364.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542370,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542369.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542375,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542374.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542380,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542379.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542385,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542384.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542390,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542389.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542395,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542394.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542400,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542399.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542405,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542404.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542410,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542409.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542415,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542414.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542420,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542419.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542425,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542424.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542430,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542429.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542435,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542434.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542440,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542439.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542445,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542444.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542450,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542449.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542455,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542454.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542460,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542459.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542465,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542464.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542470,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542469.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542475,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542474.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542480,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542479.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542485,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542484.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542490,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542489.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542495,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542494.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542500,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542499.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542505,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542504.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542510,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542509.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542515,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542514.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542520,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542519.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542525,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542524.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542530,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542529.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542535,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542534.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542540,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542539.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542545,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542544.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542550,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542549.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542555,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542554.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542560,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542559.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542565,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542564.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542570,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542569.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542575,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542574.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542580,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542579.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542585,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542584.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542590,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542589.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542595,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542594.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542600,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542599.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542605,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542604.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542610,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542609.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542615,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542614.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542620,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542619.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542625,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542624.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542630,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542629.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542635,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542634.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542640,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542639.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542645,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542644.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542650,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542649.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542655,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542654.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542660,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542659.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542665,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542664.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542670,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542669.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542675,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542674.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542680,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542679.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542685,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542684.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542690,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542689.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542695,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542694.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542700,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542699.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542705,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542704.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542710,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542709.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542715,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542714.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542720,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542719.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542725,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542724.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542730,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542729.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542735,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542734.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542740,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542739.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542745,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542744.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542750,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542749.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542755,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542754.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542760,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542759.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542765,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542764.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542770,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542769.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542775,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542774.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542780,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542779.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542785,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542784.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542790,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542789.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542795,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542794.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542800,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542799.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542805,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542804.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542810,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542809.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542815,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542814.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542820,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542819.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542825,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542824.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542830,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542829.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542835,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542834.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542840,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542839.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542845,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542844.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542850,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542849.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542855,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542854.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542860,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542859.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542865,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542864.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542870,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542869.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542875,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542874.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542880,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542879.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542885,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542884.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542890,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542889.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542895,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542894.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542900,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542899.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542905,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542904.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542910,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542909.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542915,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542914.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542920,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542919.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542925,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542924.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542930,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542929.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542935,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542934.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542940,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542939.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542945,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542944.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542950,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542949.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542955,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542954.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542960,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542959.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542965,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542964.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542970,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542969.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542975,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542974.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542980,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542979.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542985,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542984.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542990,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542989.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542995,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542994.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543000,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542999.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543005,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543004.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543010,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543009.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543015,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543014.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543020,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543019.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543025,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543024.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543030,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543029.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543035,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543034.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543040,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543039.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543045,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543044.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543050,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543049.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543055,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543054.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543060,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543059.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543065,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543064.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543070,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543069.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543075,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543074.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543080,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543079.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543085,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543084.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543090,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543089.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543095,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543094.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543100,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543099.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543105,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543104.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543110,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543109.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543115,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543114.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543120,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543119.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543125,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543124.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543130,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543129.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543135,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543134.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543140,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543139.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543145,
+            "counter": 754993464.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543144.838,
+            "samples": 60.0
+          }
+        ]
+      },
+      {
+        "labels": {
+          "backend": "daos",
+          "cluster": "example-storage-cluster",
+          "data_origin": "measured",
+          "instance": "storage-node-b:9191",
+          "job": "gpuflow-measured-daos",
+          "node": "storage-node-b",
+          "otel_scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "otel_scope_version": "0.164.0",
+          "pod": "storage-group-b",
+          "pool": "pool-01",
+          "rank": "1",
+          "simulated": "false",
+          "source": "gluesys",
+          "storage_media": "emulated_virtio",
+          "target": "0",
+          "tier": "l3_pfs",
+          "transport": "tcp"
+        },
+        "direction": "read",
+        "metric": "gpuflow_storage_target_read_bytes_total",
+        "points": [
+          {
+            "at": 1794542245,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542244.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542250,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542249.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542255,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542254.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542260,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542259.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542265,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542264.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542270,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542269.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542275,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542274.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542280,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542279.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542285,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542284.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542290,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542289.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542295,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542294.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542300,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542299.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542305,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542304.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542310,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542309.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542315,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542314.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542320,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542319.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542325,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542324.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542330,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542329.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542335,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542334.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542340,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542339.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542345,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542344.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542350,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542349.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542355,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542354.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542360,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542359.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542365,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542364.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542370,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542369.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542375,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542374.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542380,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542379.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542385,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542384.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542390,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542389.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542395,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542394.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542400,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542399.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542405,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542404.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542410,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542409.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542415,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542414.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542420,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542419.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542425,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542424.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542430,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542429.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542435,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542434.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542440,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542439.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542445,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542444.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542450,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542449.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542455,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542454.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542460,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542459.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542465,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542464.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542470,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542469.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542475,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542474.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542480,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542479.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542485,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542484.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542490,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542489.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542495,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542494.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542500,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542499.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542505,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542504.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542510,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542509.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542515,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542514.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542520,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542519.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542525,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542524.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542530,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542529.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542535,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542534.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542540,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542539.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542545,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542544.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542550,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542549.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542555,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542554.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542560,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542559.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542565,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542564.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542570,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542569.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542575,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542574.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542580,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542579.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542585,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542584.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542590,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542589.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542595,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542594.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542600,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542599.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542605,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542604.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542610,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542609.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542615,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542614.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542620,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542619.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542625,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542624.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542630,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542629.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542635,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542634.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542640,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542639.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542645,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542644.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542650,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542649.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542655,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542654.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542660,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542659.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542665,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542664.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542670,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542669.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542675,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542674.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542680,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542679.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542685,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542684.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542690,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542689.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542695,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542694.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542700,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542699.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542705,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542704.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542710,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542709.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542715,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542714.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542720,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542719.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542725,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542724.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542730,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542729.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542735,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542734.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542740,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542739.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542745,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542744.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542750,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542749.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542755,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542754.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542760,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542759.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542765,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542764.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542770,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542769.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542775,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542774.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542780,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542779.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542785,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542784.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542790,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542789.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542795,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542794.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542800,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542799.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542805,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542804.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542810,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542809.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542815,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542814.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542820,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542819.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542825,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542824.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542830,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542829.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542835,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542834.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542840,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542839.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542845,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542844.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542850,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542849.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542855,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542854.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542860,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542859.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542865,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542864.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542870,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542869.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542875,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542874.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542880,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542879.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542885,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542884.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542890,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542889.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542895,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542894.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542900,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542899.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542905,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542904.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542910,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542909.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542915,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542914.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542920,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542919.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542925,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542924.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542930,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542929.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542935,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542934.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542940,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542939.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542945,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542944.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542950,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542949.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542955,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542954.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542960,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542959.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542965,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542964.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542970,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542969.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542975,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542974.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542980,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542979.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542985,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542984.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542990,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542989.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542995,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542994.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543000,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542999.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543005,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543004.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543010,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543009.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543015,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543014.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543020,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543019.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543025,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543024.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543030,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543029.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543035,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543034.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543040,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543039.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543045,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543044.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543050,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543049.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543055,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543054.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543060,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543059.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543065,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543064.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543070,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543069.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543075,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543074.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543080,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543079.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543085,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543084.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543090,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543089.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543095,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543094.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543100,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543099.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543105,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543104.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543110,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543109.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543115,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543114.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543120,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543119.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543125,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543124.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543130,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543129.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543135,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543134.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543140,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543139.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543145,
+            "counter": 704643072.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543144.396,
+            "samples": 60.0
+          }
+        ]
+      },
+      {
+        "labels": {
+          "backend": "daos",
+          "cluster": "example-storage-cluster",
+          "data_origin": "measured",
+          "instance": "storage-node-a:9191",
+          "job": "gpuflow-measured-daos",
+          "node": "storage-node-a",
+          "otel_scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "otel_scope_version": "0.164.0",
+          "pod": "storage-group-a",
+          "pool": "pool-01",
+          "rank": "0",
+          "simulated": "false",
+          "source": "gluesys",
+          "storage_media": "emulated_virtio",
+          "target": "0",
+          "tier": "l3_pfs",
+          "transport": "tcp"
+        },
+        "direction": "write",
+        "metric": "gpuflow_storage_target_write_bytes_total",
+        "points": [
+          {
+            "at": 1794542245,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542244.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542250,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542249.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542255,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542254.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542260,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542259.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542265,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542264.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542270,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542269.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542275,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542274.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542280,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542279.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542285,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542284.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542290,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542289.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542295,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542294.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542300,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542299.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542305,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542304.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542310,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542309.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542315,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542314.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542320,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542319.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542325,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542324.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542330,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542329.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542335,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542334.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542340,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542339.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542345,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542344.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542350,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542349.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542355,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542354.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542360,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542359.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542365,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542364.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542370,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542369.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542375,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542374.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542380,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542379.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542385,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542384.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542390,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542389.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542395,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542394.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542400,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542399.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542405,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542404.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542410,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542409.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542415,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542414.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542420,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542419.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542425,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542424.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542430,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542429.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542435,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542434.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542440,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542439.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542445,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542444.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542450,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542449.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542455,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542454.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542460,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542459.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542465,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542464.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542470,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542469.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542475,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542474.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542480,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542479.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542485,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542484.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542490,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542489.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542495,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542494.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542500,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542499.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542505,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542504.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542510,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542509.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542515,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542514.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542520,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542519.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542525,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542524.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542530,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542529.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542535,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542534.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542540,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542539.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542545,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542544.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542550,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542549.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542555,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542554.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542560,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542559.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542565,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542564.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542570,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542569.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542575,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542574.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542580,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542579.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542585,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542584.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542590,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542589.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542595,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542594.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542600,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542599.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542605,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542604.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542610,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542609.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542615,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542614.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542620,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542619.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542625,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542624.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542630,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542629.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542635,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542634.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542640,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542639.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542645,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542644.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542650,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542649.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542655,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542654.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542660,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542659.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542665,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542664.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542670,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542669.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542675,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542674.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542680,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542679.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542685,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542684.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542690,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542689.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542695,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542694.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542700,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542699.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542705,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542704.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542710,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542709.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542715,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542714.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542720,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542719.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542725,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542724.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542730,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542729.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542735,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542734.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542740,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542739.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542745,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542744.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542750,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542749.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542755,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542754.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542760,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542759.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542765,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542764.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542770,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542769.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542775,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542774.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542780,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542779.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542785,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542784.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542790,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542789.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542795,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542794.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542800,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542799.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542805,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542804.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542810,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542809.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542815,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542814.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542820,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542819.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542825,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542824.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542830,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542829.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542835,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542834.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542840,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542839.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542845,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542844.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542850,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542849.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542855,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542854.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542860,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542859.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542865,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542864.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542870,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542869.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542875,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542874.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542880,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542879.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542885,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542884.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542890,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542889.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542895,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542894.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542900,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542899.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542905,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542904.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542910,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542909.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542915,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542914.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542920,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542919.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542925,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542924.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542930,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542929.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542935,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542934.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542940,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542939.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542945,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542944.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542950,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542949.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542955,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542954.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542960,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542959.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542965,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542964.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542970,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542969.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542975,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542974.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542980,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542979.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542985,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542984.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542990,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542989.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542995,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542994.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543000,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542999.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543005,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543004.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543010,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543009.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543015,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543014.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543020,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543019.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543025,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543024.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543030,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543029.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543035,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543034.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543040,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543039.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543045,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543044.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543050,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543049.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543055,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543054.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543060,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543059.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543065,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543064.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543070,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543069.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543075,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543074.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543080,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543079.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543085,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543084.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543090,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543089.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543095,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543094.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543100,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543099.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543105,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543104.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543110,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543109.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543115,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543114.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543120,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543119.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543125,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543124.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543130,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543129.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543135,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543134.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543140,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543139.838,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543145,
+            "counter": 150996120.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543144.838,
+            "samples": 60.0
+          }
+        ]
+      },
+      {
+        "labels": {
+          "backend": "daos",
+          "cluster": "example-storage-cluster",
+          "data_origin": "measured",
+          "instance": "storage-node-b:9191",
+          "job": "gpuflow-measured-daos",
+          "node": "storage-node-b",
+          "otel_scope_name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "otel_scope_version": "0.164.0",
+          "pod": "storage-group-b",
+          "pool": "pool-01",
+          "rank": "1",
+          "simulated": "false",
+          "source": "gluesys",
+          "storage_media": "emulated_virtio",
+          "target": "0",
+          "tier": "l3_pfs",
+          "transport": "tcp"
+        },
+        "direction": "write",
+        "metric": "gpuflow_storage_target_write_bytes_total",
+        "points": [
+          {
+            "at": 1794542245,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542244.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542250,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542249.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542255,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542254.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542260,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542259.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542265,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542264.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542270,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542269.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542275,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542274.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542280,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542279.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542285,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542284.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542290,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542289.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542295,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542294.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542300,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542299.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542305,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542304.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542310,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542309.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542315,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542314.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542320,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542319.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542325,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542324.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542330,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542329.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542335,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542334.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542340,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542339.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542345,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542344.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542350,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542349.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542355,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542354.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542360,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542359.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542365,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542364.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542370,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542369.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542375,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542374.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542380,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542379.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542385,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542384.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542390,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542389.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542395,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542394.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542400,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542399.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542405,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542404.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542410,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542409.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542415,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542414.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542420,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542419.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542425,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542424.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542430,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542429.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542435,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542434.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542440,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542439.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542445,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542444.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542450,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542449.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542455,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542454.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542460,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542459.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542465,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542464.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542470,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542469.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542475,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542474.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542480,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542479.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542485,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542484.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542490,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542489.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542495,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542494.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542500,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542499.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542505,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542504.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542510,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542509.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542515,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542514.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542520,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542519.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542525,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542524.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542530,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542529.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542535,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542534.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542540,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542539.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542545,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542544.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542550,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542549.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542555,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542554.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542560,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542559.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542565,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542564.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542570,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542569.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542575,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542574.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542580,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542579.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542585,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542584.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542590,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542589.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542595,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542594.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542600,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542599.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542605,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542604.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542610,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542609.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542615,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542614.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542620,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542619.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542625,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542624.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542630,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542629.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542635,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542634.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542640,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542639.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542645,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542644.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542650,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542649.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542655,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542654.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542660,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542659.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542665,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542664.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542670,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542669.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542675,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542674.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542680,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542679.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542685,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542684.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542690,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542689.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542695,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542694.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542700,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542699.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542705,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542704.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542710,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542709.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542715,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542714.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542720,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542719.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542725,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542724.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542730,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542729.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542735,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542734.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542740,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542739.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542745,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542744.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542750,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542749.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542755,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542754.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542760,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542759.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542765,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542764.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542770,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542769.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542775,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542774.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542780,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542779.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542785,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542784.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542790,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542789.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542795,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542794.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542800,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542799.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542805,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542804.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542810,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542809.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542815,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542814.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542820,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542819.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542825,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542824.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542830,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542829.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542835,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542834.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542840,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542839.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542845,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542844.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542850,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542849.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542855,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542854.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542860,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542859.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542865,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542864.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542870,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542869.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542875,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542874.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542880,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542879.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542885,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542884.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542890,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542889.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542895,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542894.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542900,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542899.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542905,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542904.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542910,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542909.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542915,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542914.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542920,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542919.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542925,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542924.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542930,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542929.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542935,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542934.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542940,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542939.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542945,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542944.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542950,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542949.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542955,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542954.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542960,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542959.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542965,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542964.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542970,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542969.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542975,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542974.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542980,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542979.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542985,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542984.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542990,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542989.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794542995,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542994.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543000,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794542999.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543005,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543004.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543010,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543009.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543015,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543014.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543020,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543019.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543025,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543024.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543030,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543029.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543035,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543034.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543040,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543039.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543045,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543044.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543050,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543049.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543055,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543054.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543060,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543059.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543065,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543064.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543070,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543069.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543075,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543074.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543080,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543079.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543085,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543084.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543090,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543089.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543095,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543094.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543100,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543099.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543105,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543104.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543110,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543109.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543115,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543114.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543120,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543119.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543125,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543124.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543130,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543129.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543135,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543134.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543140,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543139.396,
+            "samples": 60.0
+          },
+          {
+            "at": 1794543145,
+            "counter": 134217728.0,
+            "bytes_per_second": 0.0,
+            "sample_at": 1794543144.396,
+            "samples": 60.0
+          }
+        ]
+      }
+    ],
+    "redacted": true,
+    "sample_notice": "노드·장비 POD·Pool·접속 식별자만 치환. 수치·관측 시각 보존. 원본 exporter→VM 대조는 별도 검증 보고 참조."
+  }
+}

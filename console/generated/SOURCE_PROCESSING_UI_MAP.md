@@ -1,6 +1,6 @@
 # 목업 기준 · 기관 소스 → 글루시스 가공 → 온라인파워스 화면 연결
 
-2026-11-10 · 목업·소스·가공·화면 연결판 · revision 2026-11-10.7 · 검토 초안. 담당·제품 주기·평가 조건은 미팅 확정.
+2026-11-10 · 목업·소스·가공·화면 연결판 · revision 2026-11-13.1 · 검토 초안. 담당·제품 주기·평가 조건은 미팅 확정.
 
 목업을 요구사항 기준으로 사용합니다. 시나리오 값은 예시이며 기관의 실제 제공·제품 구현을 뜻하지 않습니다.
 
@@ -89,10 +89,10 @@
 
 | 목업에서 보여줄 것 | 기관이 제공할 소스 | 글루시스 가공·제공 | 온라인파워스 화면 연결 |
 | --- | --- | --- | --- |
-| 스토리지 노드/target 부하·용량, Container/티어, 운영 이벤트 요약 | 글루시스(DAOS/ExaStor), 복제·재분배 원천 담당(미정) / 노드/rank/target/Pool/Container 구성, I/O·용량, rebuild/rebalance/복제 상태·시각 | 스토리지 ID 정규화와 구성 연결, 부하 정의·집계, 이벤트의 현재 상태 구성 / 제공 결과: topology-nodes/edges + VM + events; 부하·복제 지연·전체 운영 상태는 원천 확인 필요 | 노드 타일=토폴로지, 부하/용량 막대=합의 지표, 운영 행=상태 이벤트. 미제공 상태를 Normal로 표시하지 않음 |
+| 스토리지 노드/target 부하·용량, Container/티어, 운영 이벤트 요약 | 글루시스(DAOS/ExaStor), 복제·재분배 원천 담당(미정) / 노드/rank/target/Pool/Container 구성, I/O·용량, rebuild/rebalance/복제 상태·시각; DAOS engine_pool_xferred_fetch/update 누적 bytes는 확인됨 | 스토리지 ID 정규화와 구성 연결, 부하 정의·집계, 이벤트의 현재 상태 구성; node-agent가 원본 bytes를 read/write 표준 counter로 복사, source·출처·node/rank/target/pool 유지 / 제공 결과: topology-nodes/edges + VM + events; 부하·복제 지연·전체 운영 상태는 원천 확인 필요; 검증된 gpuflow_storage_target_read_bytes_total/write_bytes_total 및 조회 예제 제공 | 노드 타일=토폴로지, 부하/용량 막대=합의 지표, 운영 행=상태 이벤트. 미제공 상태를 Normal로 표시하지 않음; ⑥ 처리량은 VM query_range rate(counter[1m]) / 1048576 → MiB/s, node/rank/target/pool별 표시. 원본·표준 중복 합산 금지 |
 
-- 현재 구현 근거: DAOS I/O 일부 실측 · 관리 조회 미완
-- 추가 필요·차이: 현재 표본의 Pool/Container/rank 연결과 실제 부하·건강 상태를 구분
+- 현재 구현 근거: ⑥ DAOS 읽기·쓰기 처리량 실측 연결 · 나머지 스토리지 상태 미연동
+- 추가 필요·차이: 처리량은 DAOS 유휴 실측으로 연결 검증. 부하율·IOPS·지연·용량·Lustre·rebuild/복제 상태·워크로드 귀속은 추가 필요
 - 확정할 사항: 미정 — 글루시스(DAOS/ExaStor), 복제·재분배 원천 담당(미정)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정
 
 ### W01-08 POD별 요약
@@ -329,20 +329,20 @@
 
 | 목업에서 보여줄 것 | 기관이 제공할 소스 | 글루시스 가공·제공 | 온라인파워스 화면 연결 |
 | --- | --- | --- | --- |
-| 스토리지 노드/target 부하·용량, Container/티어, 운영 이벤트 요약 | 글루시스(DAOS/ExaStor), 복제·재분배 원천 담당(미정) / 노드/rank/target/Pool/Container 구성, I/O·용량, rebuild/rebalance/복제 상태·시각 | 스토리지 ID 정규화와 구성 연결, 부하 정의·집계, 이벤트의 현재 상태 구성 / 제공 결과: topology-nodes/edges + VM + events; 부하·복제 지연·전체 운영 상태는 원천 확인 필요 | 노드 타일=토폴로지, 부하/용량 막대=합의 지표, 운영 행=상태 이벤트. 미제공 상태를 Normal로 표시하지 않음 |
+| 스토리지 노드/target 부하·용량, Container/티어, 운영 이벤트 요약 | 글루시스(DAOS/ExaStor), 복제·재분배 원천 담당(미정) / 노드/rank/target/Pool/Container 구성, I/O·용량, rebuild/rebalance/복제 상태·시각; DAOS engine_pool_xferred_fetch/update 누적 bytes는 확인됨 | 스토리지 ID 정규화와 구성 연결, 부하 정의·집계, 이벤트의 현재 상태 구성; node-agent가 원본 bytes를 read/write 표준 counter로 복사, source·출처·node/rank/target/pool 유지 / 제공 결과: topology-nodes/edges + VM + events; 부하·복제 지연·전체 운영 상태는 원천 확인 필요; 검증된 gpuflow_storage_target_read_bytes_total/write_bytes_total 및 조회 예제 제공 | 노드 타일=토폴로지, 부하/용량 막대=합의 지표, 운영 행=상태 이벤트. 미제공 상태를 Normal로 표시하지 않음; ⑥ 처리량은 VM query_range rate(counter[1m]) / 1048576 → MiB/s, node/rank/target/pool별 표시. 원본·표준 중복 합산 금지 |
 
-- 현재 구현 근거: DAOS I/O 일부 실측 · 관리 조회 미완
-- 추가 필요·차이: 현재 표본의 Pool/Container/rank 연결과 실제 부하·건강 상태를 구분
+- 현재 구현 근거: ⑥ DAOS 읽기·쓰기 처리량 실측 연결 · 나머지 스토리지 상태 미연동
+- 추가 필요·차이: 처리량은 DAOS 유휴 실측으로 연결 검증. 부하율·IOPS·지연·용량·Lustre·rebuild/복제 상태·워크로드 귀속은 추가 필요
 - 확정할 사항: 미정 — 글루시스(DAOS/ExaStor), 복제·재분배 원천 담당(미정)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정
 
 ### W06-01 스토리지·메타데이터 부하
 
 | 목업에서 보여줄 것 | 기관이 제공할 소스 | 글루시스 가공·제공 | 온라인파워스 화면 연결 |
 | --- | --- | --- | --- |
-| DAOS rank/target, Lustre MDT/OST의 IOPS·지연·부하 | 글루시스 DAOS/ExaStor, 실측 장비 운영기관 / backend별 target/MDT ID, ops counter·지연 분포, Pool/노드 연결 | backend 의미를 유지해 정규화, ops rate·histogram 집계, target skew 계산 규칙 합의 / 제공 결과: VM storage_target_ops_total/latency_seconds/mdt_ops_total + topology-nodes | IOPS·지연·skew·메타데이터 표를 각각 대응 원천으로 채움; KV 지연으로 대체하지 않음 |
+| DAOS rank/target, Lustre MDT/OST의 IOPS·지연·부하 | 글루시스 DAOS/ExaStor, 실측 장비 운영기관 / backend별 target/MDT ID, ops counter·지연 분포, Pool/노드 연결; DAOS engine_pool_xferred_fetch/update 누적 bytes는 확인됨 | backend 의미를 유지해 정규화, ops rate·histogram 집계, target skew 계산 규칙 합의; node-agent가 원본 bytes를 read/write 표준 counter로 복사, source·출처·node/rank/target/pool 유지 / 제공 결과: VM storage_target_ops_total/latency_seconds/mdt_ops_total + topology-nodes; 검증된 gpuflow_storage_target_read_bytes_total/write_bytes_total 및 조회 예제 제공 | IOPS·지연·skew·메타데이터 표를 각각 대응 원천으로 채움; KV 지연으로 대체하지 않음; ⑥ 처리량은 VM query_range rate(counter[1m]) / 1048576 → MiB/s, node/rank/target/pool별 표시. 원본·표준 중복 합산 금지 |
 
-- 현재 구현 근거: 매핑 초안 · API/원천 제공과 화면 표시 상태 분리
-- 추가 필요·차이: DAOS 일부 실측과 Lustre 미확인 범위 분리. 읽기 전용 지연·histogram 형식 확인 필요
+- 현재 구현 근거: ⑥ DAOS 읽기·쓰기 처리량 실측 연결 · 나머지 스토리지 상태 미연동
+- 추가 필요·차이: 처리량은 DAOS 유휴 실측으로 연결 검증. 부하율·IOPS·지연·용량·Lustre·rebuild/복제 상태·워크로드 귀속은 추가 필요
 - 확정할 사항: 미정 — 글루시스 DAOS/ExaStor, 실측 장비 운영기관·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정
 
 ### W06-02 DPU 통계·오프로드

@@ -19,6 +19,9 @@ def build(output, snapshot=None, workload=None, screen=None, meeting=False):
     mapping_js=(root/'mapping.js').read_text()
     assert '</script' not in mapping_js.lower()
     html=html.replace('<script src="mapping.js"></script>','<script>'+mapping_js+'</script>')
+    storage_js=(root/'storage.js').read_text()
+    assert '</script' not in storage_js.lower()
+    html=html.replace('<script src="storage.js"></script>','<script>'+storage_js+'</script>')
     testbed_js=(root/'testbed.js').read_text()
     assert '</script' not in testbed_js.lower()
     embedded=''
@@ -50,7 +53,7 @@ if __name__ == '__main__':
     parser.add_argument('output', type=Path)
     parser.add_argument('--snapshot', type=Path)
     parser.add_argument('--workload')
-    parser.add_argument('--screen', choices=('overview','path','workload','analysis'))
+    parser.add_argument('--screen', choices=('overview','path','workload','analysis','storage'))
     parser.add_argument('--meeting', action='store_true', help='Open the original mockup and source/responsibility review; keep the embedded observation selectable')
     args=parser.parse_args()
     build(args.output,args.snapshot,args.workload,args.screen,args.meeting)
