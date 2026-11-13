@@ -24,12 +24,12 @@ jobs:
       - name: Build standalone review preview
         run: >-
           python3 console/build_review_preview.py output/batch-review.html
-          --snapshot console/samples/storage-observation.redacted.json
+          --snapshot console/samples/storage-load-observation.redacted.json
           --workload sample-batch-delayed --screen overview --meeting
       - name: Build storage observation preview
         run: >-
           python3 console/build_review_preview.py output/storage-review.html
-          --snapshot console/samples/storage-observation.redacted.json --screen storage
+          --snapshot console/samples/storage-load-observation.redacted.json --screen storage
       - name: Upload standalone preview
         id: preview
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

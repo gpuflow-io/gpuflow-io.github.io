@@ -9,7 +9,9 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
  assert.equal(await p.locator('#tb-storage-throughput tbody tr').count(),4);
  assert.equal(await p.locator('#tb-storage-throughput tr[data-status="ok"]').count(),4);
  for(const t of await p.locator('.storage-rate').allTextContents())assert.equal(t,'0.000000');
- assert.match(await p.locator('#tb-storage-throughput').innerText(),/754993464/);
+ const embedded=JSON.parse(await p.locator('#gpuflow-testbed-data').textContent()).storage_telemetry;
+ for(const s of embedded.series){const row=p.locator(`tr[data-storage-node="${s.labels.node}"][data-direction="${s.direction}"]`);const peak=Math.max(...s.points.map(x=>x.bytes_per_second))/1048576;assert.equal(await row.locator('.storage-peak').innerText(),peak.toFixed(6));}
+ if(embedded.experiment){assert.match(await p.locator('#tb-storage-experiment').innerText(),/해시 확인 8\/8/);assert(await p.locator('#tb-storage-throughput svg polyline').evaluateAll(xs=>xs.every(x=>new Set(x.getAttribute('points').split(' ').map(p=>p.split(',')[1])).size>1)));}
  await p.locator('[data-storage-filter="node"]').selectOption('storage-node-a');
  assert.equal(await p.locator('#tb-storage-throughput tbody tr').count(),2);
  await p.locator('[data-storage-filter="rank"]').selectOption('1');assert.match(await p.locator('#tb-storage-throughput tbody').innerText(),/표본 없음/);

@@ -12,7 +12,7 @@ Python 3과 Node.js 20 이상을 사용합니다. 저장소 루트에서 실행�
 
 ```bash
 python3 console/build_review_preview.py output/batch-review.html \
-  --snapshot console/samples/storage-observation.redacted.json \
+  --snapshot console/samples/storage-load-observation.redacted.json \
   --workload sample-batch-delayed --screen overview --meeting
 node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 ```
@@ -57,7 +57,7 @@ node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 
 ## 검증 범위
 
-순수 판정·매핑·치환 샘플 102개 검증을 수행합니다. 로컬 브라우저 테스트는 Playwright와 Chromium이 있는 환경에서 `PUBLIC_PREVIEW_FILE`에 생성된 HTML 절대 경로를 지정해 `node console/tests/handoff-browser.cjs`로 실행합니다. 기존 시나리오 검토 회귀는 로컬 HTTP 서버와 `console/tests/review-browser.cjs`로 확인합니다. CI는 PR과 main push에서 순수 판정·샘플 102개와 Python 13개 검사와 standalone HTML 빌드를 수행합니다. 브라우저 검증은 로컬 별도 실행입니다. 실제 장비·담당자 접속·브라우저 인수와 구분합니다.
+순수 판정·매핑·치환 샘플 108개 검증을 수행합니다. 로컬 브라우저 테스트는 Playwright와 Chromium이 있는 환경에서 `PUBLIC_PREVIEW_FILE`에 생성된 HTML 절대 경로를 지정해 `node console/tests/handoff-browser.cjs`로 실행합니다. 기존 시나리오 검토 회귀는 로컬 HTTP 서버와 `console/tests/review-browser.cjs`로 확인합니다. CI는 PR과 main push에서 순수 판정·샘플 108개와 Python 16개 검사와 standalone HTML 빌드를 수행합니다. 브라우저 검증은 로컬 별도 실행입니다. 실제 장비·담당자 접속·브라우저 인수와 구분합니다.
 
 전체 페이지 회귀는 같은 환경에서 `node console/tests/all-pages-browser.cjs`로 실행합니다. 13개 화면 × 관측/시나리오 × 데스크톱/모바일, 56개 위젯의 관측 모드 검토 연결·LLM 9개 상태·KPI 10행과 오프라인 실패 표시를 검사합니다. [페이지별 검수 결과](ALL_PAGES_REVIEW.md)를 함께 확인하세요.
 
@@ -72,3 +72,7 @@ node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 `storage-review.html`은 ⑥에서 시작합니다. 직접 빌드할 때 `--screen storage`를 사용합니다. 15분 동안 수집된 4개 시리즈의 rate와 node/rank/target/pool 필터를 확인합니다. 표본은 유휴 실측 0 B/s이며 부하 성능 검증이 아닙니다. 기존 등록·배치 자료와 서로 다른 관측 시각을 표시합니다. 상세 의미·원천/가공/화면 책임·조회 예제는 [DAOS 처리량 연결](STORAGE_OBSERVATION.md)을 확인하세요.
 
 로컬 참조 서버의 선택 옵션 `--vm-url`(raw base)과 `--storage-cluster`를 함께 주면 `/testbed-api/storage-series`가 고정 읽기 조회를 수행합니다. 토큰과 서버 주소는 브라우저에 전달하지 않습니다. J 서비스에는 배포하지 않았습니다. 브라우저 검증은 `--screen storage` 빌드에 `node console/tests/storage-browser.cjs`를 실행합니다.
+
+## 2026-11-13.2 실제 부하 후속 검증
+
+기본 빌드/CI 표본을 실제 쓰기·읽기 시험으로 갱신했다. 16 MiB × 8파일을 쓰고 읽어 해시를 확인했으며 4시리즈가 증가 후 유휴로 돌아온다. ⑥에는 최신값과 구간 최대, 시험 단계/정리 결과를 함께 표시한다. 초기 유휴 표본은 별도 파일로 보존한다. [부하 검증 상세](STORAGE_LOAD_VALIDATION.md)를 참고한다.
