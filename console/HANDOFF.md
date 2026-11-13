@@ -12,7 +12,7 @@ Python 3과 Node.js 20 이상을 사용합니다. 저장소 루트에서 실행�
 
 ```bash
 python3 console/build_review_preview.py output/batch-review.html \
-  --snapshot console/samples/storage-load-observation.redacted.json \
+  --snapshot console/samples/storage-metrics-observation.redacted.json \
   --workload sample-batch-delayed --screen overview --meeting
 node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 ```
@@ -57,7 +57,7 @@ node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 
 ## 검증 범위
 
-순수 판정·매핑·치환 샘플 108개 검증을 수행합니다. 로컬 브라우저 테스트는 Playwright와 Chromium이 있는 환경에서 `PUBLIC_PREVIEW_FILE`에 생성된 HTML 절대 경로를 지정해 `node console/tests/handoff-browser.cjs`로 실행합니다. 기존 시나리오 검토 회귀는 로컬 HTTP 서버와 `console/tests/review-browser.cjs`로 확인합니다. CI는 PR과 main push에서 순수 판정·샘플 108개와 Python 16개 검사와 standalone HTML 빌드를 수행합니다. 브라우저 검증은 로컬 별도 실행입니다. 실제 장비·담당자 접속·브라우저 인수와 구분합니다.
+순수 판정·매핑·치환 샘플 117개 검증을 수행합니다. 로컬 브라우저 테스트는 Playwright와 Chromium이 있는 환경에서 `PUBLIC_PREVIEW_FILE`에 생성된 HTML 절대 경로를 지정해 `node console/tests/handoff-browser.cjs`로 실행합니다. 기존 시나리오 검토 회귀는 로컬 HTTP 서버와 `console/tests/review-browser.cjs`로 확인합니다. CI는 PR과 main push에서 순수 판정·샘플 117개와 Python 19개 검사와 standalone HTML 빌드를 수행합니다. 브라우저 검증은 로컬 별도 실행입니다. 실제 장비·담당자 접속·브라우저 인수와 구분합니다.
 
 전체 페이지 회귀는 같은 환경에서 `node console/tests/all-pages-browser.cjs`로 실행합니다. 13개 화면 × 관측/시나리오 × 데스크톱/모바일, 56개 위젯의 관측 모드 검토 연결·LLM 9개 상태·KPI 10행과 오프라인 실패 표시를 검사합니다. [페이지별 검수 결과](ALL_PAGES_REVIEW.md)를 함께 확인하세요.
 
@@ -76,3 +76,7 @@ node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 ## 2026-11-13.2 실제 부하 후속 검증
 
 기본 빌드/CI 표본을 실제 쓰기·읽기 시험으로 갱신했다. 16 MiB × 8파일을 쓰고 읽어 해시를 확인했으며 4시리즈가 증가 후 유휴로 돌아온다. ⑥에는 최신값과 구간 최대, 시험 단계/정리 결과를 함께 표시한다. 초기 유휴 표본은 별도 파일로 보존한다. [부하 검증 상세](STORAGE_LOAD_VALIDATION.md)를 참고한다.
+
+## 2026-11-14.1 RPC 처리율·원천 지연·VOS 용량
+
+⑥에 VM 기반 fetch/update RPC/s와 원천 캡처 기반 크기별 지연 참고 평균·VOS 매체별 용량을 추가했다. 지연·용량은 VM/제품 API에 연결되지 않았다. 과거 부하 캡처를 재사용했으며 p95/p99를 계산하지 않는다. [의미·검증·연결 경계](STORAGE_METRICS.md)를 기준으로 검토한다. `/testbed-api/storage-ops`는 선택 설정된 로컬 참조 서버의 고정 VM 조회이며 새 제품 API가 아니다.

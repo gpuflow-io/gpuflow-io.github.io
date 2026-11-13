@@ -22,6 +22,9 @@ def build(output, snapshot=None, workload=None, screen=None, meeting=False):
     storage_js=(root/'storage.js').read_text()
     assert '</script' not in storage_js.lower()
     html=html.replace('<script src="storage.js"></script>','<script>'+storage_js+'</script>')
+    extra_js=(root/'storage-extra.js').read_text()
+    assert '</script' not in extra_js.lower()
+    html=html.replace('<script src="storage-extra.js"></script>','<script>'+extra_js+'</script>')
     testbed_js=(root/'testbed.js').read_text()
     assert '</script' not in testbed_js.lower()
     embedded=''

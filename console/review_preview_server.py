@@ -97,7 +97,15 @@ class Handler(BaseHTTPRequestHandler):
                         self.server.storage_cache=self.server.storage.capture()
                         self.server.storage_cached_at=time.monotonic()
                     return self.reply(200,self.server.storage_cache)
-            files={'/storage.js':'storage.js','/':'index.html','/index.html':'index.html','/testbed.js':'testbed.js','/mapping.js':'mapping.js','/review.js':'review.js','/testbed.css':'testbed.css','/review.css':'review.css','/review-contracts.json':'review-contracts.json'}
+            if p.path=='/testbed-api/storage-ops':
+                if p.query:return self.reply(400,{'error':{'code':'INVALID_ARGUMENT'}})
+                if not getattr(self.server,'storage',None):return self.reply(503,{'error':{'code':'STORAGE_ADAPTER_NOT_CONFIGURED'}})
+                with self.server.storage_ops_lock:
+                    if time.monotonic()-self.server.storage_ops_cached_at>5:
+                        self.server.storage_ops_cache=self.server.storage.capture(kind='ops')
+                        self.server.storage_ops_cached_at=time.monotonic()
+                    return self.reply(200,self.server.storage_ops_cache)
+            files={'/storage-extra.js':'storage-extra.js','/storage.js':'storage.js','/':'index.html','/index.html':'index.html','/testbed.js':'testbed.js','/mapping.js':'mapping.js','/review.js':'review.js','/testbed.css':'testbed.css','/review.css':'review.css','/review-contracts.json':'review-contracts.json'}
             if p.path not in files:return self.reply(404,{'error':{'code':'NOT_FOUND'}})
             name=files[p.path];mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json'}[Path(name).suffix]
             return self.reply(200,(self.server.root/name).read_bytes(),mime+'; charset=utf-8')
@@ -123,6 +131,6 @@ def main():
     if a.vm_url:
         import threading
         from storage_query import StorageVM
-        server.storage=StorageVM(a.vm_url,a.storage_cluster);server.storage_lock=threading.Lock();server.storage_cached_at=-float('inf')
+        server.storage=StorageVM(a.vm_url,a.storage_cluster);server.storage_lock=threading.Lock();server.storage_cached_at=-float('inf');server.storage_ops_lock=threading.Lock();server.storage_ops_cached_at=-float('inf')
     server.serve_forever()
 if __name__=='__main__':main()

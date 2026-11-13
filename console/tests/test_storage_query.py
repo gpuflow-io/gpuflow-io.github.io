@@ -39,4 +39,18 @@ class StorageTests(unittest.TestCase):
         self.vm.query=lambda *args:[]
         self.assertEqual(self.vm.capture(10000)['series'],[])
 
+    def test_ops_capture_keeps_operation_and_uses_rpc_rate_field(self):
+        def query(q,start,end):
+            rows=self.fake(q,start,end)
+            rows[0]['metric']['operation']='read' if 'operation="read"' in q else 'write'
+            return rows
+        self.vm.query=query
+        result=self.vm.capture(10000,kind='ops')
+        self.assertEqual(result['kind'],'daos_rpc_ops')
+        self.assertEqual(len(result['series']),2)
+        self.assertIn('ops_per_second',result['series'][0]['points'][0])
+        self.assertNotIn('bytes_per_second',result['series'][0]['points'][0])
+    def test_ops_rejects_missing_direction(self):
+        self.vm.query=self.fake
+        with self.assertRaises(ValueError):self.vm.capture(10000,kind='ops')
 if __name__=='__main__':unittest.main()

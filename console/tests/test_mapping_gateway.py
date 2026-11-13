@@ -80,4 +80,13 @@ class GatewayTests(unittest.TestCase):
         self.gateway.storage.fail=True;self.gateway.storage_cached_at=-float('inf')
         code,body=self.request('/testbed-api/storage-series')
         self.assertEqual(code,503);self.assertNotIn('series',body)
+    def test_ops_endpoint_is_fixed_and_configured_only(self):
+        self.assertEqual(self.request('/testbed-api/storage-ops')[0],503)
+        self.assertEqual(self.request('/testbed-api/storage-ops?query=up')[0],400)
+        class Ops:
+            def capture(self,kind):
+                if kind!='ops':raise AssertionError('wrong capture')
+                return {'kind':'daos_rpc_ops','status':'ok'}
+        self.gateway.storage=Ops();self.gateway.storage_ops_lock=threading.Lock();self.gateway.storage_ops_cached_at=-float('inf')
+        code,body=self.request('/testbed-api/storage-ops');self.assertEqual(code,200);self.assertEqual(body['kind'],'daos_rpc_ops')
 if __name__=='__main__':unittest.main()
