@@ -1,0 +1,116 @@
+{
+  "status": "passed",
+  "matched_native_standard_values": 1448,
+  "raw_boundary_comparisons": 8,
+  "checksum_verified_files": 8,
+  "write_bytes": 134217728,
+  "read_bytes": 134217728,
+  "series": [
+    {
+      "node": "storage-node-a",
+      "direction": "read",
+      "rank": "0",
+      "target": "0",
+      "pool": "pool-01",
+      "raw_before": {
+        "value": 754993596.0,
+        "completed_at_ns": "1794545359866095000"
+      },
+      "raw_after": {
+        "value": 809524228.0,
+        "completed_at_ns": "1794545551338488000"
+      },
+      "vm_counter_before": 754993596.0,
+      "vm_counter_after": 809524228.0,
+      "vm_before_at": 1794545360,
+      "vm_after_at": 1794545550,
+      "delta_bytes": 54530632.0,
+      "peak_bytes_per_second": 908820.4666666667,
+      "peak_mib_per_second": 0.8667187372843425,
+      "positive_rate_points": 43,
+      "native_and_standard_points_equal": 181
+    },
+    {
+      "node": "storage-node-b",
+      "direction": "read",
+      "rank": "1",
+      "target": "0",
+      "pool": "pool-01",
+      "raw_before": {
+        "value": 704643072.0,
+        "completed_at_ns": "1794545359931446000"
+      },
+      "raw_after": {
+        "value": 784334848.0,
+        "completed_at_ns": "1794545551434049000"
+      },
+      "vm_counter_before": 704643072.0,
+      "vm_counter_after": 784334848.0,
+      "vm_before_at": 1794545360,
+      "vm_after_at": 1794545550,
+      "delta_bytes": 79691776.0,
+      "peak_bytes_per_second": 1328196.2666666666,
+      "peak_mib_per_second": 1.2666666666666666,
+      "positive_rate_points": 18,
+      "native_and_standard_points_equal": 181
+    },
+    {
+      "node": "storage-node-a",
+      "direction": "write",
+      "rank": "0",
+      "target": "0",
+      "pool": "pool-01",
+      "raw_before": {
+        "value": 150996120.0,
+        "completed_at_ns": "1794545359866095000"
+      },
+      "raw_after": {
+        "value": 205523132.0,
+        "completed_at_ns": "1794545551338488000"
+      },
+      "vm_counter_before": 150996120.0,
+      "vm_counter_after": 205523132.0,
+      "vm_before_at": 1794545360,
+      "vm_after_at": 1794545550,
+      "delta_bytes": 54527012.0,
+      "peak_bytes_per_second": 908783.5333333333,
+      "peak_mib_per_second": 0.8666835149129232,
+      "positive_rate_points": 21,
+      "native_and_standard_points_equal": 181
+    },
+    {
+      "node": "storage-node-b",
+      "direction": "write",
+      "rank": "1",
+      "target": "0",
+      "pool": "pool-01",
+      "raw_before": {
+        "value": 134217728.0,
+        "completed_at_ns": "1794545359931446000"
+      },
+      "raw_after": {
+        "value": 213909504.0,
+        "completed_at_ns": "1794545551434049000"
+      },
+      "vm_counter_before": 134217728.0,
+      "vm_counter_after": 213909504.0,
+      "vm_before_at": 1794545360,
+      "vm_after_at": 1794545550,
+      "delta_bytes": 79691776.0,
+      "peak_bytes_per_second": 1328196.2666666666,
+      "peak_mib_per_second": 1.2666666666666666,
+      "positive_rate_points": 17,
+      "native_and_standard_points_equal": 181
+    }
+  ],
+  "j_docker_services_unchanged": 27,
+  "k8s_pods_unchanged": 3,
+  "max_sample_age_seconds": 0.6040000915527344,
+  "cleanup": {
+    "tmpfs_files_removed": true,
+    "owned_container_removed": true,
+    "preexisting_containers_preserved": true,
+    "pool_membership_unchanged": true,
+    "pool_ready": true
+  }
+}

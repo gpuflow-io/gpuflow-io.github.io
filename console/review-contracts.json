@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-13.1",
+  "revision": "2026-11-13.2",
   "status": "글루시스 검토 초안 · 최종 계약 아님",
   "sources": [
     {
@@ -428,7 +428,7 @@
         "data_origin",
         "simulated"
       ],
-      "readiness": "⑥ DAOS 읽기·쓰기 처리량 실측 연결 · 나머지 스토리지 상태 미연동",
+      "readiness": "⑥ DAOS 실제 읽기·쓰기 및 유휴 복귀 검증 · 나머지 스토리지 상태 미연동",
       "limits": "DAOS 실측과 Lustre/DPU/리빌드 상태를 하나의 검증 결과로 취급하지 않음.",
       "decisions": [
         "1차 모니터링 항목·DAOS/Lustre 구분·관리 조회 책임"
@@ -437,10 +437,10 @@
       "query_state": "DAOS VM raw query_range 검증: rate 1m / step 5s / latency_offset=1s / 조회 끝 최소 10초 전. 예제 cluster는 치환값.",
       "sample": {
         "kind": "식별자 치환 실측 · DAOS 처리량",
-        "captured_at": "2026-11-13T04:12:39.995288+00:00",
+        "captured_at": "2026-11-13T04:52:47.145735+00:00",
         "series": 4,
         "data_origin": "measured",
-        "note": "2개 노드 × 읽기/쓰기 · 각 181지점 · 실제 관측은 유휴 0 B/s. 등록 자료와 별도 관측 시각."
+        "note": "2노드 × 읽기/쓰기 각 181지점. 실제 128 MiB 쓰기·읽기, 8파일 해시 검증. 공유 Pool 원천 counter/rate 대조. 장비 최대 성능·워크로드 독점 귀속 아님."
       },
       "display": "표본에 있는 Pool·Container·등록 rank 레코드 수를 표시한다. rank 수는 물리 target/engine 총수가 아니다. 컴퓨트 POD/랙/노드 필터와 스토리지 전체 범위를 구분한다. 용량·부하가 없으면 표본 미포함으로 표시한다. ⑥의 DAOS 처리량 영역은 자체 node/rank/target/pool 필터와 별도 관측 시각을 표시한다. 실측 0·미수집·지연·조회 실패·중복을 구분한다.",
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
@@ -470,8 +470,8 @@
           "binding": "노드 타일=토폴로지, 부하/용량 막대=합의 지표, 운영 행=상태 이벤트. 미제공 상태를 Normal로 표시하지 않음; ⑥ 처리량은 VM query_range rate(counter[1m]) / 1048576 → MiB/s, node/rank/target/pool별 표시. 원본·표준 중복 합산 금지",
           "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
         },
-        "current": "⑥ DAOS 읽기·쓰기 처리량 실측 연결 · 나머지 스토리지 상태 미연동",
-        "gap": "처리량은 DAOS 유휴 실측으로 연결 검증. 부하율·IOPS·지연·용량·Lustre·rebuild/복제 상태·워크로드 귀속은 추가 필요",
+        "current": "⑥ DAOS 실제 읽기·쓰기 및 유휴 복귀 검증 · 나머지 스토리지 상태 미연동",
+        "gap": "실제 I/O 증가·유휴 복귀·원천/표준 시계열 일치 확인. 부하율·IOPS·지연·용량·Lustre·reset/수집 중단·워크로드 귀속은 별도 검증 대상",
         "decision": "미정 — 글루시스(DAOS/ExaStor), 복제·재분배 원천 담당(미정)·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
       }
     },
@@ -1564,7 +1564,7 @@
         "rank",
         "target"
       ],
-      "readiness": "⑥ DAOS 읽기·쓰기 처리량 실측 연결 · 나머지 스토리지 상태 미연동",
+      "readiness": "⑥ DAOS 실제 읽기·쓰기 및 유휴 복귀 검증 · 나머지 스토리지 상태 미연동",
       "limits": "backend별 DAOS rank/target과 Lustre MDT/OST 구분. counter rate·지연 histogram 형식 확인.",
       "decisions": [
         "제공 범위·원천 필드·분모·단위",
@@ -1574,10 +1574,10 @@
       "query_state": "DAOS VM raw query_range 검증: rate 1m / step 5s / latency_offset=1s / 조회 끝 최소 10초 전. 예제 cluster는 치환값.",
       "sample": {
         "kind": "식별자 치환 실측 · DAOS 처리량",
-        "captured_at": "2026-11-13T04:12:39.995288+00:00",
+        "captured_at": "2026-11-13T04:52:47.145735+00:00",
         "series": 4,
         "data_origin": "measured",
-        "note": "2개 노드 × 읽기/쓰기 · 각 181지점 · 실제 관측은 유휴 0 B/s. 등록 자료와 별도 관측 시각."
+        "note": "2노드 × 읽기/쓰기 각 181지점. 실제 128 MiB 쓰기·읽기, 8파일 해시 검증. 공유 Pool 원천 counter/rate 대조. 장비 최대 성능·워크로드 독점 귀속 아님."
       },
       "display": "backend별 DAOS rank/target과 Lustre MDT/OST 구분. counter rate·지연 histogram 형식 확인. ⑥의 DAOS 처리량 영역은 자체 node/rank/target/pool 필터와 별도 관측 시각을 표시한다. 실측 0·미수집·지연·조회 실패·중복을 구분한다.",
       "cadence": "현재 미리보기: API 목록 5초 조회·관계 1초 재평가·lease 15초. 저장 표본은 고정. 제품 갱신·수집 주기·step·캐시 TTL: 미정 — 글루시스·온라인파워스·기관 / 미팅.",
@@ -1604,8 +1604,8 @@
           "binding": "IOPS·지연·skew·메타데이터 표를 각각 대응 원천으로 채움; KV 지연으로 대체하지 않음; ⑥ 처리량은 VM query_range rate(counter[1m]) / 1048576 → MiB/s, node/rank/target/pool별 표시. 원본·표준 중복 합산 금지",
           "display": "범위·관측 시각·실측/합성·미수집/지연/조회 실패를 구분. 화면 갱신·캐시·정렬은 합의된 의미를 유지"
         },
-        "current": "⑥ DAOS 읽기·쓰기 처리량 실측 연결 · 나머지 스토리지 상태 미연동",
-        "gap": "처리량은 DAOS 유휴 실측으로 연결 검증. 부하율·IOPS·지연·용량·Lustre·rebuild/복제 상태·워크로드 귀속은 추가 필요",
+        "current": "⑥ DAOS 실제 읽기·쓰기 및 유휴 복귀 검증 · 나머지 스토리지 상태 미연동",
+        "gap": "실제 I/O 증가·유휴 복귀·원천/표준 시계열 일치 확인. 부하율·IOPS·지연·용량·Lustre·reset/수집 중단·워크로드 귀속은 별도 검증 대상",
         "decision": "미정 — 글루시스 DAOS/ExaStor, 실측 장비 운영기관·글루시스·온라인파워스 / 화면·API 미팅에서 원천 샘플, 가공 결과, 화면 연결 및 담당·기한 확정"
       }
     },
@@ -4751,7 +4751,8 @@
     "2026-11-10.5",
     "2026-11-10.3",
     "2026-11-07.1",
-    "2026-11-10.7"
+    "2026-11-10.7",
+    "2026-11-13.1"
   ],
   "global_scope": {
     "physical": "cluster/POD/rack/node: 토폴로지 레지스트리. 현재 필터는 ① 컴퓨트 영역만 지원. ②~⑬ 전역 적용은 미연동이며 스토리지 전체 범위와 구분.",
