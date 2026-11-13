@@ -18,7 +18,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    assert.equal(await p.locator('#review-handoff .review-flow-card').count(),4,w.id);
    assert.equal(await p.locator('#review-technical').getAttribute('open'),null);
    assert(await p.locator(`[data-review-key="${w.key}"]`).evaluateAll(xs=>xs.some(x=>x.getClientRects().length)),w.id);
-   assert.match(await p.locator('#review-handoff').innerText(),/원천 필드·샘플·담당·제공일 확인 필요/);
+   assert((await p.locator('#review-handoff').innerText()).includes(w.handoff.institution.status),w.id);
   }
   await p.locator('#review-widget').selectOption('W01-05');
   assert.match(await p.locator('#review-panel').innerText(),/스케줄러 전체 활성 수와 다르/);

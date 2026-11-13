@@ -1,6 +1,6 @@
 # ①~⑬ 전체 화면 검토 미리보기
 
-2026-11-10 · Draft 검토본. 공개 Pages의 main 배포와 별개입니다.
+2026-11-13 · Draft 검토본. 공개 Pages의 main 배포와 별개입니다.
 
 ① 전체 현황부터 ⑬ KPI까지 **목업에서 보여줄 것 → 기관이 제공할 소스 → 글루시스 가공·제공 결과 → 온라인파워스 화면 연결** 순서로 검토합니다. 56개 위젯과 전역 범위 바에 현재 구현·추가 필요·기관 확인 사항을 구분했습니다. 저장된 실측 이력은 구현 근거로 함께 확인합니다.
 
@@ -12,7 +12,7 @@ Python 3과 Node.js 20 이상을 사용합니다. 저장소 루트에서 실행�
 
 ```bash
 python3 console/build_review_preview.py output/batch-review.html \
-  --snapshot console/samples/batch-observation.redacted.json \
+  --snapshot console/samples/storage-observation.redacted.json \
   --workload sample-batch-delayed --screen overview --meeting
 node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 ```
@@ -47,22 +47,28 @@ node --test console/tests/*-unit.cjs console/tests/redacted-sample.cjs
 4. ② 상세에서 배치 결과 검증과 실행 전 구성원 등록 연결, 종료 시 구성원 미확인을 구분합니다.
 5. 연동 검토 모드의 W04-01에서 필드·계산·미결 사항을 확인합니다. 검토 기록은 브라우저에 저장되며 JSON/CSV/Markdown으로 내보낼 수 있습니다.
 
-⑤~⑬도 저장된 관측 모드를 유지합니다. ⑥·⑧은 표본의 등록 구성을 표시하고, 미연동 위젯은 필요한 원천·연동 조건을 명시합니다. 각 페이지의 **시나리오 목업 보기** 또는 상단 데이터 보기로 전환하면 기존 목업을 검토할 수 있습니다. 시나리오 조작은 브라우저 내부에서만 동작합니다. GPU data wait·스케줄러 할당·자동 병목·예측·정책 적용은 이번 실측 검증 범위가 아닙니다. 실측 비교의 평균값을 통계적 성능 결론으로 해석하지 않습니다.
+⑤~⑬도 저장된 관측 모드를 유지합니다. ⑥은 등록 구성과 별도 시각의 DAOS 처리량, ⑧은 표본의 등록 구성을 표시하고, 미연동 위젯은 필요한 원천·연동 조건을 명시합니다. 각 페이지의 **시나리오 목업 보기** 또는 상단 데이터 보기로 전환하면 기존 목업을 검토할 수 있습니다. 시나리오 조작은 브라우저 내부에서만 동작합니다. GPU data wait·스케줄러 할당·자동 병목·예측·정책 적용은 이번 실측 검증 범위가 아닙니다. 실측 비교의 평균값을 통계적 성능 결론으로 해석하지 않습니다.
 
 ## 제품 연결
 
-[온라인파워스 화면–API 가이드](https://github.com/gpuflow-io/onlinepowers-integration/pull/3)의 최신 전달 문서를 기준으로 협의합니다. 업무 데이터는 기존 API, GPU 시계열은 승인된 VM 직접 조회를 사용합니다. `testbed.js`가 호출하는 `/testbed-api/*`는 내부 미리보기 어댑터이며 새 외부 제품 계약이 아닙니다.
+[온라인파워스 화면–API 가이드](https://github.com/gpuflow-io/onlinepowers-integration/pull/3)의 최신 전달 문서를 기준으로 협의합니다. 업무 데이터는 기존 API, GPU·스토리지 시계열은 승인된 VM 직접 조회를 사용합니다. `testbed.js`가 호출하는 `/testbed-api/*`는 내부 미리보기 어댑터이며 새 외부 제품 계약이 아닙니다.
 
 현재 standalone 샘플에는 GPU 시계열을 넣지 않았습니다. ② 그래프의 저장 시계열 없음은 배치 계측 실패가 아닙니다. 테스트베드 raw 보존 기간이 지난 실행 역시 같은 구분이 필요합니다.
 
 ## 검증 범위
 
-순수 판정·매핑 85개와 치환 샘플 6개 검증을 수행합니다. 로컬 브라우저 테스트는 Playwright와 Chromium이 있는 환경에서 `PUBLIC_PREVIEW_FILE`에 생성된 HTML 절대 경로를 지정해 `node console/tests/handoff-browser.cjs`로 실행합니다. 기존 시나리오 검토 회귀는 로컬 HTTP 서버와 `console/tests/review-browser.cjs`로 확인합니다. CI는 PR과 main push에서 순수 판정·샘플 91개 검사와 standalone HTML 빌드를 수행합니다. 브라우저 검증은 로컬 별도 실행입니다. 실제 장비·담당자 접속·브라우저 인수와 구분합니다.
+순수 판정·매핑·치환 샘플 102개 검증을 수행합니다. 로컬 브라우저 테스트는 Playwright와 Chromium이 있는 환경에서 `PUBLIC_PREVIEW_FILE`에 생성된 HTML 절대 경로를 지정해 `node console/tests/handoff-browser.cjs`로 실행합니다. 기존 시나리오 검토 회귀는 로컬 HTTP 서버와 `console/tests/review-browser.cjs`로 확인합니다. CI는 PR과 main push에서 순수 판정·샘플 102개와 Python 13개 검사와 standalone HTML 빌드를 수행합니다. 브라우저 검증은 로컬 별도 실행입니다. 실제 장비·담당자 접속·브라우저 인수와 구분합니다.
 
 전체 페이지 회귀는 같은 환경에서 `node console/tests/all-pages-browser.cjs`로 실행합니다. 13개 화면 × 관측/시나리오 × 데스크톱/모바일, 56개 위젯의 관측 모드 검토 연결·LLM 9개 상태·KPI 10행과 오프라인 실패 표시를 검사합니다. [페이지별 검수 결과](ALL_PAGES_REVIEW.md)를 함께 확인하세요.
 
-매핑 생성·검사: `python3 console/sync_mapping_docs.py --check`. HTTP 중계 회귀: `python3 -m unittest discover -s console/tests -p "test_mapping_gateway.py" -v`. 실제 J 데이터·접속은 별도 인수 대상입니다.
+매핑 생성·검사: `python3 console/sync_mapping_docs.py --check`. HTTP 중계 회귀: `python3 -m unittest discover -s console/tests -p "test_*.py" -v`. 실제 J 데이터·접속은 별도 인수 대상입니다.
 
-현재 revision 2026-11-10.7: 56개 위젯의 목업·소스·가공·화면 연결과 공통 Period/Role/논리 범위 책임을 제공합니다. JSON/CSV/Markdown 내보내기에 연결 내용과 회의 메모가 함께 들어갑니다. 이전 revision의 브라우저 회의 기록을 이어 읽습니다.
+이전 revision 2026-11-10.7: 56개 위젯의 목업·소스·가공·화면 연결과 공통 Period/Role/논리 범위 책임을 제공합니다. JSON/CSV/Markdown 내보내기에 연결 내용과 회의 메모가 함께 들어갑니다. 이전 revision의 브라우저 회의 기록을 이어 읽습니다.
 
 회의 보기 회귀는 `--meeting`으로 만든 파일에 `node console/tests/source-flow-browser.cjs`를 실행합니다. 관측 기준 기존 브라우저 회귀는 `--meeting` 없이 만든 파일로 실행합니다.
+
+## 2026-11-13.1 DAOS 처리량 추가
+
+`storage-review.html`은 ⑥에서 시작합니다. 직접 빌드할 때 `--screen storage`를 사용합니다. 15분 동안 수집된 4개 시리즈의 rate와 node/rank/target/pool 필터를 확인합니다. 표본은 유휴 실측 0 B/s이며 부하 성능 검증이 아닙니다. 기존 등록·배치 자료와 서로 다른 관측 시각을 표시합니다. 상세 의미·원천/가공/화면 책임·조회 예제는 [DAOS 처리량 연결](STORAGE_OBSERVATION.md)을 확인하세요.
+
+로컬 참조 서버의 선택 옵션 `--vm-url`(raw base)과 `--storage-cluster`를 함께 주면 `/testbed-api/storage-series`가 고정 읽기 조회를 수행합니다. 토큰과 서버 주소는 브라우저에 전달하지 않습니다. J 서비스에는 배포하지 않았습니다. 브라우저 검증은 `--screen storage` 빌드에 `node console/tests/storage-browser.cjs`를 실행합니다.

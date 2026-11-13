@@ -61,4 +61,23 @@ class GatewayTests(unittest.TestCase):
         self.assertEqual(self.request('/v1/policy-demo-sessions',{'policy':'x'})[0],404)
         self.assertEqual(self.request('/testbed-api/llm',{'question_id':'Q01','scenario':'normal'},{'Origin':'https://example.invalid'})[0],403)
         self.assertEqual(self.up.seen,[])
+    def test_storage_unconfigured_and_arbitrary_queries_are_rejected(self):
+        self.assertEqual(self.request('/testbed-api/storage-series')[0],503)
+        self.assertEqual(self.request('/testbed-api/storage-series?query=up')[0],400)
+        self.assertEqual(self.up.seen,[])
+    def test_storage_cache_and_failure_do_not_return_old_data(self):
+        class Storage:
+            calls=0
+            fail=False
+            def capture(self):
+                self.calls+=1
+                if self.fail:raise ValueError('upstream')
+                return {'schema_version':1,'status':'ok','series':[]}
+        self.gateway.storage=Storage();self.gateway.storage_lock=threading.Lock();self.gateway.storage_cached_at=-float('inf')
+        self.assertEqual(self.request('/testbed-api/storage-series')[0],200)
+        self.assertEqual(self.request('/testbed-api/storage-series')[0],200)
+        self.assertEqual(self.gateway.storage.calls,1)
+        self.gateway.storage.fail=True;self.gateway.storage_cached_at=-float('inf')
+        code,body=self.request('/testbed-api/storage-series')
+        self.assertEqual(code,503);self.assertNotIn('series',body)
 if __name__=='__main__':unittest.main()

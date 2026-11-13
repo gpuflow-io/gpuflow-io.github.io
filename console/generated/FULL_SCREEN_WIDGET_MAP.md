@@ -1,6 +1,6 @@
 # 원본 화면–위젯–API 전체 매핑
 
-2026-11-10 · 목업·소스·가공·화면 연결판 · revision 2026-11-10.7 · 검토 초안. 담당·제품 주기·평가 조건은 미팅 확정.
+2026-11-10 · 목업·소스·가공·화면 연결판 · revision 2026-11-13.1 · 검토 초안. 담당·제품 주기·평가 조건은 미팅 확정.
 
 회의에서는 [목업 → 기관 소스 → 글루시스 가공 → 온라인파워스 연결](SOURCE_PROCESSING_UI_MAP.md)을 먼저 확인합니다. 이 파일은 API·필드 개발 상세입니다.
 
@@ -31,7 +31,7 @@
 | W05-01 ⑤ | 티어별 캐시 적중률 | gpuflow_cache_lookup_total, gpuflow_derived_tier_hit_ratio, kv.lookup, kv.load, kv.store, kv.evict | VM / 원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend. | tier별 hit/miss를 구분. 동일 대상·기간의 hit/lookup이며 분모 0은 결측.  |
 | W05-02 ⑤ | 티어 용량·evict·이동 | gpuflow_cache_used_bytes, gpuflow_cache_evict_total, tier.promote, tier.demote | VM; GET /v1/events / 원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend. | 용량 bytes·evict counter·이동 이벤트를 분리. 용량 상한은 기관 원본 확인.  |
 | W05-03 ⑤ | 티어 정책·효과 | gpuflow_policy_active, policy.change | GET /v1/policies; GET /v1/policy-history / 원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend. | 같은 조건의 전후 비교 필요. 추가 통합 규격은 후속 RFC 예정.  |
-| W06-01 ⑥ | 스토리지·메타데이터 부하 | gpuflow_storage_target_ops_total, gpuflow_storage_target_latency_seconds, gpuflow_storage_mdt_ops_total | VM; GET /v1/topology-nodes / 원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend. | backend별 DAOS rank/target과 Lustre MDT/OST 구분. counter rate·지연 histogram 형식 확인.  |
+| W06-01 ⑥ | 스토리지·메타데이터 부하 | gpuflow_storage_target_read_bytes_total, gpuflow_storage_target_write_bytes_total, gpuflow_storage_target_ops_total, gpuflow_storage_target_latency_seconds, gpuflow_storage_mdt_ops_total | VM PromQL; GET /v1/topology-nodes / VM query_range → data.result[].metric: cluster,node,source,pod,backend,pool,rank,target,data_origin,simulated,job; values[]: [Unix seconds, 문자열 값]. read/write rate는 B/s, counter는 bytes. timestamp(counter)와 count_over_time(counter[1m])를 같은 라벨·시각으로 연결. 실제 응답 시리즈만 표시하며 전체 인벤토리로 간주하지 않음. | DAOS 읽기·쓰기 처리량(B/s)은 누적 bytes의 rate로 표시. backend별 DAOS rank/target과 Lustre MDT/OST 구분. counter rate·지연 histogram 형식 확인.  |
 | W06-02 ⑥ | DPU 통계·오프로드 | gpuflow_fabric_cnp_total, gpuflow_fabric_ecn_mark_total, gpuflow_fabric_pfc_pause_total, gpuflow_fabric_retrans_total, gpuflow_fabric_dpu_offload_ratio, gpuflow_transport_kv_op_seconds | VM; GET /v1/topology-nodes; GET /v1/topology-edges / 원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend. | QP·NVMe-oF IOPS/p99·온도는 기관 원본 확인. KV 지연과 NVMe-oF 지연을 혼동하지 않음.  |
 | W06-03 ⑥ | 스위치 포트·대역폭 | gpuflow_fabric_port_rx_bytes_total, gpuflow_fabric_port_tx_bytes_total | VM; GET /v1/topology-edges / 원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend. | 포트·방향 구분. bytes counter rate×8로 bit/s 변환. SN4700 연결·capability 제공 확인.  |
 | W06-04 ⑥ | DPU 설정·변경 이력 | audit.change | GET /v1/events / 원천 metric/event 라벨·단위·attrs schema 확인 필요. 목록 공통 items[].data/provenance/quality, next_cursor, backend. | CC 프로파일·ECN·QP 한도·MTU·PFC·NVMe-oF 오프로드 6종. 전후값 schema 미정. 실적용 후속.  |

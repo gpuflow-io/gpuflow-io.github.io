@@ -89,7 +89,15 @@ class Handler(BaseHTTPRequestHandler):
             if p.path=='/testbed-api/snapshot':return self.reply(200,self.server.api.snapshot())
             if p.path=='/testbed-api/review-resources':return self.reply(200,self.server.api.review_resources())
             if p.path=='/testbed-api/workload-series':return self.reply(503,{'error':{'code':'SERIES_ADAPTER_NOT_CONFIGURED'}})
-            files={'/':'index.html','/index.html':'index.html','/testbed.js':'testbed.js','/mapping.js':'mapping.js','/review.js':'review.js','/testbed.css':'testbed.css','/review.css':'review.css','/review-contracts.json':'review-contracts.json'}
+            if p.path=='/testbed-api/storage-series':
+                if p.query:return self.reply(400,{'error':{'code':'INVALID_ARGUMENT'}})
+                if not getattr(self.server,'storage',None):return self.reply(503,{'error':{'code':'STORAGE_ADAPTER_NOT_CONFIGURED'}})
+                with self.server.storage_lock:
+                    if time.monotonic()-self.server.storage_cached_at>5:
+                        self.server.storage_cache=self.server.storage.capture()
+                        self.server.storage_cached_at=time.monotonic()
+                    return self.reply(200,self.server.storage_cache)
+            files={'/storage.js':'storage.js','/':'index.html','/index.html':'index.html','/testbed.js':'testbed.js','/mapping.js':'mapping.js','/review.js':'review.js','/testbed.css':'testbed.css','/review.css':'review.css','/review-contracts.json':'review-contracts.json'}
             if p.path not in files:return self.reply(404,{'error':{'code':'NOT_FOUND'}})
             name=files[p.path];mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json'}[Path(name).suffix]
             return self.reply(200,(self.server.root/name).read_bytes(),mime+'; charset=utf-8')
@@ -109,7 +117,12 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:return self.reply(503,{'error':{'code':'UPSTREAM_UNAVAILABLE'}})
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--api-url',required=True);parser.add_argument('--token-file',type=Path,required=True);parser.add_argument('--port',type=int,default=8000);a=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--api-url',required=True);parser.add_argument('--token-file',type=Path,required=True);parser.add_argument('--port',type=int,default=8000);parser.add_argument('--vm-url');parser.add_argument('--storage-cluster');a=parser.parse_args()
     server=ThreadingHTTPServer(('127.0.0.1',a.port),Handler);server.api=API(a.api_url,a.token_file.read_text().strip());server.root=Path(__file__).parent
+    if bool(a.vm_url)!=bool(a.storage_cluster):parser.error('--vm-url and --storage-cluster must be set together')
+    if a.vm_url:
+        import threading
+        from storage_query import StorageVM
+        server.storage=StorageVM(a.vm_url,a.storage_cluster);server.storage_lock=threading.Lock();server.storage_cached_at=-float('inf')
     server.serve_forever()
 if __name__=='__main__':main()

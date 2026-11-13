@@ -325,7 +325,7 @@
   const pendingCard=(title,reason,next,key='')=>`<section class="panel tb-content" ${key?`data-review-key="${key}"`:''}><h3>${esc(title)}</h3><p class="tb-status">${esc(reason)}</p><p>${esc(next)}</p></section>`;
   function storageOverview(a,id='tb-storage-summary'){
     const count=kind=>a.storage.filter(x=>x.data.kind===kind).length;
-    return `<section class="panel tb-content" id="${esc(id)}" data-review-key="storage-summary"><h2>Storage cluster summary · 스토리지 구성 요약</h2><p>범위: 선택 클러스터의 표본 전체 · 컴퓨트 POD/랙/노드 필터는 적용하지 않음</p><div class="tb-case-grid">${[['Pool','storage_pool'],['Container','storage_container'],['등록 rank 레코드','storage_target']].map(([n,k])=>`<div><b>${n}</b><p>${count(k)}개</p></div>`).join('')}</div><ul>${a.storage.map(x=>`<li>${esc(x.data.id)} · ${esc(x.data.kind)} · 장비 POD ${esc(x.data.pod||'미등록')}${x.data.attrs?.node?' · '+esc(x.data.attrs.node):''}</li>`).join('')||'<li>표본 내 해당 구성 없음 · 전체 시스템 미존재를 뜻하지 않음</li>'}</ul><p>rank 레코드 수는 물리 target·engine 총수가 아닙니다. 용량·가용 상태·대역폭·IOPS·지연 시계열은 표본 미포함입니다. DAOS/Lustre exporter와 상태 조회 결과를 연결해야 합니다.</p></section>`;
+    return `<section class="panel tb-content" id="${esc(id)}" data-review-key="storage-summary"><h2>Storage cluster summary · 스토리지 구성 요약</h2><p>범위: 선택 클러스터의 표본 전체 · 컴퓨트 POD/랙/노드 필터는 적용하지 않음</p><div class="tb-case-grid">${[['Pool','storage_pool'],['Container','storage_container'],['등록 rank 레코드','storage_target']].map(([n,k])=>`<div><b>${n}</b><p>${count(k)}개</p></div>`).join('')}</div><ul>${a.storage.map(x=>`<li>${esc(x.data.id)} · ${esc(x.data.kind)} · 장비 POD ${esc(x.data.pod||'미등록')}${x.data.attrs?.node?' · '+esc(x.data.attrs.node):''}</li>`).join('')||'<li>표본 내 해당 구성 없음 · 전체 시스템 미존재를 뜻하지 않음</li>'}</ul><p>rank 레코드 수는 물리 target·engine 총수가 아닙니다. 이 등록 자료에는 용량·가용 상태·IOPS·지연 시계열이 없습니다. ⑥의 DAOS 처리량은 별도 관측 영역에서 확인합니다. Lustre와 전체 상태 조회는 추가 연결이 필요합니다.</p></section>`;
   }
   function missingWidgets(screen){
     const cards=[];
@@ -409,6 +409,14 @@
     catch{if(mode==='live'){reviewResources=null;resourceError='중계 조회 실패 · 빈 목록으로 처리하지 않음';}}
     finally{resourceBusy=false;if(mode==='live')render();}
   }
+  let storageFilters={},storageState=null,storageBusy=false,storageSeq=0;
+  async function refreshStorage(){
+    if(mode!=='live'||activeScreen!=='⑥'||storageBusy)return;
+    storageBusy=true;const seq=++storageSeq;
+    try{const r=await fetch('/testbed-api/storage-series',{cache:'no-store',signal:AbortSignal.timeout(35000)});if(!r.ok)throw Error();const v=await r.json();if(seq===storageSeq&&mode==='live')storageState=v;}
+    catch{if(seq===storageSeq&&mode==='live')storageState={status:'error'};}
+    finally{if(seq===storageSeq){storageBusy=false;if(mode==='live'&&activeScreen==='⑥')renderExtra();}}
+  }
   function renderExtra(){
     const requirements=contractWidgets(activeScreen);
     let details='';
@@ -420,6 +428,7 @@
         details=`<section class="panel tb-content"><h2>표본의 물리 노드 목록</h2><p>범위: 표본 전체 · health·할당·관리 제어와 분리</p><div class="tb-table"><table><thead><tr><th>클러스터 / 노드</th><th>장비 POD</th><th>등록 구성</th><th>랙</th><th>상태</th></tr></thead><tbody>${[...nodes.values()].map(xs=>`<tr><td>${esc(xs[0].data.attrs.cluster)} / ${esc(xs[0].data.attrs.node)}</td><td>${esc([...new Set(xs.map(x=>x.data.pod))].join(', '))}</td><td>${esc(xs.map(x=>x.data.kind).join(', '))}</td><td>${esc([...new Set(xs.map(x=>x.data.rack||x.data.attrs.rack||'미등록'))].join(', '))}</td><td>표본 미포함</td></tr>`).join('')||'<tr><td colspan="5">등록 물리 노드 없음</td></tr>'}</tbody></table></div></section>`;
       }
     }
+    if(activeScreen==='⑥')details+=root.GPUFlowStorage.render(mode==='snapshot'?data?.storage_telemetry:storageState,storageFilters,mode);
     if(activeScreen==='⑦')details+=llmPanel();
     if(activeScreen==='⑨')details+=apiList('policies',['policy','name','owner','rule','workload_id','active','updated_ns'])+apiList('policy-history',['id','policy','ts_ns','actor','reason','span_id','attrs']);
     if(activeScreen==='⑬')details+=kpiTable();
@@ -428,6 +437,7 @@
     if(extraBox._markup===markup&&extraBox.querySelector('#tb-show-scenario'))return;
     extraBox.innerHTML=markup;extraBox._markup=markup;
     document.getElementById('tb-show-scenario').onclick=()=>{modeSelect.value='scenario';modeSelect.onchange();};
+    extraBox.querySelectorAll('[data-storage-filter]').forEach(el=>{el.onchange=()=>{storageFilters[el.dataset.storageFilter]=el.value;renderExtra();};});
     const question=document.getElementById('tb-llm-question');if(question){question.onchange=e=>{llmQuestion=e.target.value;llmResult=null;renderExtra();};document.getElementById('tb-llm-scenario').onchange=e=>{llmScenario=e.target.value;llmResult=null;renderExtra();};document.getElementById('tb-llm-run').onclick=requestLlm;}
     root.dispatchEvent(new Event('gpuflow:testbed-render'));
   }
@@ -436,7 +446,7 @@
     let box=document.getElementById('tb-global-scope');if(!box){box=document.createElement('section');box.id='tb-global-scope';box.className='panel tb-content';document.getElementById('tb-toolbar').after(box);}
     box.hidden=mode==='scenario';if(box.hidden)return;
     const g=catalog()?.global_scope;if(!g)return;
-    const html=`<h3>전역 범위 · 관측 모드 지원 상태</h3><div class="tb-filters"><label>물리 범위 <select disabled><option>①의 컴퓨트 필터만 적용</option></select></label><label>Period <select disabled><option>${mode==='snapshot'?'관측 시각 고정':'API 조회 시각 기준'}</option><option>1h / 1m 집계 미제공</option><option>12h / 10m 집계 미제공</option></select></label><label>Role <select disabled><option>서버 인증 범위 · UI 전환 미지원</option></select></label><label>테넌트 <select disabled><option>전역 필터 미연동</option></select></label><label>네임스페이스 <select disabled><option>전역 필터 미연동</option></select></label></div><p>${esc(g.screens[activeScreen])}</p><details><summary>기간·범위·권한·감사 결정 사항</summary>${Object.entries(g).filter(([k])=>k!=='screens').map(([k,v])=>`<p>${esc(k)}: ${esc(v)}</p>`).join('')}</details>`;
+    const html=`<h3>전역 범위 · 관측 모드 지원 상태</h3><div class="tb-filters"><label>물리 범위 <select disabled><option>① 컴퓨트 / ⑥ DAOS 별도 필터</option></select></label><label>Period <select disabled><option>${mode==='snapshot'?'관측 시각 고정':'API 조회 시각 기준'}</option><option>1h / 1m 집계 미제공</option><option>12h / 10m 집계 미제공</option></select></label><label>Role <select disabled><option>서버 인증 범위 · UI 전환 미지원</option></select></label><label>테넌트 <select disabled><option>전역 필터 미연동</option></select></label><label>네임스페이스 <select disabled><option>전역 필터 미연동</option></select></label></div><p>${esc(g.screens[activeScreen])}</p><details><summary>기간·범위·권한·감사 결정 사항</summary>${Object.entries(g).filter(([k])=>k!=='screens').map(([k,v])=>`<p>${esc(k)}: ${esc(v)}</p>`).join('')}</details>`;
     if(box.innerHTML!==html)box.innerHTML=html;
   }
   function render(){
@@ -477,6 +487,7 @@
   async function refresh(){
     if(mode==='scenario'||busy)return;
     if(mode==='snapshot'){data=snapshot;error=data?'':'저장된 표본이 없습니다. 표본을 포함한 outbox 미리보기를 열어 주세요.';render();return;}
+    refreshStorage();
     busy=true;
     try{
       if(location.protocol==='file:')throw Error('실시간 조회는 승인된 내부 미리보기 주소에서 이용하세요. 이 파일에는 저장된 관측이 포함됩니다.');
@@ -486,14 +497,14 @@
     }catch(e){if(mode==='live'){data=null;error=e.message;reviewResources=null;resourceError='현재 조회 실패 · 이전 응답으로 대체하지 않음';}}
     finally{busy=false;render();}
   }
-  modeSelect.onchange=()=>{mode=modeSelect.value;++llmSeq;llmBusy=false;llmResult=null;reviewResources=null;resourceError='';++seriesSequence;seriesBusy=false;seriesState=null;data=null;error='';cluster='';pod='';rack='';node='';const u=new URL(location.href);u.searchParams.set('data',mode);history.replaceState(null,'',u);root.render();refresh();};
+  modeSelect.onchange=()=>{mode=modeSelect.value;++storageSeq;storageBusy=false;storageState=null;storageFilters={};++llmSeq;llmBusy=false;llmResult=null;reviewResources=null;resourceError='';++seriesSequence;seriesBusy=false;seriesState=null;data=null;error='';cluster='';pod='';rack='';node='';const u=new URL(location.href);u.searchParams.set('data',mode);history.replaceState(null,'',u);root.render();refresh();};
   root.addEventListener('gpuflow:catalog-ready',()=>render());
-  root.addEventListener('gpuflow:render',event=>{activeScreen=event.detail.screen;render();});
+  root.addEventListener('gpuflow:render',event=>{activeScreen=event.detail.screen;render();refreshStorage();});
   setInterval(()=>{if(mode!=='scenario')render();},1000);
   setInterval(refresh,5000);
   root.GPUFlowTestbed.isEnabled=()=>mode!=='scenario';
   root.GPUFlowTestbed.draw=render;
   root.GPUFlowTestbed.selectedWorkload=()=>mode!=='scenario'&&['②','③','④'].includes(activeScreen)?selected:null;
   refresh();render();
-  if(mode!=='scenario'&&(selected||new URL(location.href).searchParams.has('screen')))root.go(({overview:'①',path:'③',analysis:'④'})[new URL(location.href).searchParams.get('screen')]||'②');
+  if(mode!=='scenario'&&(selected||new URL(location.href).searchParams.has('screen')))root.go(({overview:'①',path:'③',analysis:'④',storage:'⑥'})[new URL(location.href).searchParams.get('screen')]||'②');
 })(typeof window==='undefined'?globalThis:window);
